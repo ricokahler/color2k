@@ -11,5 +11,6 @@
     "emitDeclarationOnly": true,
     "outDir": "./dist/types"
   },
-  "exclude": ["**/*.test.ts"]
+  "include": ["./src/**/*"],
+  "exclude": ["**/*.test.ts", "./dist"]
 }
