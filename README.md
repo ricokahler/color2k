@@ -1,5 +1,5 @@
-# @ricokahler/color
+# color2k
 
-a lil color util lib with the goal of having a small bundle
+> a color lib with a sticker price of 2kB
 
-Heavy credits goes to polished.js. Much of the implementation of this lib is blantly copied from polished!
+Heavy credits goes to polished.js. Much of the implementation of this lib is blatantly copied from polished!

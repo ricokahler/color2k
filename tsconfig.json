@@ -9,10 +9,14 @@
     "forceConsistentCasingInFileNames": true,
     "declaration": true,
     "emitDeclarationOnly": true,
-    "outDir": "./dist/types",
+    "outDir": "./dist",
     "noUnusedLocals": true,
-    "noUnusedParameters": true
+    "noUnusedParameters": true,
+    "baseUrl": ".",
+    "paths": {
+      "@color2k/*": ["packages/*/src/index.ts"]
+    }
   },
-  "include": ["./src/**/*"],
-  "exclude": ["**/*.test.ts", "./dist"]
+  "include": ["packages/**/*"],
+  "exclude": ["packages/**/*.test.ts"]
 }

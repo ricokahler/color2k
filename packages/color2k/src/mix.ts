@@ -1,8 +1,11 @@
-import parseToRgba from '@ricokahler/parse-to-rgba';
+import parseToRgba from '@color2k/parse-to-rgba';
 import rgba from './rgba';
 
 function mix(color1: string, color2: string, weight: number) {
-  const normalize = (n: number) => n / 255;
+  const normalize = (n: number, index: number) =>
+    // 3rd index is alpha channel which is already normalized
+    index === 3 ? n : n / 255;
+
   const [r1, g1, b1, a1] = parseToRgba(color1).map(normalize);
   const [r2, g2, b2, a2] = parseToRgba(color2).map(normalize);
 

@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "../",
+    "paths": {
+      "@color2k/parse-to-rgba": ["parse-to-rgba/src/index.ts"]
+    }
+  }
+}
