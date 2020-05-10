@@ -11,26 +11,20 @@ function parseToHsla(color: string): [number, number, number, number] {
   const min = Math.min(red, green, blue);
   const lightness = (max + min) / 2;
 
-  if (max === min) {
-    // achromatic
-    return [0, 0, lightness, alpha];
-  }
+  // achromatic
+  if (max === min) return [0, 0, lightness, alpha];
 
   const delta = max - min;
   const saturation =
     lightness > 0.5 ? delta / (2 - max - min) : delta / (max + min);
 
-  let hue: number;
-
-  if (red === max) {
-    hue = (green - blue) / delta + (green < blue ? 6 : 0);
-  } else if (green === max) {
-    hue = (blue - red) / delta + 2;
-  } else {
-    hue = (red - green) / delta + 4;
-  }
-
-  hue *= 60;
+  const hue =
+    60 *
+    (red === max
+      ? (green - blue) / delta + (green < blue ? 6 : 0)
+      : green === max
+      ? (blue - red) / delta + 2
+      : (red - green) / delta + 4);
 
   return [hue, saturation, lightness, alpha];
 }
