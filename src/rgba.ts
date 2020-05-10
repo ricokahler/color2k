@@ -9,11 +9,11 @@ import guard from './guard';
  * @param alpha Percentage of opacity, given as a decimal between 0 and 1
  */
 function rgba(red: number, green: number, blue: number, alpha: number) {
-  return `rgba(${guard(0, 255, red)}, ${guard(0, 255, green)}, ${guard(
+  return `rgba(${guard(0, 255, red).toFixed()}, ${guard(
     0,
     255,
-    blue
-  )}, ${guard(0, 1, alpha)})`;
+    green
+  ).toFixed()}, ${guard(0, 255, blue).toFixed()}, ${guard(0, 1, alpha)})`;
 }
 
 export default rgba;

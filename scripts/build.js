@@ -2,7 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 const { hashElement } = require('folder-hash');
-const { get } = require('lodash');
 
 const args = process.argv.slice(2);
 
