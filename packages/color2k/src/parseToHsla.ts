@@ -1,10 +1,11 @@
 // taken from:
 // https://github.com/styled-components/polished/blob/a23a6a2bb26802b3d922d9c3b67bac3f3a54a310/src/internalHelpers/_rgbToHsl.js
-import parseToRgba from '@ricokahler/parse-to-rgba';
+import parseToRgba from '@color2k/parse-to-rgba';
 
 function parseToHsla(color: string): [number, number, number, number] {
-  const [red, green, blue, alpha] = parseToRgba(color).map(
-    (value) => value / 255
+  const [red, green, blue, alpha] = parseToRgba(color).map((value, index) =>
+    // 3rd index is alpha channel which is already normalized
+    index === 3 ? value : value / 255
   );
 
   const max = Math.max(red, green, blue);

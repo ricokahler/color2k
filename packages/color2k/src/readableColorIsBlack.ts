@@ -1,7 +1,7 @@
 import getLuminance from './getLuminance';
 
-function contrastsWithWhite(color: string) {
+function readableColorIsBlack(color: string) {
   return getLuminance(color) > 0.179;
 }
 
-export default contrastsWithWhite;
+export default readableColorIsBlack;

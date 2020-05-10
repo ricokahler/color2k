@@ -1,4 +1,4 @@
-import parseToRgba from '@ricokahler/parse-to-rgba';
+import parseToRgba from '@color2k/parse-to-rgba';
 const { ColorError } = parseToRgba;
 
 export { default as adjustHue } from './adjustHue';

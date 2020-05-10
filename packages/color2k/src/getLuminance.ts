@@ -1,4 +1,4 @@
-import parseToRgba from '@ricokahler/parse-to-rgba';
+import parseToRgba from '@color2k/parse-to-rgba';
 // taken from:
 // https://github.com/styled-components/polished/blob/0764c982551b487469043acb56281b0358b3107b/src/color/getLuminance.js
 

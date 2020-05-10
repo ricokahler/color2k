@@ -1,0 +1,6 @@
+{
+  "name": "color2k",
+  "description": "a color lib with a sticker price of 2kB",
+  "dependencies": {},
+  "private": true
+}

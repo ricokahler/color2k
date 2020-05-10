@@ -1,0 +1,6 @@
+{
+  "name": "@color2k/node",
+  "description": "parses colors to rgba in a node-safe, non-canvas way",
+  "dependencies": {},
+  "private": true
+}

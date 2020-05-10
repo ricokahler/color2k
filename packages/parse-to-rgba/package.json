@@ -1,0 +1,9 @@
+{
+  "name": "@color2k/parse-to-rgba",
+  "description": "a low-level color parser that uses canvas to parse a colors",
+  "dependencies": {},
+  "peerDependencies": {
+    "@color2k/node": "*"
+  },
+  "private": true
+}

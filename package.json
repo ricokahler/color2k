@@ -1,16 +1,23 @@
 {
-  "name": "@ricokahler/color",
+  "name": "color2k",
   "version": "0.0.0",
-  "description": "a lil color util lib with the goal of having a small bundle",
+  "description": "a color lib with a sticker price of 2kB",
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "build": "node ./scripts/build.js"
+    "build": "node ./scripts/build.js",
+    "check-dependencies": "node ./scripts/check-dependencies.js",
+    "resolve-dependencies": "node ./scripts/resolve-dependencies.js",
+    "publish": "npm run build && node ./script/publish"
   },
   "private": true,
   "author": {
     "email": "ricokahler@me.com",
     "name": "Rico Kahler"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ricokahler/color2k.git"
   },
   "license": "MIT",
   "devDependencies": {
@@ -33,13 +40,17 @@
     "eslint-plugin-react-hooks": "^2.5.1",
     "folder-hash": "^3.3.1",
     "jest": "^26.0.1",
+    "lodash": "^4.17.15",
+    "playwright": "^1.0.1",
     "polished": "^3.6.2",
     "prettier": "^2.0.5",
+    "react": "^16.13.1",
     "rollup": "^2.8.2",
+    "rollup-plugin-strip-code": "^0.2.7",
+    "ts-node": "^8.10.1",
     "typescript": "^3.8.3"
   },
-  "dependencies": {
-    "@ricokahler/parse-to-rgba": "^0.3.2"
-  },
-  "sideEffects": false
+  "peerDependencies": {
+    "@color2k/node": "*"
+  }
 }
