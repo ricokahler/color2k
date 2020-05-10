@@ -8,7 +8,8 @@
     "build": "node ./scripts/build.js",
     "check-dependencies": "node ./scripts/check-dependencies.js",
     "resolve-dependencies": "node ./scripts/resolve-dependencies.js",
-    "publish": "npm run build && node ./script/publish"
+    "publish": "npm run build && node ./scripts/publish",
+    "lint": "eslint packages --ext .ts,.tsx,.js,.jsx"
   },
   "private": true,
   "author": {
