@@ -9,7 +9,10 @@
     "forceConsistentCasingInFileNames": true,
     "declaration": true,
     "emitDeclarationOnly": true,
-    "outDir": "./dist/types"
+    "outDir": "./dist/types",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
   },
-  "exclude": ["**/*.test.ts"]
+  "include": ["./src/**/*"],
+  "exclude": ["**/*.test.ts", "./dist"]
 }

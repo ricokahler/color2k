@@ -4,29 +4,6 @@ import parseToRgba from '@ricokahler/parse-to-rgba';
 
 /**
  * Returns a number (float) representing the luminance of a color.
- *
- * @example
- * // Styles as object usage
- * const styles = {
- *   background: getLuminance('#CCCD64') >= getLuminance('#0000ff') ? '#CCCD64' : '#0000ff',
- *   background: getLuminance('rgba(58, 133, 255, 1)') >= getLuminance('rgba(255, 57, 149, 1)') ?
- *                             'rgba(58, 133, 255, 1)' :
- *                             'rgba(255, 57, 149, 1)',
- * }
- *
- * // styled-components usage
- * const div = styled.div`
- *   background: ${getLuminance('#CCCD64') >= getLuminance('#0000ff') ? '#CCCD64' : '#0000ff'};
- *   background: ${getLuminance('rgba(58, 133, 255, 1)') >= getLuminance('rgba(255, 57, 149, 1)') ?
- *                             'rgba(58, 133, 255, 1)' :
- *                             'rgba(255, 57, 149, 1)'};
- *
- * // CSS in JS Output
- *
- * div {
- *   background: "#CCCD64";
- *   background: "rgba(58, 133, 255, 1)";
- * }
  */
 export default function getLuminance(color: string): number {
   if (color === 'transparent') return 0;
@@ -39,5 +16,5 @@ export default function getLuminance(color: string): number {
   }
 
   const [r, g, b] = parseToRgba(color);
-  return parseFloat((0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b)).toFixed(3));
+  return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
 }

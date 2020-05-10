@@ -13,10 +13,7 @@ export default function getContrast(color1: string, color2: string): number {
   const luminance1 = getLuminance(color1);
   const luminance2 = getLuminance(color2);
 
-  return parseFloat(
-    (luminance1 > luminance2
-      ? (luminance1 + 0.05) / (luminance2 + 0.05)
-      : (luminance2 + 0.05) / (luminance1 + 0.05)
-    ).toFixed(2)
-  );
+  return luminance1 > luminance2
+    ? (luminance1 + 0.05) / (luminance2 + 0.05)
+    : (luminance2 + 0.05) / (luminance1 + 0.05);
 }
