@@ -7,6 +7,7 @@
     "test": "jest",
     "build": "node ./scripts/build.js",
     "check-dependencies": "node ./scripts/check-dependencies.js",
+    "resolve-dependencies": "node ./scripts/resolve-dependencies.js",
     "publish": "npm run build && node ./script/publish"
   },
   "private": true,
@@ -49,5 +50,7 @@
     "ts-node": "^8.10.1",
     "typescript": "^3.8.3"
   },
-  "peerDependencies": {}
+  "peerDependencies": {
+    "@color2k/node": "*"
+  }
 }
