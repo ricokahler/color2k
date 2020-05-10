@@ -16,5 +16,5 @@ export default function getLuminance(color: string): number {
   }
 
   const [r, g, b] = parseToRgba(color);
-  return parseFloat((0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b)).toFixed(3));
+  return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
 }
