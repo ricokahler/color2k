@@ -45,5 +45,6 @@ export default [
       format: 'esm',
       sourcemap: true,
     },
+    external: ['@ricokahler/parse-to-rgba'],
   },
 ];

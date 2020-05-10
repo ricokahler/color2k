@@ -9,6 +9,7 @@ export { default as guard } from './guard';
 export { default as hsla } from './hsla';
 export { default as lighten } from './lighten';
 export { default as lightnessDarken } from './lightnessDarken';
+export { default as opacify } from './opacify';
 export { default as parseToHsla } from './parseToHsla';
 export { default as readableColor } from './readableColor';
 export { default as rgba } from './rgba';

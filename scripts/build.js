@@ -61,6 +61,7 @@ async function main() {
   const packageJson = {
     ...restOfTopLevelPackageJson,
     version,
+    module: './index.esm.js',
     types: './types',
   };
 

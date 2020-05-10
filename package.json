@@ -1,7 +1,7 @@
 {
   "name": "@ricokahler/color",
   "version": "0.0.0",
-  "description": "git ",
+  "description": "a lil color util lib with the goal of having a small bundle",
   "main": "index.js",
   "scripts": {
     "test": "jest",
@@ -40,5 +40,6 @@
   },
   "dependencies": {
     "@ricokahler/parse-to-rgba": "^0.3.1"
-  }
+  },
+  "sideEffects": false
 }
