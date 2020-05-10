@@ -7,6 +7,9 @@ const guidelines = {
   aaa: 7,
 };
 
+/**
+ * Returns whether or not a color has bad contrast according to a given standard
+ */
 function hasBadContrast(
   color: string,
   standard: 'decorative' | 'readable' | 'aa' | 'aaa' = 'aa'

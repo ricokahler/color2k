@@ -1,6 +1,9 @@
 import parseToRgba from '@color2k/parse-to-rgba';
 import rgba from './rgba';
 
+/**
+ * Mixes two colors together. Taken from sass's implementation.
+ */
 function mix(color1: string, color2: string, weight: number) {
   const normalize = (n: number, index: number) =>
     // 3rd index is alpha channel which is already normalized

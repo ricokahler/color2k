@@ -2,6 +2,12 @@
 // https://github.com/styled-components/polished/blob/a23a6a2bb26802b3d922d9c3b67bac3f3a54a310/src/internalHelpers/_rgbToHsl.js
 import parseToRgba from '@color2k/parse-to-rgba';
 
+/**
+ * Parses a color in hue, saturation, lightness, and the alpha channel.
+ *
+ * Hue is a number between 0 and 360, saturation, lightness, and alpha are
+ * decimal percentages between 0 and 1
+ */
 function parseToHsla(color: string): [number, number, number, number] {
   const [red, green, blue, alpha] = parseToRgba(color).map((value, index) =>
     // 3rd index is alpha channel which is already normalized
