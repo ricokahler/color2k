@@ -151,6 +151,34 @@ test('all of them', async () => {
         "returnType": "number",
       },
       Object {
+        "description": "<p>Given a series colors, this function will return a <code>scale(x)</code> function that
+    accepts an percentage as a decimal between 0, 1 and returns the color that
+    in the scale.</p>
+    <pre><code class=\\"js language-js\\">const scale = getScale('red', 'yellow', 'green');
+    console.log(scale(0)); // rgba(255, 0, 0, 1)
+    console.log(scale(0.5)); // rgba(255, 255, 0, 1)
+    console.log(scale(1)); // rgba(0, 128, 0, 1)
+    </code></pre>
+    <p>If you'd like to limit the domain and range like chroma-js, we recommend
+    wrapping scale once more</p>
+    <pre><code class=\\"js language-js\\">const _scale = getScale('red', 'yellow', 'green');
+    const scale = x =&gt; _scale(x / 100);
+
+    console.log(scale(0)); // rgba(255, 0, 0, 1)
+    console.log(scale(50)); // rgba(255, 255, 0, 1)
+    console.log(scale(100)); // rgba(0, 128, 0, 1)
+    </code></pre>",
+        "functionName": "getScale",
+        "id": "get-scale",
+        "params": Array [
+          Object {
+            "name": "colors",
+            "type": "string[]",
+          },
+        ],
+        "returnType": "(n: number) => string",
+      },
+      Object {
         "description": "<p>A simple guard function:</p>
     <pre><code class=\\"js language-js\\">Math.min(Math.max(low, value), high)
     </code></pre>",
