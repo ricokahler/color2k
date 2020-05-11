@@ -29,6 +29,16 @@ If you need to server-side render any colors, you also need to install the node/
 npm i --save @color2k/node
 ```
 
+## Usage
+
+```js
+import { darken, transparentize } from 'color2k';
+
+// e.g.
+darken('blue', 0.1);
+transparentize('red', 0.5);
+```
+
 ## How so small?
 
 There are two secrets that keep this lib especially small:
