@@ -113,6 +113,7 @@ async function main() {
         ...dependencies,
       },
       ...(peerDependencies && { peerDependencies: fixedPeerDeps }),
+      sideEffects: false,
     };
 
     await fs.promises.writeFile(

@@ -3,7 +3,12 @@ import lightnessDarken from './lightnessDarken';
 
 const step = 0.01;
 
-function darken(color: string, amount: number) {
+/**
+ * Darkens the input color by the given amount using brightness
+ *
+ * @param amount the amount to darken, given as a decimal between 0 and 1
+ */
+function darken(color: string, amount: number): string {
   if (amount === 0) return color;
 
   const originalBrightness = getBrightness(color);

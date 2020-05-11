@@ -13,7 +13,7 @@ function hsla(
   saturation: number,
   lightness: number,
   alpha: number
-) {
+): string {
   return `hsla(${hue % 360}, ${guard(
     0,
     100,

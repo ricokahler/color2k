@@ -1,6 +1,6 @@
 {
   "name": "color2k",
-  "description": "a color lib with a sticker price of 2kB",
+  "description": "a color parsing and manipulation lib served in 2kB or less",
   "dependencies": {},
   "private": true
 }

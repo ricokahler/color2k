@@ -4,7 +4,7 @@ require('@babel/register')({
   presets: [
     ['@babel/preset-env', { targets: { node: 'current' } }],
     '@babel/preset-typescript',
+    '@babel/preset-react',
   ],
 });
-
-global.__parseToRgbaNode = require('./packages/node/src').default;
+require('../website/index.tsx').default();
