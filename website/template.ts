@@ -9,7 +9,8 @@ interface Params {
 }
 
 function template({ reactCode, reactHtml, css, docs, readmeHtml }: Params) {
-  return `<html lang="en">
+  return `<!DOCTYPE html>
+  <html lang="en">
     <head>
       <meta charset="utf-8" />
       <meta
