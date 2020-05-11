@@ -3,8 +3,8 @@ import guard from './guard';
 
 /**
  * Given a series colors, this function will return a `scale(x)` function that
- * accepts an percentage as a decimal between 0, 1 and returns the color that
- * in the scale.
+ * accepts a percentage as a decimal between 0 and 1 and returns the color at
+ * that percentage in the scale.
  *
  * ```js
  * const scale = getScale('red', 'yellow', 'green');
@@ -14,7 +14,7 @@ import guard from './guard';
  * ```
  *
  * If you'd like to limit the domain and range like chroma-js, we recommend
- * wrapping scale once more
+ * wrapping scale again.
  *
  * ```js
  * const _scale = getScale('red', 'yellow', 'green');

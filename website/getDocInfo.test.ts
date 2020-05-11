@@ -152,15 +152,15 @@ test('all of them', async () => {
       },
       Object {
         "description": "<p>Given a series colors, this function will return a <code>scale(x)</code> function that
-    accepts an percentage as a decimal between 0, 1 and returns the color that
-    in the scale.</p>
+    accepts a percentage as a decimal between 0 and 1 and returns the color at
+    that percentage in the scale.</p>
     <pre><code class=\\"js language-js\\">const scale = getScale('red', 'yellow', 'green');
     console.log(scale(0)); // rgba(255, 0, 0, 1)
     console.log(scale(0.5)); // rgba(255, 255, 0, 1)
     console.log(scale(1)); // rgba(0, 128, 0, 1)
     </code></pre>
     <p>If you'd like to limit the domain and range like chroma-js, we recommend
-    wrapping scale once more</p>
+    wrapping scale again.</p>
     <pre><code class=\\"js language-js\\">const _scale = getScale('red', 'yellow', 'green');
     const scale = x =&gt; _scale(x / 100);
 
