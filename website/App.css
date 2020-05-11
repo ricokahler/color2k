@@ -228,6 +228,8 @@ pre {
   background-color: #f3f3f3;
   padding: 1rem;
   border-radius: 4px;
+  max-width: 100%;
+  overflow: auto;
 }
 
 .api-docs-start {
