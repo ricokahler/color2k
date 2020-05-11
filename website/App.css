@@ -204,6 +204,10 @@ a {
   text-align: center;
 }
 
+.readme h1 a {
+  text-decoration: none;
+}
+
 .readme table {
   width: 100%;
 }
