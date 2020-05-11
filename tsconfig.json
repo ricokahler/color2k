@@ -18,6 +18,6 @@
       "@color2k/*": ["packages/*/src/index.ts"]
     }
   },
-  "include": ["packages/**/*", "website/**/*"],
+  "include": ["packages/**/*"],
   "exclude": ["packages/**/*.test.ts"]
 }
