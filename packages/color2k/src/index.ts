@@ -7,6 +7,7 @@ export { default as desaturate } from './desaturate';
 export { default as getBrightness } from './getBrightness';
 export { default as getContrast } from './getContrast';
 export { default as getLuminance } from './getLuminance';
+export { default as getScale } from './getScale';
 export { default as guard } from './guard';
 export { default as hasBadContrast } from './hasBadContrast';
 export { default as hsla } from './hsla';

@@ -67,11 +67,11 @@ describe('node', () => {
   });
 });
 
-const browserTypes = [
-  'chromium' as 'chromium',
-  'firefox' as 'firefox',
-  'webkit' as 'webkit',
-];
+const browserTypes =
+  // only run in CI
+  process.env.CI === 'true'
+    ? ['chromium' as 'chromium', 'firefox' as 'firefox', 'webkit' as 'webkit']
+    : [];
 
 for (const browserType of browserTypes) {
   // eslint-disable-next-line no-loop-func
