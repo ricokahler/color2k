@@ -21,7 +21,9 @@ function App({ docs, readmeHtml }: Props) {
           <a className="logo" href="/">
             <h1>color2k</h1>
           </a>
-          <label className="search-label" htmlFor="search">Search</label>
+          <label className="search-label" htmlFor="search">
+            Search
+          </label>
           <input
             id="search"
             autoFocus
@@ -143,7 +145,11 @@ function App({ docs, readmeHtml }: Props) {
                 <small>
                   <a
                     className="go-to-implementation"
-                    href={`https://github.com/ricokahler/color2k/blob/master/packages/color2k/src/${functionName}.ts`}
+                    href={
+                      id === 'parse-to-rgba'
+                        ? 'https://github.com/ricokahler/color2k/blob/master/packages/parse-to-rgba/src/index.ts'
+                        : `https://github.com/ricokahler/color2k/blob/master/packages/color2k/src/${functionName}.ts`
+                    }
                   >
                     Go to implementation →
                   </a>

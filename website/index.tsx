@@ -42,6 +42,21 @@ async function render() {
       console.warn(`Failed to create doc for ${file}. ${e.message}`);
     }
   }
+  // this one has to be hard-coded because it's re-exported
+  docs.push({
+    functionName: 'parseToRgba',
+    description:
+      '<p>Takes in any color and parses it in to red, green, blue, and alpha channels.</p><p>The red, green, and blue channels have values between 0 and 255. The alpha channel is returned as a decimal between 0 and 1.</p>',
+    params: [
+      {
+        name: 'color',
+        type: 'string',
+      },
+    ],
+    returnType: '[number, number, number, number]',
+    id: 'parse-to-rgba',
+  });
+  docs.sort((a, b) => a.functionName.localeCompare(b.functionName));
 
   // get readme markdown
   let readme = (
