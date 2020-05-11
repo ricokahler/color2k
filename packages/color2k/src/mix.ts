@@ -4,7 +4,7 @@ import rgba from './rgba';
 /**
  * Mixes two colors together. Taken from sass's implementation.
  */
-function mix(color1: string, color2: string, weight: number) {
+function mix(color1: string, color2: string, weight: number): string {
   const normalize = (n: number, index: number) =>
     // 3rd index is alpha channel which is already normalized
     index === 3 ? n : n / 255;

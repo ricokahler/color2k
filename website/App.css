@@ -1,3 +1,236 @@
-.test {
-  display: grid;
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
+    Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+}
+
+:root {
+  font-size: 16px;
+}
+
+a {
+  color: inherit;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.header {
+  top: 0;
+  position: sticky;
+  display: flex;
+  align-items: center;
+  background-color: white;
+  border-bottom: 1px solid lightgray;
+  height: 72px;
+}
+
+.github-link {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: black;
+  padding: 4px;
+  border-radius: 99999px;
+}
+
+.github-link:hover {
+  background-color: lightgray;
+}
+
+.header-content {
+  padding: 0.5rem 1rem;
+  margin: auto;
+  display: flex;
+  width: 640px;
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  color: inherit;
+  text-decoration: none;
+}
+
+.logo h1 {
+  flex: 0 0 auto;
+  font-size: 32px;
+  margin: 0;
+  margin-right: 1rem;
+}
+
+.search {
+  flex: 1 1 auto;
+  width: 640px;
+  border: 1px solid lightgray;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-right: 1rem;
+}
+
+@media (max-width: 425px) {
+  .search {
+    display: none;
+  }
+}
+
+.nav {
+  position: fixed;
+  top: 72px;
+  max-height: calc(100vh - 72px);
+  overflow: auto;
+  padding: 1rem;
+}
+
+@media (max-width: 1024px) {
+  .nav {
+    display: none;
+  }
+}
+
+.list {
+  margin-top: 3rem;
+  list-style-type: none;
+  padding: 0;
+}
+
+.list > * + * {
+  margin-top: 0.5rem;
+}
+
+.h2 {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.nav-link {
+  color: #444;
+  text-decoration: none;
+}
+
+.nav-link strong {
+  color: black;
+}
+
+.nav-link:hover {
+  text-decoration: underline;
+}
+
+.main {
+  margin-bottom: 3rem;
+}
+
+.readme {
+  margin: 0 auto;
+  margin-top: 3rem;
+  padding: 1rem;
+  width: 640px;
+  max-width: 100%;
+}
+
+.empty-state {
+  margin: 0 auto;
+  margin-top: 3rem;
+  padding: 1rem;
+  width: 640px;
+  max-width: 100%;
+  display: flex;
+  text-align: center;
+}
+
+.empty-state-text {
+  font-size: 32px;
+  text-align: center;
+  margin: auto;
+}
+
+.card {
+  margin: 0 auto;
+  margin-top: 3rem;
+  padding: 1rem;
+  width: 640px;
+  max-width: 100%;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  scroll-margin-top: 88px;
+}
+
+@media (max-width: 640px) {
+  .card {
+    box-shadow: none;
+    border: none;
+    border-bottom: 1px solid lightgray;
+    margin-top: 0;
+  }
+}
+
+.function-name {
+  margin: 0;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.function-name a {
+  text-decoration: none;
+}
+
+@media (max-width: 425px) {
+  .function-name {
+    font-size: 18px;
+  }
+}
+
+.function-identifier {
+  color: midnightblue;
+}
+
+.return-type {
+  color: cadetblue;
+}
+
+.readme h1 {
+  font-size: 72px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.readme table {
+  width: 100%;
+}
+
+blockquote {
+  border-left: 5px solid lightgray;
+  margin: 0;
+  padding: 0 2rem;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.25rem 0.5rem;
+}
+
+pre {
+  background-color: #f3f3f3;
+  padding: 1rem;
+  border-radius: 4px;
+}
+
+.api-docs-start {
+  scroll-margin-top: 88px;
+}
+
+.spacer {
+  height: 80vh;
+}
+
+.go-to-implementation {
+  color: inherit;
+  margin-top: 1.5rem;
+  padding: 0.5rem;
+}
+
+.card-table {
+  margin-bottom: 1rem;
 }

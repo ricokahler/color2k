@@ -13,7 +13,7 @@ const guidelines = {
 function hasBadContrast(
   color: string,
   standard: 'decorative' | 'readable' | 'aa' | 'aaa' = 'aa'
-) {
+): boolean {
   return getContrast(color, '#fff') < guidelines[standard];
 }
 

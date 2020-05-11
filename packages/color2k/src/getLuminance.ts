@@ -5,7 +5,7 @@ import parseToRgba from '@color2k/parse-to-rgba';
 /**
  * Returns a number (float) representing the luminance of a color.
  */
-export default function getLuminance(color: string): number {
+function getLuminance(color: string): number {
   if (color === 'transparent') return 0;
 
   function f(x: number) {
@@ -18,3 +18,5 @@ export default function getLuminance(color: string): number {
   const [r, g, b] = parseToRgba(color);
   return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
 }
+
+export default getLuminance;

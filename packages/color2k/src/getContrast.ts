@@ -6,7 +6,7 @@ import getLuminance from './getLuminance';
  * Returns the contrast ratio between two colors based on
  * [W3's recommended equation for calculating contrast](http://www.w3.org/TR/WCAG20/#contrast-ratiodef).
  */
-export default function getContrast(color1: string, color2: string): number {
+function getContrast(color1: string, color2: string): number {
   const luminance1 = getLuminance(color1);
   const luminance2 = getLuminance(color2);
 
@@ -14,3 +14,5 @@ export default function getContrast(color1: string, color2: string): number {
     ? (luminance1 + 0.05) / (luminance2 + 0.05)
     : (luminance2 + 0.05) / (luminance1 + 0.05);
 }
+
+export default getContrast;

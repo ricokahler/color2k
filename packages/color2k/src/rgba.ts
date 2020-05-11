@@ -8,7 +8,7 @@ import guard from './guard';
  * @param blue The amount of blue in the red channel, given in a number between 0 and 255 inclusive
  * @param alpha Percentage of opacity, given as a decimal between 0 and 1
  */
-function rgba(red: number, green: number, blue: number, alpha: number) {
+function rgba(red: number, green: number, blue: number, alpha: number): string {
   return `rgba(${guard(0, 255, red).toFixed()}, ${guard(
     0,
     255,

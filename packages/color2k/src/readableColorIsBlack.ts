@@ -5,7 +5,7 @@ import getLuminance from './getLuminance';
  * readable color (i.e. the color to be place on top the input color) should be
  * black.
  */
-function readableColorIsBlack(color: string) {
+function readableColorIsBlack(color: string): boolean {
   return getLuminance(color) > 0.179;
 }
 

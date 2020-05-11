@@ -7,7 +7,7 @@ import hsla from './hsla';
  * 
  * @param amount the amount to darken, given as a decimal between 0 and 1
  */
-function lightnessDarken(color: string, amount: number) {
+function lightnessDarken(color: string, amount: number): string {
   const [hue, saturation, lightness, alpha] = parseToHsla(color);
   return hsla(hue, saturation, lightness - amount, alpha);
 }

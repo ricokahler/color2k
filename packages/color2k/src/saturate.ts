@@ -7,7 +7,7 @@ import desaturate from './desaturate';
  * @param color the input color
  * @param amount the amount to darken, given as a decimal between 0 and 1
  */
-function saturate(color: string, amount: number) {
+function saturate(color: string, amount: number): string {
   return desaturate(color, -amount);
 }
 
