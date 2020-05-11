@@ -72,6 +72,10 @@ a {
   .search {
     display: none;
   }
+
+  .search-label {
+    display: none;
+  }
 }
 
 .nav {
@@ -88,20 +92,25 @@ a {
   }
 }
 
-.list {
+.jump-to {
+  margin: 0;
   margin-top: 3rem;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.search-label {
+  margin-right: 1rem;
+  flex: 0 0 auto;
+}
+
+.list {
   list-style-type: none;
   padding: 0;
 }
 
 .list > * + * {
   margin-top: 0.5rem;
-}
-
-.h2 {
-  font-size: 18px;
-  font-weight: bold;
-  margin: 0;
 }
 
 .nav-link {

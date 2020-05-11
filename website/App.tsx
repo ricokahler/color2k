@@ -21,7 +21,9 @@ function App({ docs, readmeHtml }: Props) {
           <a className="logo" href="/">
             <h1>color2k</h1>
           </a>
+          <label className="search-label" htmlFor="search">Search</label>
           <input
+            id="search"
             autoFocus
             className="search"
             value={value}
@@ -56,8 +58,8 @@ function App({ docs, readmeHtml }: Props) {
       </header>
 
       <nav className="nav">
+        <h2 className="jump-to">Jump to</h2>
         <ul className="list">
-          <h2 className="h2">Jump to</h2>
           {docs.map(({ functionName, id }) => {
             const index = functionName
               .toLowerCase()
