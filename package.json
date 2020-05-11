@@ -1,6 +1,6 @@
 {
   "name": "color2k",
-  "version": "0.0.0",
+  "version": "1.0.0-rc.1",
   "description": "a color parsing and manipulation lib served in 2kB or less",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,7 @@
     "build": "node ./scripts/build.js",
     "check-dependencies": "node ./scripts/check-dependencies.js",
     "resolve-dependencies": "node ./scripts/resolve-dependencies.js",
-    "publish": "npm run build && node ./scripts/publish",
+    "publish": "node ./scripts/publish",
     "lint": "eslint packages --ext .ts,.tsx,.js,.jsx",
     "website": "node ./scripts/website.js"
   },
