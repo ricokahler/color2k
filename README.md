@@ -1,4 +1,4 @@
-# color2k
+# color2k · ![https://badgen.net/bundlephobia/minzip/color2k](https://badgen.net/bundlephobia/minzip/color2k)
 
 > a color parsing and manipulation lib served in 2kB or less (1.4kB to be more precise)
 

@@ -33,7 +33,7 @@ test('red', () => {
   `);
 });
 
-test.only('with alpha', () => {
+test('with alpha', () => {
   expect(parseToHsla('rgba(255, 255, 255, 0.5)')).toMatchInlineSnapshot(`
     Array [
       0,
