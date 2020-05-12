@@ -39,12 +39,12 @@ darken('blue', 0.1);
 transparentize('red', 0.5);
 ```
 
-You can also chain together color functions with `vary`:
+You can also chain together color functions with `chain`:
 
 ```js
-import { darken, transparentize, vary } from 'color2k';
+import { darken, transparentize, chain } from 'color2k';
 
-vary('red', [
+chain('red', [
   [darken, 0.1],
   [transparentize, 0.1],
 ]);

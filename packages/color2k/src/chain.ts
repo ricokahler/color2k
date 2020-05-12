@@ -6,9 +6,9 @@ type ColorOperation = [ColorFn, ...any[]];
  * result.
  *
  * ```js
- * import { vary, darken, adjustHue, mix } from 'color2k';
+ * import { chain, darken, adjustHue, mix } from 'color2k';
  *
- * const result = vary('red', [
+ * const result = chain('red', [
  *  [darken, 0.1],
  *  [adjustHue, 180],
  *  [mix, 'white', 0.3],
@@ -19,8 +19,8 @@ type ColorOperation = [ColorFn, ...any[]];
  *
  * @param operations an array of color function, color arguments tuples
  */
-function vary(color: string, operations: ColorOperation[]): string {
+function chain(color: string, operations: ColorOperation[]): string {
   return operations.reduce((color, [fn, ...args]) => fn(color, ...args), color);
 }
 
-export default vary;
+export default chain;

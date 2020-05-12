@@ -2,6 +2,7 @@ import parseToRgba from '@color2k/parse-to-rgba';
 const { ColorError } = parseToRgba;
 
 export { default as adjustHue } from './adjustHue';
+export { default as chain } from './chain';
 export { default as darken } from './darken';
 export { default as desaturate } from './desaturate';
 export { default as getBrightness } from './getBrightness';
@@ -21,5 +22,4 @@ export { default as readableColorIsBlack } from './readableColorIsBlack';
 export { default as rgba } from './rgba';
 export { default as saturate } from './saturate';
 export { default as transparentize } from './transparentize';
-export { default as vary } from './vary';
 export { parseToRgba, ColorError };
