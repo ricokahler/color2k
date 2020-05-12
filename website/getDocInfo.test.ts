@@ -424,6 +424,34 @@ test('all of them', async () => {
         ],
         "returnType": "string",
       },
+      Object {
+        "description": "<p>Given a color and an array of operations, this function returns the combined
+    result.</p>
+    <pre><code class=\\"js language-js\\">import { vary, darken, adjustHue, mix } from 'color2k';
+
+    const result = vary('red', [
+      [darken, 0.1],
+      [adjustHue, 180],
+      [mix, 'white', 0.3],
+    ]);
+
+    console.log(result); // rgba(77, 219, 219, 1)
+    </code></pre>",
+        "functionName": "vary",
+        "id": "vary",
+        "params": Array [
+          Object {
+            "name": "color",
+            "type": "string",
+          },
+          Object {
+            "description": "an array of color function, color arguments tuples",
+            "name": "operations",
+            "type": "ColorOperation[]",
+          },
+        ],
+        "returnType": "string",
+      },
     ]
   `);
 });

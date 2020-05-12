@@ -39,6 +39,17 @@ darken('blue', 0.1);
 transparentize('red', 0.5);
 ```
 
+You can also chain together color functions with `vary`:
+
+```js
+import { darken, transparentize, vary } from 'color2k';
+
+vary('red', [
+  [darken, 0.1],
+  [transparentize, 0.1],
+]);
+```
+
 ## How so small?
 
 There are two secrets that keep this lib especially small:

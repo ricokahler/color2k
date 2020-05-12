@@ -21,4 +21,5 @@ export { default as readableColorIsBlack } from './readableColorIsBlack';
 export { default as rgba } from './rgba';
 export { default as saturate } from './saturate';
 export { default as transparentize } from './transparentize';
+export { default as vary } from './vary';
 export { parseToRgba, ColorError };
