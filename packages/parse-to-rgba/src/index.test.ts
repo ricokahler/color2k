@@ -47,11 +47,11 @@ describe('node', () => {
   });
 
   test('rgba full transparent', () => {
-    expect(parseToRgba('rgba(255, 255, 255, 0)')).toEqual([0, 0, 0, 0]);
+    expect(parseToRgba('rgba(255, 255, 255, 0)')).toEqual([255, 255, 255, 0]);
   });
 
   test('hsla full transparent', () => {
-    expect(parseToRgba('hsla(0, 100%, 100%, 0)')).toEqual([0, 0, 0, 0]);
+    expect(parseToRgba('hsla(0, 100%, 100%, 0)')).toEqual([255, 255, 255, 0]);
   });
 
   test('transparent', () => {
@@ -102,7 +102,7 @@ for (const browserType of browserTypes) {
 
     test('hex w/ alpha', async () => {
       const result = await page.evaluate("parseToRgba('#0000ffaa')");
-      expect(result).toEqual([0, 0, 255, 2 / 3]);
+      expect(result).toEqual([0, 0, 255, 0.667]);
     });
 
     test('hsl', async () => {
@@ -119,21 +119,21 @@ for (const browserType of browserTypes) {
       const result = await page.evaluate(
         "parseToRgba('rgba(255, 255, 255, 0.5)')"
       );
-      expect(result).toEqual([255, 255, 255, 128 / 255]);
+      expect(result).toEqual([255, 255, 255, 0.5]);
     });
 
     test('rgba full transparent', async () => {
       const result = await page.evaluate(
         "parseToRgba('rgba(255, 255, 230, 0)')"
       );
-      expect(result).toEqual([0, 0, 0, 0]);
+      expect(result).toEqual([255, 255, 230, 0]);
     });
 
     test('hsla full transparent', async () => {
       const result = await page.evaluate(
         "parseToRgba('hsla(0, 100%, 100%, 0)')"
       );
-      expect(result).toEqual([0, 0, 0, 0]);
+      expect(result).toEqual([255, 255, 255, 0]);
     });
 
     test('transparent', async () => {
@@ -146,8 +146,6 @@ for (const browserType of browserTypes) {
       try {
         await page.evaluate("parseToRgba('not real')");
       } catch {
-        // the error messages differen from browser to browser so this will
-        // have to do
         caught = true;
       }
 
