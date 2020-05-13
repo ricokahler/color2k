@@ -14,6 +14,6 @@ test('existing transparency', () => {
 
 test('complete transparency', () => {
   expect(transparentize('rgba(255, 255, 255, 0)', 0.1)).toMatchInlineSnapshot(
-    `"rgba(0, 0, 0, 0)"`
+    `"rgba(255, 255, 255, 0)"`
   );
 });
