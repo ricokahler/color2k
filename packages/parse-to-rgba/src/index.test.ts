@@ -146,8 +146,6 @@ for (const browserType of browserTypes) {
       try {
         await page.evaluate("parseToRgba('not real')");
       } catch {
-        // the error messages differen from browser to browser so this will
-        // have to do
         caught = true;
       }
 
