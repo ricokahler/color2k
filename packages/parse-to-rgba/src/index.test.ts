@@ -69,7 +69,7 @@ describe('node', () => {
 
 const browserTypes =
   // only run in CI
-  true
+  process.env.CI === 'true'
     ? ['chromium' as 'chromium', 'firefox' as 'firefox', 'webkit' as 'webkit']
     : [];
 
