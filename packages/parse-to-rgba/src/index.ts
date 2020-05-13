@@ -4,20 +4,24 @@ const cache: {
   [color: string]: [number, number, number, number];
 } = {};
 
-let ctx: CanvasRenderingContext2D | null = null;
+let div: HTMLDivElement | null = null;
 
-function getContext() {
-  const canvas = document.createElement('canvas');
-  canvas.width = 1;
-  canvas.height = 1;
-  return canvas.getContext('2d');
+function createDiv() {
+  const div = document.createElement('div');
+  div.classList.add('color2k-parser');
+  div.style.opacity = '0';
+  div.style.pointerEvents = 'none';
+  div.style.position = 'fixed';
+  // div must be mounted for `getComputedStyle` to work
+  document.body.appendChild(div);
+  return div;
 }
 
 /**
- * Parses a color using canvas
+ * Parses a color using `getComputedStyle`
  *
- * Idea from `@Alnitak` this stackoverflow answer:
- * https://stackoverflow.com/a/19366389/5776910
+ * Idea from `Niet the Dark Absol`'s stackoverflow answer:
+ * https://stackoverflow.com/a/11068286/5776910
  */
 function parseToRgba(color: string): [number, number, number, number] {
   // for node-environments, we'll use @color2k/node
@@ -34,46 +38,31 @@ function parseToRgba(color: string): [number, number, number, number] {
   // normalize the color
   const normalizedColor = color.toLowerCase().trim();
 
-  if (cache[normalizedColor]) {
-    return cache[normalizedColor];
+  if (cache[normalizedColor]) return cache[normalizedColor];
+
+  div = div || createDiv();
+
+  div.style.color = '#000';
+  div.style.color = normalizedColor;
+  const control = getComputedStyle(div).color;
+
+  div.style.color = '#fff';
+  div.style.color = normalizedColor;
+  const computedColor = getComputedStyle(div).color;
+
+  if (computedColor !== control) throw new ColorError(color);
+
+  const result = computedColor
+    .replace(/[^\d.,]/g, '')
+    .split(',')
+    .map(parseFloat) as [number, number, number, number];
+
+  if (result.length < 4) {
+    result.push(1);
   }
 
-  ctx = ctx || getContext();
-
-  if (!ctx) {
-    throw new Error('Failed to get 2D context');
-  }
-
-  ctx.clearRect(0, 0, 1, 1);
-  // In order to detect invalid values,
-  // we can't rely on col being in the same format as what fillStyle is computed as,
-  // but we can ask it to implicitly compute a normalized value twice and compare.
-  // https://stackoverflow.com/a/19366389/5776910
-  ctx.fillStyle = '#000';
-  ctx.fillStyle = normalizedColor;
-  const computed = ctx.fillStyle;
-  ctx.fillStyle = '#fff';
-  ctx.fillStyle = normalizedColor;
-
-  if (computed !== ctx.fillStyle) {
-    throw new ColorError(color);
-  }
-
-  ctx.fillRect(0, 0, 1, 1);
-  const result = Array.from(ctx.getImageData(0, 0, 1, 1).data) as [
-    number,
-    number,
-    number,
-    number
-  ];
-  const withNormalizedAlpha = [...result.slice(0, 3), result[3] / 255] as [
-    number,
-    number,
-    number,
-    number
-  ];
-  cache[normalizedColor] = withNormalizedAlpha;
-  return withNormalizedAlpha;
+  cache[normalizedColor] = result;
+  return result;
 }
 
 parseToRgba.ColorError = ColorError;

@@ -41,7 +41,6 @@ function parseToRgbaNode(color: string): [number, number, number, number] {
     const g = parseInt(`${normalizedColor[3]}${normalizedColor[4]}`, 16);
     const b = parseInt(`${normalizedColor[5]}${normalizedColor[6]}`, 16);
     const a = parseInt(`${normalizedColor[7]}${normalizedColor[8]}`, 16) / 255;
-    if (a === 0) return [0, 0, 0, 0];
     return [r, g, b, a];
   }
 
@@ -57,7 +56,6 @@ function parseToRgbaNode(color: string): [number, number, number, number] {
     const g = parseInt(`${normalizedColor[2]}${normalizedColor[2]}`, 16);
     const b = parseInt(`${normalizedColor[3]}${normalizedColor[3]}`, 16);
     const a = parseInt(`${normalizedColor[4]}${normalizedColor[4]}`, 16) / 255;
-    if (a === 0) return [0, 0, 0, 0];
     return [r, g, b, a];
   }
 
@@ -75,7 +73,6 @@ function parseToRgbaNode(color: string): [number, number, number, number] {
     const g = parseInt(`${rgbaMatched[2]}`, 10);
     const b = parseInt(`${rgbaMatched[3]}`, 10);
     const a = parseFloat(`${rgbaMatched[4]}`);
-    if (a === 0) return [0, 0, 0, 0];
     return [r, g, b, a];
   }
 
@@ -107,7 +104,6 @@ function parseToRgbaNode(color: string): [number, number, number, number] {
     const g = parseInt(`${hslRgbMatched[2]}`, 10);
     const b = parseInt(`${hslRgbMatched[3]}`, 10);
     const a = parseFloat(`${hslaMatched[4]}`);
-    if (a === 0) return [0, 0, 0, 0];
     return [r, g, b, a];
   }
 
