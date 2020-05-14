@@ -1,10 +1,30 @@
+html {
+  background: #111;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
     Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+  color: #ddd;
+  background: #181818;
+  line-height: 1.5;
 }
 
 :root {
   font-size: 16px;
+}
+
+code {
+  font-family: Consolas, monospace;
+  background-color: #333;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+pre code {
+  padding: 0;
+  background-color: transparent;
+  border-radius: 0;
 }
 
 a {
@@ -20,21 +40,20 @@ a {
   position: sticky;
   display: flex;
   align-items: center;
-  background-color: white;
-  border-bottom: 1px solid lightgray;
+  background-color: #111;
   height: 72px;
 }
 
 .github-link {
   flex: 0 0 auto;
   margin-left: auto;
-  color: black;
+  color: inherit;
   padding: 4px;
   border-radius: 99999px;
 }
 
 .github-link:hover {
-  background-color: lightgray;
+  background-color: #222;
 }
 
 .header-content {
@@ -62,7 +81,9 @@ a {
 .search {
   flex: 1 1 auto;
   width: 640px;
-  border: 1px solid lightgray;
+  background-color: #333;
+  color: inherit;
+  border: none;
   border-radius: 4px;
   padding: 1rem;
   margin-right: 1rem;
@@ -114,12 +135,12 @@ a {
 }
 
 .nav-link {
-  color: #444;
+  color: #ccc;
   text-decoration: none;
 }
 
 .nav-link strong {
-  color: black;
+  color: #fff;
 }
 
 .nav-link:hover {
@@ -160,16 +181,17 @@ a {
   padding: 1rem;
   width: 640px;
   max-width: 100%;
-  border: 1px solid #eee;
   border-radius: 4px;
   scroll-margin-top: 88px;
+  background-color: #222;
 }
 
 @media (max-width: 640px) {
   .card {
     box-shadow: none;
     border: none;
-    border-bottom: 1px solid lightgray;
+    background: none;
+    border-bottom: 1px solid #333;
     margin-top: 0;
   }
 }
@@ -191,7 +213,7 @@ a {
 }
 
 .function-identifier {
-  color: midnightblue;
+  color: dodgerblue;
 }
 
 .return-type {
@@ -225,7 +247,7 @@ td {
 }
 
 pre {
-  background-color: #f3f3f3;
+  background-color: #222;
   padding: 1rem;
   border-radius: 4px;
   max-width: 100%;
@@ -248,4 +270,17 @@ pre {
 
 .card-table {
   margin-bottom: 1rem;
+}
+
+.repl {
+  margin: 0 auto;
+  background-color: black;
+  display: block;
+  width: 640px;
+  max-width: 100%;
+  border: none;
+  resize: vertical;
+  color: inherit;
+  font-family: Consolas, monospace;
+  padding: 1rem;
 }

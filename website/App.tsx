@@ -96,6 +96,9 @@ function App({ docs, readmeHtml }: Props) {
           className="readme"
           dangerouslySetInnerHTML={{ __html: readmeHtml }}
         />
+
+        {/* <textarea className="repl" rows={20} /> */}
+
         <div className="api-docs-start" />
         {Boolean(value) && filtered.length > 0 && (
           <div className="card">ℹ Showing filtered results</div>
