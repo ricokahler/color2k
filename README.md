@@ -25,7 +25,7 @@ npm i --save color2k
 If you need to server-side render any colors, you also need to install the node/ssr compatibility package.
 
 ```bash
-# only needed in SSR environments (e.g. gatsby, next.js)
+# needed in non-browser environments (e.g. gatsby, next.js)
 npm i --save @color2k/compat
 ```
 
