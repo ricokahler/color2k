@@ -2,12 +2,6 @@ import parseToRgba from '@color2k/parse-to-rgba';
 import hslToRgb from './hslToRgb';
 import nameToHex from './nameToHex';
 
-// import type { RgbColor, RgbaColor } from '../types/color';
-
-// function parseToRgbaNode(color: string): [number, number, number, number] {
-//   throw new parseToRgba.ColorError(color);
-// }
-
 const { ColorError } = parseToRgba;
 
 const hexRegex = /^#[a-fA-F0-9]{6}$/;

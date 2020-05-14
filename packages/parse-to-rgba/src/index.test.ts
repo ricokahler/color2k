@@ -1,19 +1,35 @@
 import parseToRgba from './';
 import playwright, { Page, Browser } from 'playwright';
+import { JSDOM, DOMWindow } from 'jsdom';
 // @ts-ignore
 import rollupConfig from '../../../rollup.config';
 const rollup = require('rollup');
 
+/** this is color2k as a UMD string build */
 let script: string;
+/** this is color2kCompat as a UMD string build */
+let compatScript: string;
 
 beforeAll(async () => {
-  const [umdConfig] = rollupConfig;
-  const build = await rollup.rollup(umdConfig);
-  const { output } = await build.generate(umdConfig.output);
-  expect(output.length).toBe(1);
-  const [chunk] = output;
-  const { code } = chunk;
-  script = code;
+  await (async () => {
+    const [umdConfig] = rollupConfig;
+    const build = await rollup.rollup(umdConfig);
+    const { output } = await build.generate(umdConfig.output);
+    expect(output.length).toBe(1);
+    const [chunk] = output;
+    const { code } = chunk;
+    script = code;
+  })();
+
+  await (async () => {
+    const umdConfig = rollupConfig[2];
+    const build = await rollup.rollup(umdConfig);
+    const { output } = await build.generate(umdConfig.output);
+    expect(output.length).toBe(1);
+    const [chunk] = output;
+    const { code } = chunk;
+    compatScript = code;
+  })();
 });
 
 describe('node', () => {
@@ -64,6 +80,73 @@ describe('node', () => {
     }).toThrowErrorMatchingInlineSnapshot(
       `"Failed to parse color: \\"not real\\""`
     );
+  });
+});
+
+describe('jsdom', () => {
+  let jsDomWindow: DOMWindow;
+
+  beforeEach(() => {
+    const jsdom = new JSDOM('', { runScripts: 'outside-only' });
+    jsDomWindow = jsdom.window;
+    jsDomWindow.eval(script);
+    jsDomWindow.eval(compatScript);
+  });
+
+  test('named colors', () => {
+    const result = jsDomWindow.eval("parseToRgba('red')");
+    expect(result).toEqual([255, 0, 0, 1]);
+  });
+
+  test('hex', () => {
+    const result = jsDomWindow.eval("parseToRgba('#00f')");
+    expect(result).toEqual([0, 0, 255, 1]);
+  });
+
+  test('hex w/ alpha', () => {
+    const result = jsDomWindow.eval("parseToRgba('#0000ffaa')");
+    expect(result).toEqual([0, 0, 255, 2 / 3]);
+  });
+
+  test('hsl', () => {
+    const result = jsDomWindow.eval("parseToRgba('hsl(0, 50%, 50%)')");
+    expect(result).toEqual([191, 64, 64, 1]);
+  });
+
+  test('hsl white', () => {
+    const result = jsDomWindow.eval("parseToRgba('hsl(0, 0%, 100%)')");
+    expect(result).toEqual([255, 255, 255, 1]);
+  });
+
+  test('rgba', () => {
+    const result = jsDomWindow.eval("parseToRgba('rgba(255, 255, 255, 0.5)')");
+    expect(result).toEqual([255, 255, 255, 0.5]);
+  });
+
+  test('rgba full transparent', () => {
+    const result = jsDomWindow.eval("parseToRgba('rgba(255, 255, 230, 0)')");
+    expect(result).toEqual([255, 255, 230, 0]);
+  });
+
+  test('hsla full transparent', () => {
+    const result = jsDomWindow.eval("parseToRgba('hsla(0, 100%, 100%, 0)')");
+    expect(result).toEqual([255, 255, 255, 0]);
+  });
+
+  test('transparent', () => {
+    const result = jsDomWindow.eval("parseToRgba('transparent')");
+    expect(result).toEqual([0, 0, 0, 0]);
+  });
+
+  test('invalid color', () => {
+    let caught = false;
+    try {
+      jsDomWindow.eval("parseToRgba('not real')");
+    } catch {
+      caught = true;
+    }
+
+    expect(caught).toBe(true);
   });
 });
 

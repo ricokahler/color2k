@@ -11,7 +11,7 @@ The bundle size is [currently 1.5kB](https://bundlephobia.com/result?p=color2k)
 | lib                                                       | size                                                  |
 | --------------------------------------------------------- | ----------------------------------------------------- |
 | [polished](https://github.com/styled-components/polished) | [11.2kB](https://bundlephobia.com/result?p=polished)  |
-| [chroma-js](<(https://github.com/gka/chroma.js)>)         | [13.7kB](https://bundlephobia.com/result?p=chroma-js) |
+| [chroma-js](https://github.com/gka/chroma.js)             | [13.7kB](https://bundlephobia.com/result?p=chroma-js) |
 | [color](https://github.com/Qix-/color)                    | [7.6kB](https://bundlephobia.com/result?p=color)      |
 | [tinycolor2](https://github.com/bgrins/TinyColor)         | [5kB](https://bundlephobia.com/result?p=tinycolor2)   |
 | color2k                                                   | [1.5kB](https://bundlephobia.com/result?p=color2k) 😎 |
@@ -25,8 +25,8 @@ npm i --save color2k
 If you need to server-side render any colors, you also need to install the node/ssr compatibility package.
 
 ```bash
-# only needed in SSR environments (e.g. gatsby, next.js)
-npm i --save @color2k/node
+# needed in non-browser environments (e.g. gatsby, next.js)
+npm i --save @color2k/compat
 ```
 
 ## Usage

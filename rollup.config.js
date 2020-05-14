@@ -99,16 +99,20 @@ export default [
     ],
     external: getExternal('parse-to-rgba'),
   },
-  // NODE
+  // COMPAT
   {
-    input: './packages/node/src/index.ts',
+    input: './packages/compat/src/index.ts',
     output: {
-      file: './dist/node/index.js',
-      format: 'cjs',
+      file: './dist/compat/index.js',
+      format: 'umd',
       sourcemap: true,
+      name: 'color2kCompat',
+      globals: {
+        '@color2k/parse-to-rgba': 'parseToRgba',
+      },
     },
     plugins: nodePlugins,
-    external: getExternal('node'),
+    external: getExternal('compat'),
   },
   // COLOR2K
   {
