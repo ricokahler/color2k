@@ -24,15 +24,14 @@ function createDiv() {
  * https://stackoverflow.com/a/11068286/5776910
  */
 function parseToRgba(color: string): [number, number, number, number] {
-  // for node-environments, we'll use @color2k/node
-  if (typeof document === 'undefined') {
-    /*START.TESTS_ONLY*/
-    if (process.env.NODE_ENV === 'test') {
-      // @ts-ignore
-      return global.__parseToRgbaNode(color);
-    }
-    /*END.TESTS_ONLY*/
-    return require('@color2k/node')(color);
+  // for node-environments, we'll use @color2k/compat
+  if (
+    typeof document === 'undefined' ||
+    navigator.userAgent.includes('jsdom')
+  ) {
+    // @ts-ignore
+    if (typeof color2kCompat !== 'undefined') return color2kCompat(color);
+    return require('@color2k/compat')(color);
   }
 
   // normalize the color

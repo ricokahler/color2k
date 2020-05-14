@@ -7,4 +7,4 @@ require('@babel/register')({
   ],
 });
 
-global.__parseToRgbaNode = require('./packages/node/src').default;
+global.color2kCompat = require('./packages/compat/src').default;
