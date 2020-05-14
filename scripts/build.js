@@ -120,6 +120,28 @@ async function main() {
       path.resolve(__dirname, `../dist/${folder}/package.json`),
       JSON.stringify(packageJson, null, 2)
     );
+
+    // write readme
+    const readme = await fs.promises.readFile(
+      path.resolve(__dirname, '../README.md')
+    );
+    await fs.promises.writeFile(
+      path.resolve(__dirname, '../dist/color2k/README.md'),
+      readme
+    );
+
+    // fix typings
+    const indexDTsPath = path.resolve(
+      __dirname,
+      '../dist/color2k/src/index.d.ts'
+    );
+    const indexDTs = (await fs.promises.readFile(indexDTsPath))
+      .toString()
+      .replace(
+        'import("../../parse-to-rgba/src/ColorError")',
+        'import("@color2k/parse-to-rgba/src/ColorError")'
+      );
+    await fs.promises.writeFile(indexDTsPath, indexDTs);
   }
 
   console.log('DONE!');
