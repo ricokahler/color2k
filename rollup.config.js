@@ -6,20 +6,6 @@ import { get } from 'lodash';
 
 const extensions = ['.js', '.ts', '.tsx'];
 
-const nodePlugins = [
-  resolve({ extensions, preferBuiltins: true }),
-  babel({
-    babelrc: false,
-    presets: [
-      ['@babel/preset-env', { targets: { node: true } }],
-      '@babel/preset-typescript',
-    ],
-    babelHelpers: 'bundled',
-    extensions,
-    include: ['packages/**/*'],
-  }),
-];
-
 const umdPlugins = [
   resolve({
     extensions,
@@ -111,7 +97,7 @@ export default [
         '@color2k/parse-to-rgba': 'parseToRgba',
       },
     },
-    plugins: nodePlugins,
+    plugins: umdPlugins,
     external: getExternal('compat'),
   },
   // COLOR2K
