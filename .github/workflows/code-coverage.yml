@@ -1,0 +1,18 @@
+name: Code Coverage
+on:
+  - push
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+      - name: npm install
+        run: npm i
+      - name: npm test
+        run: npm t -- --coverage
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v1
