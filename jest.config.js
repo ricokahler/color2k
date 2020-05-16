@@ -12,5 +12,12 @@ module.exports = {
     '^prettier$': '<rootDir>/node_modules/prettier',
   },
   modulePathIgnorePatterns: ['<rootDir>/dist/'],
-  setupFiles: [`<rootDir>/loadershim.js`],
+  setupFiles: ['<rootDir>/loadershim.js'],
+  coveragePathIgnorePatterns: [
+    '<rootDir>/dist/',
+    '<rootDir>/node_modules/',
+    '<rootDir>/website/',
+    '<rootDir>/scripts/',
+    '<rootDir>/rollup.config.js',
+  ],
 };
