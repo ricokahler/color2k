@@ -102,6 +102,18 @@ function App({ docs, readmeHtml }: Props) {
           dangerouslySetInnerHTML={{ __html: readmeHtml }}
         />
 
+        <div className="demo-pic">
+          <h2>CodeSandbox Demo</h2>
+          <a href="https://codesandbox.io/s/color2k-demos-8vjh3?file=/src/App.tsx">
+            <p>Try our color2k in CodeSandbox</p>
+            <img
+              className="demo-image"
+              alt="Demo Preview"
+              src="/demo-image.png"
+            />
+          </a>
+        </div>
+
         <div className="api-docs-start" />
         {Boolean(value) && filtered.length > 0 && (
           <div className="card">ℹ Showing filtered results</div>
