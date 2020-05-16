@@ -46,9 +46,7 @@ function template({ reactCode, reactHtml, css, docs, readmeHtml }: Params) {
       <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
       <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
       <link rel="manifest" href="/site.webmanifest">
-      <script crossorigin src="https://unpkg.com/react@16/umd/react.production.min.js"></script>
-      <script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>
-      <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+      <link rel="stylesheet" type="text/css" href="https://unpkg.com/normalize.css@8.0.1/normalize.css">
       <style>${css}</style>
     </head>
     <body>
@@ -57,7 +55,7 @@ function template({ reactCode, reactHtml, css, docs, readmeHtml }: Params) {
       <script>window.docs = ${JSON.stringify(docs)};</script>
       <script>window.readmeHtml = ${JSON.stringify(readmeHtml)};</script>
       <script>
-        ReactDOM.hydrate(React.createElement(App, { docs: window.docs, readmeHtml: window.readmeHtml }, []), document.querySelector('#root'));
+        Preact.hydrate(Preact.createElement(App, { docs: window.docs, readmeHtml: window.readmeHtml }, []), document.body);
       </script>
     </body>
   </html>`;

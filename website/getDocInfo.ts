@@ -1,4 +1,4 @@
-import * as ts from 'typescript';
+import ts from 'typescript';
 import showdown from 'showdown';
 
 const converter = new showdown.Converter();

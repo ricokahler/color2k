@@ -2,8 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import { terser } from 'rollup-plugin-terser';
 import * as rollup from 'rollup';
-import * as React from 'react';
-import { renderToString } from 'react-dom/server';
+import * as React from 'preact';
+import renderToString from 'preact-render-to-string';
 // @ts-ignore
 import babel from '@rollup/plugin-babel';
 import resolve from '@rollup/plugin-node-resolve';
@@ -72,36 +72,42 @@ async function render() {
 
   // bundle code
   const extensions = ['.js', '.ts', '.tsx'];
-  const build = await rollup.rollup({
-    input: require.resolve('./App'),
-    plugins: [
-      resolve({ extensions }),
-      babel({
-        babelrc: false,
-        presets: [
-          ['@babel/preset-env', { targets: 'defaults' }],
-          '@babel/preset-typescript',
-          '@babel/preset-react',
-        ],
-        babelHelpers: 'bundled',
-        extensions,
-      }),
-      terser(),
-    ],
-    external: ['react', 'react-dom'],
-  });
-  const { output } = await build.generate({
-    format: 'iife',
-    name: 'App',
-    globals: {
-      react: 'React',
-    },
-  });
-  if (output.length !== 1) {
-    throw new Error('expected only one chunk');
+
+  async function bundle(name: string) {
+    const build = await rollup.rollup({
+      input: require.resolve(`./${name}`),
+      plugins: [
+        resolve({ extensions }),
+        babel({
+          babelrc: false,
+          presets: [
+            ['@babel/preset-env', { targets: '> 5%' }],
+            '@babel/preset-typescript',
+            '@babel/preset-react',
+          ],
+          babelHelpers: 'bundled',
+          extensions,
+        }),
+        terser(),
+      ],
+      external: ['react', 'react-dom'],
+    });
+    const { output } = await build.generate({
+      format: 'iife',
+      name,
+      globals: {
+        react: 'React',
+      },
+    });
+    if (output.length !== 1) {
+      throw new Error('expected only one chunk');
+    }
+    const [chunk] = output;
+    const { code } = chunk;
+    return code;
   }
-  const [chunk] = output;
-  const { code } = chunk;
+
+  const code = await bundle('App');
 
   // process css
   const rawCss = await fs.promises.readFile(

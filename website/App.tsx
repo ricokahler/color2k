@@ -1,6 +1,11 @@
-import * as React from 'react';
-import { useState } from 'react';
+import * as React from 'preact';
+import { useState } from 'preact/hooks';
 import { DocInfo } from './getDocInfo';
+
+if (typeof window !== 'undefined') {
+  // @ts-ignore
+  window.Preact = React;
+}
 
 interface Props {
   docs: DocInfo[];
@@ -30,7 +35,7 @@ function App({ docs, readmeHtml }: Props) {
             className="search"
             value={value}
             placeholder="type to search…"
-            onChange={(e) => {
+            onInput={(e) => {
               setValue(e.currentTarget.value);
               const apiDocsStartEl = document.querySelector('.api-docs-start');
               if (!apiDocsStartEl) return;
@@ -96,8 +101,6 @@ function App({ docs, readmeHtml }: Props) {
           className="readme"
           dangerouslySetInnerHTML={{ __html: readmeHtml }}
         />
-
-        {/* <textarea className="repl" rows={20} /> */}
 
         <div className="api-docs-start" />
         {Boolean(value) && filtered.length > 0 && (
