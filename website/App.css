@@ -153,7 +153,13 @@ a {
 
 .readme {
   margin: 0 auto;
-  margin-top: 3rem;
+  padding: 1rem;
+  width: 640px;
+  max-width: 100%;
+}
+
+.demo-pic {
+  margin: 0 auto;
   padding: 1rem;
   width: 640px;
   max-width: 100%;
@@ -283,4 +289,9 @@ pre {
   color: inherit;
   font-family: Consolas, monospace;
   padding: 1rem;
+}
+
+.demo-image {
+  width: 640px;
+  max-width: 100%;
 }
