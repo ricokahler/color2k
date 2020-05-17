@@ -1,10 +1,14 @@
 import * as React from 'preact';
 import { useState } from 'preact/hooks';
 import { DocInfo } from './getDocInfo';
+// @ts-ignore
+import * as color2k from '../dist/color2k/index.esm.js';
 
 if (typeof window !== 'undefined') {
   // @ts-ignore
   window.Preact = React;
+  // @ts-ignore
+  window.color2k = color2k;
 }
 
 interface Props {
