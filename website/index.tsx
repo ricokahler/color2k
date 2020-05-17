@@ -81,6 +81,7 @@ async function render() {
       plugins: [
         alias({
           entries: {
+            color2k: require.resolve('../packages/color2k/src/index.ts'),
             '@color2k/parse-to-rgba': require.resolve(
               '../packages/parse-to-rgba/src/index.ts'
             ),

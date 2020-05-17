@@ -2,7 +2,7 @@ import * as React from 'preact';
 import { useState } from 'preact/hooks';
 import { DocInfo } from './getDocInfo';
 // @ts-ignore
-import * as color2k from '../dist/color2k/index.esm.js';
+import * as color2k from 'color2k';
 
 if (typeof window !== 'undefined') {
   // @ts-ignore
