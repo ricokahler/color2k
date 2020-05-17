@@ -8,6 +8,8 @@ import renderToString from 'preact-render-to-string';
 import babel from '@rollup/plugin-babel';
 import resolve from '@rollup/plugin-node-resolve';
 import postcss from 'postcss';
+import alias from '@rollup/plugin-alias';
+
 // @ts-ignore
 import cssnano from 'cssnano';
 // @ts-ignore
@@ -77,6 +79,14 @@ async function render() {
     const build = await rollup.rollup({
       input: require.resolve(`./${name}`),
       plugins: [
+        alias({
+          entries: {
+            color2k: require.resolve('../packages/color2k/src/index.ts'),
+            '@color2k/parse-to-rgba': require.resolve(
+              '../packages/parse-to-rgba/src/index.ts'
+            ),
+          },
+        }),
         resolve({ extensions }),
         babel({
           babelrc: false,

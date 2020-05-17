@@ -1,27 +1,27 @@
 {
   "name": "color2k",
   "version": "1.0.0-rc.4",
-  "description": "a color parsing and manipulation lib served in 2kB or less",
-  "main": "index.js",
-  "scripts": {
-    "test": "jest",
-    "build": "node ./scripts/build.js",
-    "check-dependencies": "node ./scripts/check-dependencies.js",
-    "resolve-dependencies": "node ./scripts/resolve-dependencies.js",
-    "publish": "node ./scripts/publish",
-    "lint": "eslint packages --ext .ts,.tsx,.js,.jsx",
-    "website": "node ./scripts/website.js"
-  },
   "private": true,
-  "author": {
-    "email": "ricokahler@me.com",
-    "name": "Rico Kahler"
-  },
+  "description": "a color parsing and manipulation lib served in 2kB or less",
   "repository": {
     "type": "git",
     "url": "https://github.com/ricokahler/color2k.git"
   },
   "license": "MIT",
+  "author": {
+    "name": "Rico Kahler",
+    "email": "ricokahler@me.com"
+  },
+  "main": "index.js",
+  "scripts": {
+    "build": "node ./scripts/build.js",
+    "check-dependencies": "node ./scripts/check-dependencies.js",
+    "lint": "eslint packages --ext .ts,.tsx,.js,.jsx",
+    "publish": "node ./scripts/publish",
+    "resolve-dependencies": "node ./scripts/resolve-dependencies.js",
+    "test": "jest",
+    "website": "node ./scripts/website.js"
+  },
   "devDependencies": {
     "@babel/core": "7.9.6",
     "@babel/node": "7.8.7",
@@ -30,6 +30,7 @@
     "@babel/preset-react": "7.9.4",
     "@babel/preset-typescript": "7.9.0",
     "@babel/register": "7.9.0",
+    "@rollup/plugin-alias": "^3.1.0",
     "@rollup/plugin-babel": "5.0.0",
     "@rollup/plugin-node-resolve": "7.1.3",
     "@types/jest": "25.2.2",
@@ -41,6 +42,7 @@
     "@typescript-eslint/parser": "2.33.0",
     "autoprefixer": "9.7.6",
     "babel-eslint": "10.1.0",
+    "babel-plugin-module-resolver": "^4.0.0",
     "cssnano": "4.1.10",
     "eslint": "7.0.0",
     "eslint-config-react-app": "5.2.1",
