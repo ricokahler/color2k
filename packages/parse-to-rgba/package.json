@@ -3,7 +3,7 @@
   "description": "a low-level color parser that uses getComputedStyle to parse a colors",
   "dependencies": {},
   "peerDependencies": {
-    "@color2k/node": "*"
+    "@color2k/compat": "*"
   },
   "private": true
 }
