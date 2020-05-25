@@ -76,8 +76,8 @@ test('all of them', async () => {
       Object {
         "description": "<p>Darkens using lightness. This is equivalent to subtracting the lightness
     from the L in HSL.</p>",
-        "functionName": "lightnessDarken",
-        "id": "lightness-darken",
+        "functionName": "darken",
+        "id": "darken",
         "params": Array [
           Object {
             "name": "color",
