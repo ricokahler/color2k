@@ -1,10 +1,10 @@
 # [color2k](https://color2k.com) <br /> [![bundlephobia](https://badgen.net/bundlephobia/minzip/color2k)](https://bundlephobia.com/result?p=color2k) [![github status checks](https://badgen.net/github/checks/ricokahler/color2k)](https://github.com/ricokahler/color2k/actions) [![codecov](https://codecov.io/gh/ricokahler/color2k/branch/master/graph/badge.svg)](https://codecov.io/gh/ricokahler/color2k)
 
-> a color parsing and manipulation lib served in 2kB or less (1.5kB to be more precise)
+> a color parsing and manipulation lib served in 2kB or less (1.4kB to be more precise)
 
 color2k is a color parsing and manipulation library with the objective of keeping the bundle size as small as possible while still satisfying all of your color manipulation needs in an sRGB space [(wide-gamut is not supported)](https://github.com/ricokahler/color2k/issues/16).
 
-The bundle size is [currently 1.5kB](https://bundlephobia.com/result?p=color2k)
+The bundle size is [currently 1.4kB](https://bundlephobia.com/result?p=color2k)
 
 ## Size comparison
 
@@ -14,7 +14,7 @@ The bundle size is [currently 1.5kB](https://bundlephobia.com/result?p=color2k)
 | [chroma-js](https://github.com/gka/chroma.js)             | [13.7kB](https://bundlephobia.com/result?p=chroma-js) |
 | [color](https://github.com/Qix-/color)                    | [7.6kB](https://bundlephobia.com/result?p=color)      |
 | [tinycolor2](https://github.com/bgrins/TinyColor)         | [5kB](https://bundlephobia.com/result?p=tinycolor2)   |
-| color2k                                                   | [1.5kB](https://bundlephobia.com/result?p=color2k) 😎 |
+| color2k                                                   | [1.4kB](https://bundlephobia.com/result?p=color2k) 😎 |
 
 ## Installation
 
@@ -70,6 +70,10 @@ This lib was created with the use case of CSS-in-JS in mind. At the end of the d
 Because only those two color models are supported, we don't have to add code to deal with optional alpha channels or converting to non-browser supported color models (e.g. CMYK).
 
 We believe that this lib is sufficient for all of your color manipulation needs. If we're missing a feature, feel free to [open an issue](https://github.com/ricokahler/color2k/issues/new) 😎.
+
+### How does this work in non-browser environments?
+
+[See here](https://github.com/ricokahler/color2k/issues/21)
 
 ## Credits
 
