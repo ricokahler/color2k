@@ -71,10 +71,6 @@ Because only those two color models are supported, we don't have to add code to 
 
 We believe that this lib is sufficient for all of your color manipulation needs. If we're missing a feature, feel free to [open an issue](https://github.com/ricokahler/color2k/issues/new) 😎.
 
-### How does this work in non-browser environments?
-
-[See here](https://github.com/ricokahler/color2k/issues/21)
-
 ## Credits
 
 Heavy credits goes to polished.js and sass. Much of the implementation of this lib is copied from polished!
