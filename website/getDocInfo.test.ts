@@ -74,7 +74,8 @@ test('all of them', async () => {
         "returnType": "string",
       },
       Object {
-        "description": "<p>Darkens the input color by the given amount using brightness</p>",
+        "description": "<p>Darkens using lightness. This is equivalent to subtracting the lightness
+    from the L in HSL.</p>",
         "functionName": "darken",
         "id": "darken",
         "params": Array [
@@ -107,19 +108,6 @@ test('all of them', async () => {
           },
         ],
         "returnType": "string",
-      },
-      Object {
-        "description": "<p>Uses Stevens's Power Law to get value for perceived brightness. Returns a
-    value between 0 and 1.</p>",
-        "functionName": "getBrightness",
-        "id": "get-brightness",
-        "params": Array [
-          Object {
-            "name": "color",
-            "type": "string",
-          },
-        ],
-        "returnType": "number",
       },
       Object {
         "description": "<p>Returns the contrast ratio between two colors based on
@@ -249,24 +237,6 @@ test('all of them', async () => {
     <code>darken(color, -amount)</code></p>",
         "functionName": "lighten",
         "id": "lighten",
-        "params": Array [
-          Object {
-            "name": "color",
-            "type": "string",
-          },
-          Object {
-            "description": "the amount to darken, given as a decimal between 0 and 1",
-            "name": "amount",
-            "type": "number",
-          },
-        ],
-        "returnType": "string",
-      },
-      Object {
-        "description": "<p>Darkens using lightness. This is equivalent to subtracting the lightness
-    from the L in HSL.</p>",
-        "functionName": "lightnessDarken",
-        "id": "lightness-darken",
         "params": Array [
           Object {
             "name": "color",
