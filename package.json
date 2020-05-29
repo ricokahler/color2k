@@ -58,7 +58,7 @@
     "playwright": "1.0.2",
     "postcss": "7.0.31",
     "preact": "10.4.4",
-    "preact-render-to-string": "5.1.8",
+    "preact-render-to-string": "5.1.9",
     "prettier": "2.0.5",
     "react": "16.13.1",
     "react-dom": "16.13.1",
