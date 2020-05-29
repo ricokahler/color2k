@@ -56,7 +56,6 @@
     "jsdom": "16.2.2",
     "lodash": "4.17.15",
     "playwright": "1.0.2",
-    "polished": "3.6.3",
     "postcss": "7.0.31",
     "preact": "10.4.4",
     "preact-render-to-string": "5.1.8",
