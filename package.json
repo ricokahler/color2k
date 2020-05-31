@@ -62,7 +62,7 @@
     "prettier": "2.0.5",
     "react": "16.13.1",
     "react-dom": "16.13.1",
-    "rollup": "2.11.2",
+    "rollup": "2.12.0",
     "rollup-plugin-strip-code": "0.2.7",
     "rollup-plugin-terser": "6.1.0",
     "showdown": "1.9.1",
