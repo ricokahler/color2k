@@ -40,8 +40,9 @@ a {
   position: sticky;
   display: flex;
   align-items: center;
+  flex-direction: column;
   background-color: #111;
-  height: 72px;
+  height: 128px;
 }
 
 .github-link {
