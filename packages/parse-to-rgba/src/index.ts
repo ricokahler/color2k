@@ -24,20 +24,29 @@ function createDiv() {
  * https://stackoverflow.com/a/11068286/5776910
  */
 function parseToRgba(color: string): [number, number, number, number] {
+  // to enable this to work in any environment, you can provide `color2kCompat`
+  // globally as an escape hatch.
+  // @ts-ignore
+  if (typeof color2kCompat !== 'undefined') {
+    // @ts-ignore
+    return color2kCompat(color);
+  }
+
   // for non-browser-environments, we'll use @color2k/compat
   if (
     (typeof navigator !== 'undefined' &&
       navigator.userAgent.includes('jsdom')) ||
-    (typeof document === 'undefined' &&
-      typeof global !== 'undefined' &&
-      typeof require !== 'undefined')
+    (typeof document === 'undefined' && typeof require !== 'undefined')
   ) {
+    // Need to trick bundlers into _not_ bundling @color2k/compat. The
+    // expression in the require statement makes it so that bundlers can't
+    // statically resolve the dependency. It should be pulled on demand when
+    // ran in a node environment.
+    const someRandomExpression = '@color2k';
+    const someRandomValue = (() => '/compat')();
     // @ts-ignore
-    if (typeof color2kCompat !== 'undefined') return color2kCompat(color);
-    // Need to trick bundlers into _not_ bundling @color2k/compat
-    // @ts-ignore
-    // eslint-disable-next-line no-useless-concat
-    global['req' + 'uire']('@color2k/compat')(color);
+    // eslint-disable-next-line
+    return require(someRandomExpression + someRandomValue)(color);
   }
 
   // normalize the color
