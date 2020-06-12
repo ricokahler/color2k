@@ -152,7 +152,7 @@ describe('jsdom', () => {
 
 const browserTypes =
   // only run in CI
-  process.env.CI === 'true'
+  process.env.CI === 'true' || process.env.TEST_BROWSER === 'true'
     ? ['chromium' as 'chromium', 'firefox' as 'firefox', 'webkit' as 'webkit']
     : [];
 
