@@ -24,14 +24,20 @@ function createDiv() {
  * https://stackoverflow.com/a/11068286/5776910
  */
 function parseToRgba(color: string): [number, number, number, number] {
-  // for node-environments, we'll use @color2k/compat
+  // for non-browser-environments, we'll use @color2k/compat
   if (
-    typeof document === 'undefined' ||
-    navigator.userAgent.includes('jsdom')
+    (typeof navigator !== 'undefined' &&
+      navigator.userAgent.includes('jsdom')) ||
+    (typeof document === 'undefined' &&
+      typeof global !== 'undefined' &&
+      typeof require !== 'undefined')
   ) {
     // @ts-ignore
     if (typeof color2kCompat !== 'undefined') return color2kCompat(color);
-    return require('@color2k/compat')(color);
+    // Need to trick bundlers into _not_ bundling @color2k/compat
+    // @ts-ignore
+    // eslint-disable-next-line no-useless-concat
+    global['req' + 'uire']('@color2k/compat')(color);
   }
 
   // normalize the color
