@@ -27,12 +27,6 @@ function App({ docs, readmeHtml }: Props) {
     <div className="root" id="root">
       <header className="header">
         <div className="header-content">
-          Black Lives Matter.&nbsp;
-          <a href="https://support.eji.org/give/153413/#!/donation/checkout">
-            Support the Equal Justice Initiative.
-          </a>
-        </div>
-        <div className="header-content">
           <a className="logo" href="/">
             <h1>color2k</h1>
           </a>
@@ -107,6 +101,16 @@ function App({ docs, readmeHtml }: Props) {
       </nav>
 
       <main className="main">
+        <div className="readme">
+          <p>
+            <strong>Black Lives Matter.</strong>
+          </p>
+          <p>
+            Support the{' '}
+            <a href="https://www.naacpldf.org/">NAACP Legal Defense Fund</a> or
+            the <a href="https://www.aclu.org/">ACLU</a>.
+          </p>
+        </div>
         <div
           className="readme"
           dangerouslySetInnerHTML={{ __html: readmeHtml }}

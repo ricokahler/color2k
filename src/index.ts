@@ -1,6 +1,3 @@
-import parseToRgba from '@color2k/parse-to-rgba';
-const { ColorError } = parseToRgba;
-
 export { default as adjustHue } from './adjustHue';
 export { default as darken } from './darken';
 export { default as desaturate } from './desaturate';
@@ -19,4 +16,5 @@ export { default as readableColorIsBlack } from './readableColorIsBlack';
 export { default as rgba } from './rgba';
 export { default as saturate } from './saturate';
 export { default as transparentize } from './transparentize';
-export { parseToRgba, ColorError };
+export { default as parseToRgba } from './parseToRgba';
+export { default as ColorError } from './ColorError';

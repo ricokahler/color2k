@@ -1,8 +1,6 @@
 // rollup.config.js
 import babel from '@rollup/plugin-babel';
 import resolve from '@rollup/plugin-node-resolve';
-import stripCode from 'rollup-plugin-strip-code';
-import { get } from 'lodash';
 
 const extensions = ['.js', '.ts', '.tsx'];
 
@@ -32,97 +30,27 @@ const esmPlugins = [
   }),
 ];
 
-const getExternal = (name) => [
-  ...Object.keys(require(`./packages/${name}/package.json`).dependencies || []),
-  ...Object.keys(
-    require(`./packages/${name}/package.json`).peerDependencies || []
-  ),
-  ...Object.keys(
-    get(
-      require(`./packages/${name}/tsconfig.json`),
-      ['compilerOptions', 'paths'],
-      {}
-    )
-  ),
-  // mark all babel runtime deps are external
-  ...(require(`./packages/${name}/package.json`).dependencies['@babel/runtime']
-    ? [/^@babel\/runtime/]
-    : []),
-];
-
 export default [
-  // PARSE-TO-RGBA
-  {
-    input: './packages/parse-to-rgba/src/index.ts',
-    output: {
-      file: './dist/parse-to-rgba/index.js',
-      format: 'umd',
-      sourcemap: true,
-      name: 'parseToRgba',
-    },
-    plugins: [
-      ...umdPlugins,
-      stripCode({
-        start_comment: 'START.TESTS_ONLY',
-        end_comment: 'END.TESTS_ONLY',
-      }),
-    ],
-    external: getExternal('parse-to-rgba'),
-  },
-  {
-    input: './packages/parse-to-rgba/src/index.ts',
-    output: {
-      file: './dist/parse-to-rgba/index.esm.js',
-      format: 'esm',
-      sourcemap: true,
-    },
-    plugins: [
-      ...esmPlugins,
-      stripCode({
-        start_comment: 'START.TESTS_ONLY',
-        end_comment: 'END.TESTS_ONLY',
-      }),
-    ],
-    external: getExternal('parse-to-rgba'),
-  },
-  // COMPAT
-  {
-    input: './packages/compat/src/index.ts',
-    output: {
-      file: './dist/compat/index.js',
-      format: 'umd',
-      sourcemap: true,
-      name: 'color2kCompat',
-      globals: {
-        '@color2k/parse-to-rgba': 'parseToRgba',
-      },
-    },
-    plugins: umdPlugins,
-    external: getExternal('compat'),
-  },
   // COLOR2K
   {
-    input: './packages/color2k/src/index.ts',
+    input: './src/index.ts',
     output: {
-      file: './dist/color2k/index.js',
+      file: './dist/index.js',
       format: 'umd',
       sourcemap: true,
       name: 'color2k',
-      globals: {
-        '@color2k/parse-to-rgba': 'parseToRgba',
-      },
     },
     plugins: umdPlugins,
-    external: getExternal('color2k'),
+    external: [/^@babel\/runtime/],
   },
   {
-    input: './packages/color2k/src/index.ts',
+    input: './src/index.ts',
     output: {
-      file: './dist/color2k/index.esm.js',
+      file: './dist/index.esm.js',
       format: 'esm',
       sourcemap: true,
     },
     plugins: esmPlugins,
-    external: getExternal('color2k'),
+    external: [/^@babel\/runtime/],
   },
 ];
