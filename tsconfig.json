@@ -14,10 +14,7 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "baseUrl": ".",
-    "paths": {
-      "@color2k/*": ["packages/*/src/index.ts"]
-    }
   },
-  "include": ["packages/**/*"],
-  "exclude": ["packages/**/*.test.ts"]
+  "include": ["src/**/*"],
+  "exclude": ["src/**/*.test.ts"]
 }

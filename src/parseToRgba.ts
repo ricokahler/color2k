@@ -2,7 +2,7 @@ import nameToHex from './nameToHex';
 import guard from './guard';
 import ColorError from './ColorError';
 
-let r = (str, amount) =>
+let r = (str: string, amount: number) =>
   Array.from(Array(amount))
     .map(() => str)
     .join('');
