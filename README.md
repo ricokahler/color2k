@@ -1,10 +1,10 @@
 # [color2k](https://color2k.com) <br /> [![bundlephobia](https://badgen.net/bundlephobia/minzip/color2k)](https://bundlephobia.com/result?p=color2k) [![github status checks](https://badgen.net/github/checks/ricokahler/color2k)](https://github.com/ricokahler/color2k/actions) [![codecov](https://codecov.io/gh/ricokahler/color2k/branch/master/graph/badge.svg)](https://codecov.io/gh/ricokahler/color2k)
 
-> a color parsing and manipulation lib served in 2kB or less (1.4kB to be more precise)
+> a color parsing and manipulation lib served in roughly 2kB or less (2.7kB to be more precise)
 
 color2k is a color parsing and manipulation library with the objective of keeping the bundle size as small as possible while still satisfying all of your color manipulation needs in an sRGB space [(wide-gamut is not supported)](https://github.com/ricokahler/color2k/issues/16).
 
-The bundle size is [currently 1.4kB](https://bundlephobia.com/result?p=color2k)
+The bundle size is [currently 2.7kB](https://bundlephobia.com/result?p=color2k)
 
 ## Size comparison
 
@@ -14,19 +14,18 @@ The bundle size is [currently 1.4kB](https://bundlephobia.com/result?p=color2k)
 | [chroma-js](https://github.com/gka/chroma.js)             | [13.7kB](https://bundlephobia.com/result?p=chroma-js) |
 | [color](https://github.com/Qix-/color)                    | [7.6kB](https://bundlephobia.com/result?p=color)      |
 | [tinycolor2](https://github.com/bgrins/TinyColor)         | [5kB](https://bundlephobia.com/result?p=tinycolor2)   |
-| color2k                                                   | [1.4kB](https://bundlephobia.com/result?p=color2k) 😎 |
+| color2k                                                   | [2.7kB](https://bundlephobia.com/result?p=color2k) 😎 |
 
 ## Installation
 
 ```
-npm i --save color2k
+npm i color2k
 ```
 
-If you need to server-side render any colors, you also need to install the node/ssr compatibility package.
+or
 
-```bash
-# needed in non-browser environments (e.g. gatsby, next.js)
-npm i --save @color2k/compat
+```
+yarn add color2k
 ```
 
 ## Usage
@@ -43,25 +42,8 @@ transparentize('red', 0.5);
 
 There are two secrets that keep this lib especially small:
 
-1. defer to the browser to [parse colors via `getComputedStyle`](https://github.com/ricokahler/color2k/blob/63905b1ad09312cc4e06f20961c6dfb930a3ceb3/packages/parse-to-rgba/src/index.ts#L63)
-2. only support two color models as outputs, namely `rgba` and `hsla`
-
-### Why `getComputedStyle`?
-
-The browser already has the ability to parse colors via `getComputedStyle`. Other color libs use javascript to parse and transform colors. The result of making the browser parse the color is the removal of any code related to parsing colors resulting in a significantly smaller bundle.
-
-### Why not `getComputedStyle`?
-
-Using `getComputedStyle` is slower than parsing via javascript.
-
-On my 2019 MacBook Pro:
-
-- `getComputedStyle`: 594,499 ops/sec
-- JavaScript: 3,335,123 ops/sec
-
-[See here](https://jsperf.com/polished-vs-canvas/3)
-
-In order to increase performance, already computed colors are [cached](https://github.com/ricokahler/color2k/blob/22941f75aa9216f2a581a02da41b7fb8f18ffba4/packages/parse-to-rgba/src/index.ts#L41).
+1. Simplicity — only handles basic color manipulation functions
+2. Less branching in code — only support two color models as outputs, namely `rgba` and `hsla`
 
 ### Why only `rgba` and `hsla` as outputs?
 
