@@ -80,10 +80,3 @@ Heavy credits goes to polished.js and sass. Much of the implementation of this l
 ## API and Documentation
 
 [Head over to the docs site](https://color2k.com)
-
-current       - 1.4k
-
-name to hex   - 1.17kB
-hsl to rbg    - 300B
-parse to rgba - 500B
-
