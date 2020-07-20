@@ -15,7 +15,7 @@
   "main": "index.js",
   "scripts": {
     "build": "node ./scripts/register -- ./scripts/build",
-    "lint": "eslint packages --ext .ts,.tsx,.js,.jsx",
+    "lint": "eslint src --ext .ts,.tsx,.js,.jsx",
     "test": "jest",
     "website": "node ./scripts/website.js"
   },
