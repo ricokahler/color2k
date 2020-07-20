@@ -25,18 +25,19 @@ converter.setOption('rawHeaderId', true);
 async function render() {
   // get doc info
   const functionFiles = (
-    await fs.promises.readdir(
-      path.resolve(__dirname, '../packages/color2k/src')
-    )
+    await fs.promises.readdir(path.resolve(__dirname, '../src'))
   ).filter(
-    (filename) => !filename.endsWith('.test.ts') && filename !== 'index.ts'
+    (filename) =>
+      !filename.endsWith('.test.ts') &&
+      filename !== 'index.ts' &&
+      filename !== 'ColorError.ts'
   );
 
   const docs: DocInfo[] = [];
   for (const file of functionFiles) {
     try {
       const buffer = await fs.promises.readFile(
-        path.resolve(__dirname, `../packages/color2k/src/${file}`)
+        path.resolve(__dirname, `../src/${file}`)
       );
       const contents = buffer.toString();
       docs.push(getDocInfo(contents));
@@ -44,20 +45,6 @@ async function render() {
       console.warn(`Failed to create doc for ${file}. ${e.message}`);
     }
   }
-  // this one has to be hard-coded because it's re-exported
-  docs.push({
-    functionName: 'parseToRgba',
-    description:
-      '<p>Takes in any color and parses it in to red, green, blue, and alpha channels.</p><p>The red, green, and blue channels have values between 0 and 255. The alpha channel is returned as a decimal between 0 and 1.</p>',
-    params: [
-      {
-        name: 'color',
-        type: 'string',
-      },
-    ],
-    returnType: '[number, number, number, number]',
-    id: 'parse-to-rgba',
-  });
   docs.sort((a, b) => a.functionName.localeCompare(b.functionName));
 
   // get readme markdown
@@ -81,10 +68,7 @@ async function render() {
       plugins: [
         alias({
           entries: {
-            color2k: require.resolve('../packages/color2k/src/index.ts'),
-            '@color2k/parse-to-rgba': require.resolve(
-              '../packages/parse-to-rgba/src/index.ts'
-            ),
+            color2k: require.resolve('../src/index.ts'),
           },
         }),
         resolve({ extensions }),

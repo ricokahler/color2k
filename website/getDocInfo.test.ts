@@ -4,7 +4,7 @@ import getDocInfo, { DocInfo } from './getDocInfo';
 
 test('test', async () => {
   const buffer = await fs.promises.readFile(
-    require.resolve('../packages/color2k/src/transparentize')
+    require.resolve('../src/transparentize')
   );
   const code = buffer.toString();
 
@@ -32,18 +32,19 @@ test('test', async () => {
 
 test('all of them', async () => {
   const functionFiles = (
-    await fs.promises.readdir(
-      path.resolve(__dirname, '../packages/color2k/src')
-    )
+    await fs.promises.readdir(path.resolve(__dirname, '../src'))
   ).filter(
-    (filename) => !filename.endsWith('.test.ts') && filename !== 'index.ts'
+    (filename) =>
+      !filename.endsWith('.test.ts') &&
+      filename !== 'index.ts' &&
+      filename !== 'ColorError.ts'
   );
 
   const docs: DocInfo[] = [];
   for (const file of functionFiles) {
     try {
       const buffer = await fs.promises.readFile(
-        path.resolve(__dirname, `../packages/color2k/src/${file}`)
+        path.resolve(__dirname, `../src/${file}`)
       );
       const contents = buffer.toString();
       docs.push(getDocInfo(contents));
@@ -296,6 +297,19 @@ test('all of them', async () => {
         "id": "parse-to-hsla",
         "params": Array [
           Object {
+            "name": "color",
+            "type": "string",
+          },
+        ],
+        "returnType": "[number, number, number, number]",
+      },
+      Object {
+        "description": "<p>Parses a color into red, gree, blue, alpha parts</p>",
+        "functionName": "parseToRgba",
+        "id": "parse-to-rgba",
+        "params": Array [
+          Object {
+            "description": "the input color. Can be a RGB, RBGA, HSL, HSLA, or named color",
             "name": "color",
             "type": "string",
           },
