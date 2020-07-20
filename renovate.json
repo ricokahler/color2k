@@ -1,5 +1,6 @@
 {
   "extends": ["config:base"],
   "groupName": "all",
-  "rebaseWhen": "behind-base-branch"
+  "rebaseWhen": "behind-base-branch",
+  "automerge": true
 }
