@@ -2,7 +2,7 @@
 
 > a color parsing and manipulation lib served in roughly 2kB or less (2.7kB to be more precise)
 
-color2k is a color parsing and manipulation library with the objective of keeping the bundle size as small as possible while still satisfying all of your color manipulation needs in an sRGB space [(wide-gamut is not supported)](https://github.com/ricokahler/color2k/issues/16).
+color2k is a color parsing and manipulation library with the objective of keeping the bundle size as small as possible while still satisfying all of your color manipulation needs in an sRGB space.
 
 The bundle size is [currently 2.7kB](https://bundlephobia.com/result?p=color2k)
 
