@@ -6,5 +6,3 @@ require('@babel/register')({
     '@babel/preset-typescript',
   ],
 });
-
-global.color2kCompat = require('./packages/compat/src').default;

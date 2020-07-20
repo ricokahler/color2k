@@ -1,4 +1,4 @@
-import parseToRgba from '@color2k/parse-to-rgba';
+import parseToRgba from './parseToRgba';
 import rgba from './rgba';
 
 /**

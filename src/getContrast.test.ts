@@ -2,7 +2,7 @@
 // https://github.com/styled-components/polished/blob/0764c982551b487469043acb56281b0358b3107b/src/color/test/contrast.test.js
 import getContrast from './getContrast';
 
-it('should return the color contrast of two hex colors', () => {
+it.only('should return the color contrast of two hex colors', () => {
   expect(getContrast('#444', '#fff')).toMatchInlineSnapshot(
     `9.739769120526205`
   );

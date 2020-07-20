@@ -1,6 +1,6 @@
 // taken from:
 // https://github.com/styled-components/polished/blob/a23a6a2bb26802b3d922d9c3b67bac3f3a54a310/src/internalHelpers/_rgbToHsl.js
-import parseToRgba from '@color2k/parse-to-rgba';
+import parseToRgba from './parseToRgba';
 
 /**
  * Parses a color in hue, saturation, lightness, and the alpha channel.

@@ -1,6 +1,0 @@
-{
-  "name": "@color2k/compat",
-  "description": "parses colors to rgba in a non-browser way",
-  "dependencies": {},
-  "private": true
-}

@@ -1,6 +1,0 @@
-{
-  "name": "color2k",
-  "description": "a color parsing and manipulation lib served in 2kB or less",
-  "dependencies": {},
-  "private": true
-}

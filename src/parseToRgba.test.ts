@@ -1,4 +1,4 @@
-import parseToRgba from './';
+import parseToRgba from './parseToRgba';
 
 describe('parseToRgb', () => {
   it('should parse a hex color representation', () => {
@@ -7,6 +7,17 @@ describe('parseToRgb', () => {
         255,
         67,
         174,
+        1,
+      ]
+    `);
+  });
+
+  it('should parse a reduced hex color representation', () => {
+    expect(parseToRgba('#fff')).toMatchInlineSnapshot(`
+      Array [
+        255,
+        255,
+        255,
         1,
       ]
     `);
@@ -45,7 +56,7 @@ describe('parseToRgb', () => {
     `);
   });
 
-  it('should parse a rgba color representation', () => {
+  it('should parse an rgba color representation', () => {
     expect(parseToRgba('rgba(174,67,255,0.6)')).toMatchInlineSnapshot(`
       Array [
         174,
@@ -64,7 +75,7 @@ describe('parseToRgb', () => {
     `);
   });
 
-  it('should parse a rgb color representation', () => {
+  it('should parse an rgb color representation', () => {
     expect(parseToRgba('rgb(174,67,255)')).toMatchInlineSnapshot(`
       Array [
         174,
@@ -83,7 +94,7 @@ describe('parseToRgb', () => {
     `);
   });
 
-  it('should parse a hsl color representation', () => {
+  it('should parse an hsl color representation', () => {
     expect(parseToRgba('hsl(210,10%,4%)')).toMatchInlineSnapshot(`
       Array [
         9,
@@ -102,26 +113,26 @@ describe('parseToRgb', () => {
     `);
   });
 
-  it('should parse a hsl color representation with decimal values', () => {
+  it('should parse an hsl color representation with decimal values', () => {
     expect(parseToRgba('hsl(210,16.4%,13.2%)')).toMatchInlineSnapshot(`
       Array [
         28,
-        33,
-        38,
+        34,
+        39,
         1,
       ]
     `);
     expect(parseToRgba('hsl( 210 , 16.4%, 13.2% )')).toMatchInlineSnapshot(`
       Array [
         28,
-        33,
-        38,
+        34,
+        39,
         1,
       ]
     `);
   });
 
-  it('should parse a hsla color representation', () => {
+  it('should parse an hsla color representation', () => {
     expect(parseToRgba('hsla(210,10%,40%,0.75)')).toMatchInlineSnapshot(`
       Array [
         92,
@@ -141,21 +152,21 @@ describe('parseToRgb', () => {
     `);
   });
 
-  it('should parse a hsla color representation with decimal values', () => {
+  it('should parse an hsla color representation with decimal values', () => {
     expect(parseToRgba('hsla(210,0.5%,0.5%,1.0)')).toMatchInlineSnapshot(`
       Array [
-        0,
-        0,
-        0,
+        1,
+        1,
+        1,
         1,
       ]
     `);
     expect(parseToRgba('hsla( 210 , 0.5% , 0.5% , 1.0 )'))
       .toMatchInlineSnapshot(`
       Array [
-        0,
-        0,
-        0,
+        1,
+        1,
+        1,
         1,
       ]
     `);

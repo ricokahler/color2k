@@ -1,9 +1,0 @@
-{
-  "name": "@color2k/parse-to-rgba",
-  "description": "a low-level color parser that uses getComputedStyle to parse a colors",
-  "dependencies": {},
-  "peerDependencies": {
-    "@color2k/compat": "*"
-  },
-  "private": true
-}
