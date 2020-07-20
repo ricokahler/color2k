@@ -328,7 +328,7 @@ describe('parseToRgb', () => {
     `);
   });
 
-  it('should throw an error if an invalid color string is provided', () => {
+  it('throws an error if an invalid color string is provided', () => {
     expect(() => {
       parseToRgba('(174,67,255)');
     }).toThrowErrorMatchingInlineSnapshot(
@@ -336,7 +336,7 @@ describe('parseToRgb', () => {
     );
   });
 
-  it('should throw an error if an invalid color string is provided', () => {
+  it('throws an error if an invalid color string is provided', () => {
     expect(() => {
       // @ts-ignore
       parseToRgba(12345);
@@ -345,19 +345,25 @@ describe('parseToRgb', () => {
     );
   });
 
-  it('should throw an error if an invalid hsl string is provided', () => {
+  it('throws an error if an invalid hsl string is provided', () => {
     expect(() => {
       parseToRgba('hsl(210,120%,4%)');
     }).toThrowErrorMatchingInlineSnapshot(
       `"Failed to parse color: \\"hsl(210,120%,4%)\\""`
     );
+
+    expect(() => {
+      parseToRgba('hsla(210,100%,400%,0.7)');
+    }).toThrowErrorMatchingInlineSnapshot(
+      `"Failed to parse color: \\"hsla(210,100%,400%,0.7)\\""`
+    );
   });
 
-  it('should throw an error if an unparsable hsla string is provided', () => {
+  it('throws an error if an invalid named color is provided', () => {
     expect(() => {
-      parseToRgba('hsla(210,120%,4%,0.7)');
+      parseToRgba('notrealblue');
     }).toThrowErrorMatchingInlineSnapshot(
-      `"Failed to parse color: \\"hsla(210,120%,4%,0.7)\\""`
+      `"Failed to parse color: \\"notrealblue\\""`
     );
   });
 });

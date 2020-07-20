@@ -10,9 +10,8 @@ function parseToRgba(color: string): [number, number, number, number] {
   if (typeof color !== 'string') throw new ColorError(color);
   if (color.trim().toLowerCase() === 'transparent') return [0, 0, 0, 0];
 
-  const normalizedColor = namedColorRegex.test(color)
-    ? nameToHex(color.trim())
-    : color;
+  let normalizedColor = color.trim();
+  normalizedColor = namedColorRegex.test(color) ? nameToHex(color) : color;
 
   const reducedHexMatch = reducedHexRegex.exec(normalizedColor);
   if (reducedHexMatch) {
@@ -81,10 +80,10 @@ const compressedColorMap = '1q29ehhb 1n09sgk7 1kl1ekf_ _yl4zsno 16z9eiv3 1p29lhp
  * Checks if a string is a CSS named color and returns its equivalent hex value, otherwise returns the original color.
  */
 function nameToHex(color: string): string {
-  if (typeof color !== 'string') return color;
   const normalizedColorName = color.toLowerCase().trim();
   const result = compressedColorMap[hash(normalizedColorName)];
-  return result ? `#${result}` : color;
+  if (!result) throw new ColorError(color);
+  return `#${result}`;
 }
 
 const r = (str: string, amount: number) =>
