@@ -177,11 +177,7 @@ function App({ docs, readmeHtml }: Props) {
                 <small>
                   <a
                     className="go-to-implementation"
-                    href={
-                      id === 'parse-to-rgba'
-                        ? 'https://github.com/ricokahler/color2k/blob/master/packages/parse-to-rgba/src/index.ts'
-                        : `https://github.com/ricokahler/color2k/blob/master/packages/color2k/src/${functionName}.ts`
-                    }
+                    href={`https://github.com/ricokahler/color2k/blob/master/src/${functionName}.ts`}
                   >
                     Go to implementation →
                   </a>
