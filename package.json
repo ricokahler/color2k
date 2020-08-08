@@ -50,7 +50,7 @@
     "eslint-plugin-react-hooks": "4.0.8",
     "folder-hash": "3.3.2",
     "jest": "26.2.2",
-    "jsdom": "16.3.0",
+    "jsdom": "16.4.0",
     "postcss": "7.0.32",
     "preact": "10.4.7",
     "preact-render-to-string": "5.1.10",
