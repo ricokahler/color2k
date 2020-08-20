@@ -49,7 +49,7 @@
     "eslint-plugin-react": "7.20.6",
     "eslint-plugin-react-hooks": "4.1.0",
     "folder-hash": "3.3.2",
-    "jest": "26.4.0",
+    "jest": "26.4.1",
     "jsdom": "16.4.0",
     "postcss": "7.0.32",
     "preact": "10.4.7",
