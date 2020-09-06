@@ -403,7 +403,7 @@ test('all of them', async () => {
         "returnType": "string",
       },
       Object {
-        "description": "<p>Takes in any color and returns it as a hsla string.</p>",
+        "description": "<p>Takes in any color and returns it as an hsla string.</p>",
         "functionName": "toHsla",
         "id": "to-hsla",
         "params": Array [
