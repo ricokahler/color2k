@@ -1,6 +1,6 @@
 # [color2k](https://color2k.com) <br /> [![bundlephobia](https://badgen.net/bundlephobia/minzip/color2k)](https://bundlephobia.com/result?p=color2k) [![github status checks](https://badgen.net/github/checks/ricokahler/color2k)](https://github.com/ricokahler/color2k/actions) [![codecov](https://codecov.io/gh/ricokahler/color2k/branch/master/graph/badge.svg)](https://codecov.io/gh/ricokahler/color2k)
 
-> a color parsing and manipulation lib served in roughly 2kB or less (2.7kB to be more precise)
+> a color parsing and manipulation lib served in roughly 2kB or less (2.8kB to be more precise)
 
 color2k is a color parsing and manipulation library with the objective of keeping the bundle size as small as possible while still satisfying all of your color manipulation needs in an sRGB space.
 
@@ -14,7 +14,7 @@ The bundle size is [currently 2.7kB](https://bundlephobia.com/result?p=color2k)
 | [chroma-js](https://github.com/gka/chroma.js)             | [13.7kB](https://bundlephobia.com/result?p=chroma-js) |
 | [color](https://github.com/Qix-/color)                    | [7.6kB](https://bundlephobia.com/result?p=color)      |
 | [tinycolor2](https://github.com/bgrins/TinyColor)         | [5kB](https://bundlephobia.com/result?p=tinycolor2)   |
-| color2k                                                   | [2.7kB](https://bundlephobia.com/result?p=color2k) 😎 |
+| color2k                                                   | [2.8kB](https://bundlephobia.com/result?p=color2k) 😎 |
 
 ## Installation
 
