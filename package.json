@@ -1,6 +1,6 @@
 {
   "name": "color2k",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "a color parsing and manipulation lib served in roughly 2kB",
   "repository": {

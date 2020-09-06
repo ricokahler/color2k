@@ -182,6 +182,14 @@ function App({ docs, readmeHtml }: Props) {
                     Go to implementation →
                   </a>
                 </small>
+                <small>
+                  <a
+                    className="go-to-implementation"
+                    href={`https://github.com/ricokahler/color2k/blob/master/src/${functionName}.test.ts`}
+                  >
+                    See test for usage →
+                  </a>
+                </small>
               </div>
             )
           )

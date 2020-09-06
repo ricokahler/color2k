@@ -391,6 +391,42 @@ test('all of them', async () => {
         "returnType": "string",
       },
       Object {
+        "description": "<p>Takes in any color and returns it as a hex code.</p>",
+        "functionName": "toHex",
+        "id": "to-hex",
+        "params": Array [
+          Object {
+            "name": "color",
+            "type": "string",
+          },
+        ],
+        "returnType": "string",
+      },
+      Object {
+        "description": "<p>Takes in any color and returns it as a hsla string.</p>",
+        "functionName": "toHsla",
+        "id": "to-hsla",
+        "params": Array [
+          Object {
+            "name": "color",
+            "type": "string",
+          },
+        ],
+        "returnType": "string",
+      },
+      Object {
+        "description": "<p>Takes in any color and returns it as an rgba string.</p>",
+        "functionName": "toRgba",
+        "id": "to-rgba",
+        "params": Array [
+          Object {
+            "name": "color",
+            "type": "string",
+          },
+        ],
+        "returnType": "string",
+      },
+      Object {
         "description": "<p>Takes in a color and makes it more transparent by convert to <code>rgba</code> and
     decreasing the amount in the alpha channel.</p>",
         "functionName": "transparentize",

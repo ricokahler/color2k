@@ -14,14 +14,12 @@ function hsla(
   lightness: number,
   alpha: number
 ): string {
-  return `hsla(${hue % 360}, ${guard(
+  return `hsla(${(hue % 360).toFixed()}, ${guard(
     0,
     100,
     saturation * 100
-  ).toFixed()}%, ${guard(0, 100, lightness * 100).toFixed()}%, ${guard(
-    0,
-    1,
-    alpha
+  ).toFixed()}%, ${guard(0, 100, lightness * 100).toFixed()}%, ${parseFloat(
+    guard(0, 1, alpha).toFixed(3)
   )})`;
 }
 
