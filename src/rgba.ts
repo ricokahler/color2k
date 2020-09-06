@@ -13,7 +13,9 @@ function rgba(red: number, green: number, blue: number, alpha: number): string {
     0,
     255,
     green
-  ).toFixed()}, ${guard(0, 255, blue).toFixed()}, ${guard(0, 1, alpha)})`;
+  ).toFixed()}, ${guard(0, 255, blue).toFixed()}, ${parseFloat(
+    guard(0, 1, alpha).toFixed(3)
+  )})`;
 }
 
 export default rgba;
