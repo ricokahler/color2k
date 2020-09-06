@@ -18,3 +18,6 @@ export { default as saturate } from './saturate';
 export { default as transparentize } from './transparentize';
 export { default as parseToRgba } from './parseToRgba';
 export { default as ColorError } from './ColorError';
+export { default as toHex } from './toHex';
+export { default as toRgba } from './toRgba';
+export { default as toHsla } from './toHsla';
