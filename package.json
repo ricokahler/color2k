@@ -51,7 +51,7 @@
     "folder-hash": "3.3.3",
     "jest": "26.4.2",
     "jsdom": "16.4.0",
-    "postcss": "8.0.2",
+    "postcss": "8.0.3",
     "preact": "10.4.8",
     "preact-render-to-string": "5.1.10",
     "prettier": "2.1.1",
