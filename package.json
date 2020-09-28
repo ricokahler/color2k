@@ -52,7 +52,7 @@
     "jest": "26.4.2",
     "jsdom": "16.4.0",
     "postcss": "8.1.0",
-    "preact": "10.5.2",
+    "preact": "10.5.3",
     "preact-render-to-string": "5.1.10",
     "prettier": "2.1.2",
     "react": "16.13.1",
