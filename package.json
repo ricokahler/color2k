@@ -53,7 +53,7 @@
     "jsdom": "16.4.0",
     "postcss": "8.1.2",
     "preact": "10.5.5",
-    "preact-render-to-string": "5.1.10",
+    "preact-render-to-string": "5.1.11",
     "prettier": "2.1.2",
     "react": "17.0.0",
     "react-dom": "17.0.0",
