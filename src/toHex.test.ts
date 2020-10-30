@@ -22,4 +22,6 @@ test('https://github.com/ricokahler/color2k/issues/235', () => {
     `"hsla(349, 100%, 15%, 1)"`
   );
   expect(toHex(darken('#b00020', 0.2))).toMatchInlineSnapshot(`"#4d000e"`);
+
+  expect(toHex('#03dac5')).toMatchInlineSnapshot(`"#03dac5"`);
 });
