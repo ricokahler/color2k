@@ -69,6 +69,14 @@ async function main() {
     JSON.stringify(publishPackageJson, null, 2)
   );
 
+  const readme = await fs.promises.readFile(
+    path.resolve(__dirname, '../README.md')
+  );
+  await fs.promises.writeFile(
+    path.resolve(__dirname, '../dist/README.md'),
+    readme
+  );
+
   console.log('DONE!');
 }
 
