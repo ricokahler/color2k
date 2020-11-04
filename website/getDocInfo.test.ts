@@ -20,7 +20,7 @@ test('test', async () => {
           "type": "string",
         },
         Object {
-          "description": "the amount to darken, given as a decimal between 0 and 1",
+          "description": "The amount to increase the transparency by, given as a decimal between 0 and 1",
           "name": "amount",
           "type": "number",
         },
@@ -85,7 +85,7 @@ test('all of them', async () => {
             "type": "string",
           },
           Object {
-            "description": "the amount to darken, given as a decimal between 0 and 1",
+            "description": "The amount to darken, given as a decimal between 0 and 1",
             "name": "amount",
             "type": "number",
           },
@@ -103,7 +103,7 @@ test('all of them', async () => {
             "type": "string",
           },
           Object {
-            "description": "amount to desaturate, given as a decimal between 0 and 1",
+            "description": "The amount to desaturate, given as a decimal between 0 and 1",
             "name": "amount",
             "type": "number",
           },
@@ -190,7 +190,8 @@ test('all of them', async () => {
         "returnType": "number",
       },
       Object {
-        "description": "<p>Returns whether or not a color has bad contrast according to a given standard</p>",
+        "description": "<p>Returns whether or not a color has bad contrast against 
+    a white background according to a given standard</p>",
         "functionName": "hasBadContrast",
         "id": "has-bad-contrast",
         "params": Array [
@@ -244,7 +245,7 @@ test('all of them', async () => {
             "type": "string",
           },
           Object {
-            "description": "the amount to darken, given as a decimal between 0 and 1",
+            "description": "The amount to darken, given as a decimal between 0 and 1",
             "name": "amount",
             "type": "number",
           },
@@ -282,7 +283,7 @@ test('all of them', async () => {
             "type": "string",
           },
           Object {
-            "description": "the amount to darken, given as a decimal between 0 and 1",
+            "description": "The amount to increase the opacity by, given as a decimal between 0 and 1",
             "name": "amount",
             "type": "number",
           },
@@ -378,12 +379,12 @@ test('all of them', async () => {
         "id": "saturate",
         "params": Array [
           Object {
-            "description": "the input color",
+            "description": "Input color",
             "name": "color",
             "type": "string",
           },
           Object {
-            "description": "the amount to darken, given as a decimal between 0 and 1",
+            "description": "The amount to darken, given as a decimal between 0 and 1",
             "name": "amount",
             "type": "number",
           },
@@ -437,7 +438,7 @@ test('all of them', async () => {
             "type": "string",
           },
           Object {
-            "description": "the amount to darken, given as a decimal between 0 and 1",
+            "description": "The amount to increase the transparency by, given as a decimal between 0 and 1",
             "name": "amount",
             "type": "number",
           },
