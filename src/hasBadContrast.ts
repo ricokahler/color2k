@@ -8,7 +8,8 @@ const guidelines = {
 };
 
 /**
- * Returns whether or not a color has bad contrast according to a given standard
+ * Returns whether or not a color has bad contrast against 
+ * a white background according to a given standard
  */
 function hasBadContrast(
   color: string,
