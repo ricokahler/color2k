@@ -31,6 +31,9 @@ async function main() {
 
   console.log('generating types…');
   await execute('npx tsc');
+  // tsc with `--allowJs` doesn't use the .d.ts in the src folder
+  // so we explicitly copy it over
+  await execute('cp ./src/ColorError.d.ts ./dist');
 
   console.log('rolling…');
   await execute('npx rollup -c');

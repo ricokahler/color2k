@@ -37,7 +37,8 @@ test('all of them', async () => {
     (filename) =>
       !filename.endsWith('.test.ts') &&
       filename !== 'index.ts' &&
-      filename !== 'ColorError.ts'
+      filename !== 'ColorError.js' &&
+      filename !== 'ColorError.d.ts'
   );
 
   const docs: DocInfo[] = [];
