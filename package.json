@@ -54,7 +54,7 @@
     "postcss": "8.1.8",
     "preact": "10.5.7",
     "preact-render-to-string": "5.1.12",
-    "prettier": "2.1.2",
+    "prettier": "2.2.0",
     "react": "17.0.1",
     "react-dom": "17.0.1",
     "rollup": "2.33.3",
