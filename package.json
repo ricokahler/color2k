@@ -20,7 +20,7 @@
     "website": "node ./scripts/website.js"
   },
   "devDependencies": {
-    "@babel/core": "7.12.7",
+    "@babel/core": "7.12.8",
     "@babel/node": "7.12.6",
     "@babel/plugin-transform-runtime": "7.12.1",
     "@babel/preset-env": "7.12.7",
