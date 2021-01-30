@@ -13,3 +13,4 @@ babel.config.json
 jest.config.js
 renovate.json
 tsconfig.json
+.releaserc.json
