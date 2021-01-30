@@ -1,5 +1,5 @@
 {
-  "extends": ["config:base"],
+  "extends": ["config:base", "schedule:monthly"],
   "groupName": "all",
   "rebaseWhen": "behind-base-branch",
   "automerge": true
