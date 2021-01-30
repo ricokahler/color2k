@@ -7,7 +7,6 @@ module.exports = {
   testEnvironment: 'node',
   rootDir: __dirname,
   modulePathIgnorePatterns: ['<rootDir>/dist/'],
-  setupFiles: ['<rootDir>/loadershim.js'],
   coveragePathIgnorePatterns: [
     '<rootDir>/dist/',
     '<rootDir>/node_modules/',
