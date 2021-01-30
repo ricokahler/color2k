@@ -1,7 +1,6 @@
 {
   "name": "color2k",
   "version": "1.1.1",
-  "private": true,
   "description": "a color parsing and manipulation lib served in roughly 2kB",
   "repository": {
     "type": "git",
@@ -17,7 +16,8 @@
     "test": "jest",
     "website": "node ./scripts/website.js",
     "build": "microbundle",
-    "dev": "microbundle watch"
+    "dev": "microbundle watch",
+    "prepare": "npm run build"
   },
   "devDependencies": {
     "@babel/core": "7.12.10",
