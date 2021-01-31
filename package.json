@@ -11,9 +11,18 @@
     "name": "Rico Kahler",
     "email": "ricokahler@me.com"
   },
+  "keywords": [
+    "color",
+    "css-in-js",
+    "tinycolor",
+    "color-parser",
+    "color-manipulation",
+    "polished",
+    "chroma-js"
+  ],
   "sideEffects": false,
   "exports": "./dist/index.modern.js",
-  "main": "./dist/index.ts",
+  "main": "./dist/index.js",
   "unpkg": "./dist/index.umd.js",
   "module": "./dist/index.module.js",
   "source": "./src/index.ts",
