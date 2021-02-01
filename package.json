@@ -22,7 +22,10 @@
     "chroma-js"
   ],
   "sideEffects": false,
-  "exports": "./dist/index.modern.js",
+  "exports": {
+    "import": "./dist/index.modern.js",
+    "require": "./dist/index.js"
+  },
   "main": "./dist/index.js",
   "unpkg": "./dist/index.umd.js",
   "module": "./dist/index.module.js",
