@@ -12,7 +12,7 @@ function getLuminance(color: string): number {
     const channel = x / 255;
     return channel <= 0.03928
       ? channel / 12.92
-      : ((channel + 0.055) / 1.055) ** 2.4;
+      : Math.pow((channel + 0.055) / 1.055, 2.4);
   }
 
   const [r, g, b] = parseToRgba(color);
