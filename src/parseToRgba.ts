@@ -73,7 +73,7 @@ const compressedColorMap = '1q29ehhb 1n09sgk7 1kl1ekf_ _yl4zsno 16z9eiv3 1p29lhp
     const key = colorToInt(next.substring(0, 3));
     const hex = colorToInt(next.substring(3)).toString(16);
 
-    // NOTE: pad start could be used here but it breaks Node 6 compat
+    // NOTE: padStart could be used here but it breaks Node 6 compat
     // https://github.com/ricokahler/color2k/issues/351
     let prefix = '';
     for (let i = 0; i < 6 - hex.length; i++) {
