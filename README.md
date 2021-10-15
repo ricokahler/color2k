@@ -4,17 +4,20 @@
 
 color2k is a color parsing and manipulation library with the objective of keeping the bundle size as small as possible while still satisfying all of your color manipulation needs in an sRGB space.
 
-The bundle size is [currently 2.8kB](https://bundlephobia.com/result?p=color2k)
+The full bundle size is [currently 2.8kB](https://bundlephobia.com/result?p=color2k) but [gets as small as 2.1k](https://bundle.js.org/?share=PTAEGEBsEsGMGtQCUCuA7UAzA9gJ1AC4AWApqAELoAmkJVoA1KALLRrSbR2OgDiAXtAAOQ7kICGCcQHMyAZ2j8SAKBIAPIXgKgA3lXG54JNAF8subAFtQAIljZIeAEzwbAbiA) with tree shaking.
 
 ## Size comparison
 
 | lib                                                       | size                                                  |
 | --------------------------------------------------------- | ----------------------------------------------------- |
-| [polished](https://github.com/styled-components/polished) | [11.2kB](https://bundlephobia.com/result?p=polished)  |
 | [chroma-js](https://github.com/gka/chroma.js)             | [13.7kB](https://bundlephobia.com/result?p=chroma-js) |
+| [polished](https://github.com/styled-components/polished) | [11.2kB](https://bundlephobia.com/result?p=polished)  |
 | [color](https://github.com/Qix-/color)                    | [7.6kB](https://bundlephobia.com/result?p=color)      |
 | [tinycolor2](https://github.com/bgrins/TinyColor)         | [5kB](https://bundlephobia.com/result?p=tinycolor2)   |
 | color2k                                                   | [2.8kB](https://bundlephobia.com/result?p=color2k) 😎 |
+
+👋 Compare tree-shaken bundle outputs on [bundle.js.org](https://bundle.js.org/?share=PTAEFcDsGMHsFt4FNIBdQENIBNRIB4AOsATuvLNuADZIDOoqsoc8hGJSjAFkgJYlQdPgC96oAFASQeIqXQAqUADMSCUACJo3NfAwBaAFZ0NAbmlgCxMqCWr1G4tT51e2MxdnXFK3ZrjUpB4yVvK2vg6ofJAAngGkAEweoTYA3tgcANYoAL4R8P6wgSQJmR5AA)
+
 
 ## Installation
 
