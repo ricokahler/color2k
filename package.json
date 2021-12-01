@@ -62,7 +62,7 @@
     "eslint-plugin-jsx-a11y": "6.5.1",
     "eslint-plugin-react": "7.27.1",
     "eslint-plugin-react-hooks": "4.3.0",
-    "jest": "27.0.6",
+    "jest": "27.4.2",
     "microbundle": "0.14.2",
     "postcss": "8.4.4",
     "preact": "10.6.2",
