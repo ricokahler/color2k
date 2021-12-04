@@ -9,13 +9,15 @@ const guidelines = {
 
 /**
  * Returns whether or not a color has bad contrast against 
- * a white background according to a given standard
+ * a background according to a given standard.
+ * Default background is white
  */
 function hasBadContrast(
   color: string,
-  standard: 'decorative' | 'readable' | 'aa' | 'aaa' = 'aa'
+  standard: 'decorative' | 'readable' | 'aa' | 'aaa' = 'aa',
+  background = '#fff'
 ): boolean {
-  return getContrast(color, '#fff') < guidelines[standard];
+  return getContrast(color, background) < guidelines[standard];
 }
 
 export default hasBadContrast;
