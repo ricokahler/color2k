@@ -51,3 +51,15 @@ test('mix blue and green', () => {
   );
   expect(mix('blue', 'green', 1)).toMatchInlineSnapshot(`"rgba(0, 128, 0, 1)"`);
 });
+
+test('mix with transparent and weight 0%', () => {
+  expect(mix('transparent', 'blue', 0)).toMatchInlineSnapshot(
+    `"rgba(0, 0, 0, 0)"`
+  );
+});
+
+test('mix with transparent and weight 100%', () => {
+  expect(mix('red', 'rgba(255, 0, 0, 0)', 100)).toMatchInlineSnapshot(
+    `"rgba(255, 0, 0, 0)"`
+  );
+});
