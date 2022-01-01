@@ -59,7 +59,7 @@ test('mix with transparent and weight 0%', () => {
 });
 
 test('mix with transparent and weight 100%', () => {
-    `"rgba(255, 0, 0, 0)"`
   expect(mix('red', 'rgba(255, 0, 0, 0)', 1)).toMatchInlineSnapshot(
+    `"rgba(255, 0, 0, 0)"`
   );
 });
