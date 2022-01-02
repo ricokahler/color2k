@@ -15,10 +15,12 @@ function mix(color1: string, color2: string, weight: number): string {
   // The formula is copied from the original Sass implementation:
   // http://sass-lang.com/documentation/Sass/Script/Functions.html#mix-instance_method
   const alphaDelta = a2 - a1;
-  const x = weight * 2 - 1;
-  const y = x * alphaDelta === -1 ? x : x + alphaDelta;
-  const z = 1 + x * alphaDelta;
-  const weight2 = (y / z + 1) / 2.0;
+  const normalizedWeight = weight * 2 - 1;
+  const combinedWeight =
+    normalizedWeight * alphaDelta === -1
+      ? normalizedWeight
+      : normalizedWeight + alphaDelta / (1 + normalizedWeight * alphaDelta);
+  const weight2 = (combinedWeight + 1) / 2;
   const weight1 = 1 - weight2;
 
   const r = (r1 * weight1 + r2 * weight2) * 255;
