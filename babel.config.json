@@ -1,6 +1,14 @@
 {
   "presets": [
-    ["@babel/preset-env", { "targets": { "node": "current" } }],
+    ["@babel/preset-env", { "targets": { "node": "4" } }],
     "@babel/preset-typescript"
+  ],
+  "overrides": [
+    {
+      "test": "./website",
+      "presets": [
+        ["@babel/preset-env", { "targets": { "node": "current" } }]
+      ]
+    }
   ]
 }

@@ -2,10 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import getDocInfo, { DocInfo } from './getDocInfo';
 
-test('test', async () => {
-  const buffer = await fs.promises.readFile(
-    require.resolve('../src/transparentize')
-  );
+test('test', () => {
+  const buffer = fs.readFileSync(require.resolve('../src/transparentize'));
   const code = buffer.toString();
 
   expect(getDocInfo(code)).toMatchInlineSnapshot(`
@@ -30,10 +28,8 @@ test('test', async () => {
   `);
 });
 
-test('all of them', async () => {
-  const functionFiles = (
-    await fs.promises.readdir(path.resolve(__dirname, '../src'))
-  ).filter(
+test('all of them', () => {
+  const functionFiles = fs.readdirSync(path.resolve(__dirname, '../src')).filter(
     (filename) =>
       !filename.endsWith('.test.ts') &&
       filename !== 'index.ts' &&
@@ -43,9 +39,7 @@ test('all of them', async () => {
   const docs: DocInfo[] = [];
   for (const file of functionFiles) {
     try {
-      const buffer = await fs.promises.readFile(
-        path.resolve(__dirname, `../src/${file}`)
-      );
+      const buffer = fs.readFileSync(path.resolve(__dirname, `../src/${file}`));
       const contents = buffer.toString();
       docs.push(getDocInfo(contents));
     } catch (e) {
