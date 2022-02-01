@@ -36,12 +36,12 @@
     "website": "node ./scripts/website.js"
   },
   "devDependencies": {
-    "@babel/core": "7.16.7",
-    "@babel/node": "7.16.7",
-    "@babel/preset-env": "7.16.7",
+    "@babel/core": "7.16.12",
+    "@babel/node": "7.16.8",
+    "@babel/preset-env": "7.16.11",
     "@babel/preset-react": "7.16.7",
     "@babel/preset-typescript": "7.16.7",
-    "@babel/register": "7.16.7",
+    "@babel/register": "7.16.9",
     "@rollup/plugin-alias": "3.1.9",
     "@rollup/plugin-babel": "5.3.0",
     "@rollup/plugin-node-resolve": "13.1.3",
