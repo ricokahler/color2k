@@ -1,4 +1,5 @@
 .github
+.vscode
 build
 coverage
 node_modules
@@ -9,8 +10,9 @@ website
 .gitignore
 .nvmrc
 .prettierrc
+.releaserc.json
 babel.config.json
 jest.config.js
 renovate.json
+rollup.config.js
 tsconfig.json
-.releaserc.json
