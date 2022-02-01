@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# use node_modules/.bin first
+PATH=./node_modules/.bin:$PATH
+
+# exit on any error
+set -e
+
+# clean
+rm -rf dist
+
+# build js
+rollup -c
+
+# generate types
+tsc
