@@ -190,8 +190,8 @@ test('all of them', async () => {
         "returnType": "number",
       },
       Object {
-        "description": "<p>Returns whether or not a color has bad contrast against 
-    a white background according to a given standard</p>",
+        "description": "<p>Returns whether or not a color has bad contrast against a background
+    according to a given standard.</p>",
         "functionName": "hasBadContrast",
         "id": "has-bad-contrast",
         "params": Array [
@@ -202,6 +202,10 @@ test('all of them', async () => {
           Object {
             "name": "standard",
             "type": "'decorative' | 'readable' | 'aa' | 'aaa' = 'aa'",
+          },
+          Object {
+            "name": "background",
+            "type": "string = '#fff'",
           },
         ],
         "returnType": "boolean",
