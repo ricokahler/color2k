@@ -64,7 +64,7 @@
     "cssnano": "5.1.7",
     "eslint": "8.15.0",
     "eslint-config-react-app": "7.0.1",
-    "jest": "27.4.2",
+    "jest": "27.5.1",
     "postcss": "8.4.13",
     "preact": "10.7.2",
     "preact-render-to-string": "5.2.0",
