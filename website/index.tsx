@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { terser } from 'rollup-plugin-terser';
+import terser from '@rollup/plugin-terser';
 import * as rollup from 'rollup';
 import * as React from 'preact';
 import renderToString from 'preact-render-to-string';
