@@ -25,3 +25,7 @@ test('https://github.com/ricokahler/color2k/issues/235', () => {
 
   expect(toHex('#03dac5')).toMatchInlineSnapshot(`"#03dac5"`);
 });
+
+test('https://github.com/ricokahler/color2k/issues/463', () => {
+  expect(toHex('hsla(15, 50%, 50%, 0)')).toMatchInlineSnapshot(`"#bf604000"`);
+});
