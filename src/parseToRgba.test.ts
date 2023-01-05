@@ -159,7 +159,7 @@ describe('parseToRgb', () => {
   });
   it('should parse a hex color representation', () => {
     expect(parseToRgba('#Ff43AE')).toMatchInlineSnapshot(`
-      Array [
+      [
         255,
         67,
         174,
@@ -170,7 +170,7 @@ describe('parseToRgb', () => {
 
   it('should parse a reduced hex color representation', () => {
     expect(parseToRgba('#fff')).toMatchInlineSnapshot(`
-      Array [
+      [
         255,
         255,
         255,
@@ -181,7 +181,7 @@ describe('parseToRgb', () => {
 
   it('should parse an 8-digit hex color representation', () => {
     expect(parseToRgba('#Ff43AEFF')).toMatchInlineSnapshot(`
-      Array [
+      [
         255,
         67,
         174,
@@ -192,7 +192,7 @@ describe('parseToRgb', () => {
 
   it('should parse an 4-digit hex color representation', () => {
     expect(parseToRgba('#0f08')).toMatchInlineSnapshot(`
-      Array [
+      [
         0,
         255,
         0,
@@ -203,7 +203,7 @@ describe('parseToRgb', () => {
 
   it('should parse a reduced hex color representation', () => {
     expect(parseToRgba('#45a')).toMatchInlineSnapshot(`
-      Array [
+      [
         68,
         85,
         170,
@@ -214,7 +214,7 @@ describe('parseToRgb', () => {
 
   it('should parse an rgba color representation', () => {
     expect(parseToRgba('rgba(174,67,255,0.6)')).toMatchInlineSnapshot(`
-      Array [
+      [
         174,
         67,
         255,
@@ -222,7 +222,7 @@ describe('parseToRgb', () => {
       ]
     `);
     expect(parseToRgba('rgba( 174 , 67 , 255 , 0.6 )')).toMatchInlineSnapshot(`
-      Array [
+      [
         174,
         67,
         255,
@@ -233,7 +233,7 @@ describe('parseToRgb', () => {
 
   it('should parse an rgb color representation', () => {
     expect(parseToRgba('rgb(174,67,255)')).toMatchInlineSnapshot(`
-      Array [
+      [
         174,
         67,
         255,
@@ -241,7 +241,7 @@ describe('parseToRgb', () => {
       ]
     `);
     expect(parseToRgba('rgb( 174 , 67 , 255 )')).toMatchInlineSnapshot(`
-      Array [
+      [
         174,
         67,
         255,
@@ -252,7 +252,7 @@ describe('parseToRgb', () => {
 
   it('should parse an hsl color representation', () => {
     expect(parseToRgba('hsl(210,10%,4%)')).toMatchInlineSnapshot(`
-      Array [
+      [
         9,
         10,
         11,
@@ -260,7 +260,7 @@ describe('parseToRgb', () => {
       ]
     `);
     expect(parseToRgba('hsl( 210 , 10% , 4% )')).toMatchInlineSnapshot(`
-      Array [
+      [
         9,
         10,
         11,
@@ -271,7 +271,7 @@ describe('parseToRgb', () => {
 
   it('should parse an hsl color representation with decimal values', () => {
     expect(parseToRgba('hsl(210,16.4%,13.2%)')).toMatchInlineSnapshot(`
-      Array [
+      [
         28,
         34,
         39,
@@ -279,7 +279,7 @@ describe('parseToRgb', () => {
       ]
     `);
     expect(parseToRgba('hsl( 210 , 16.4%, 13.2% )')).toMatchInlineSnapshot(`
-      Array [
+      [
         28,
         34,
         39,
@@ -290,7 +290,7 @@ describe('parseToRgb', () => {
 
   it('should parse an hsla color representation', () => {
     expect(parseToRgba('hsla(210,10%,40%,0.75)')).toMatchInlineSnapshot(`
-      Array [
+      [
         92,
         102,
         112,
@@ -299,7 +299,7 @@ describe('parseToRgb', () => {
     `);
     expect(parseToRgba('hsla( 210 , 10% , 40% , 0.75 )'))
       .toMatchInlineSnapshot(`
-      Array [
+      [
         92,
         102,
         112,
@@ -310,7 +310,7 @@ describe('parseToRgb', () => {
 
   it('should parse an hsla color representation with decimal values', () => {
     expect(parseToRgba('hsla(210,0.5%,0.5%,1.0)')).toMatchInlineSnapshot(`
-      Array [
+      [
         1,
         1,
         1,
@@ -319,7 +319,7 @@ describe('parseToRgb', () => {
     `);
     expect(parseToRgba('hsla( 210 , 0.5% , 0.5% , 1.0 )'))
       .toMatchInlineSnapshot(`
-      Array [
+      [
         1,
         1,
         1,
@@ -332,7 +332,7 @@ describe('parseToRgb', () => {
     expect(() => {
       parseToRgba('(174,67,255)');
     }).toThrowErrorMatchingInlineSnapshot(
-      `"Failed to parse color: \\"(174,67,255)\\""`
+      `"Failed to parse color: "(174,67,255)""`
     );
   });
 
@@ -340,22 +340,20 @@ describe('parseToRgb', () => {
     expect(() => {
       // @ts-ignore
       parseToRgba(12345);
-    }).toThrowErrorMatchingInlineSnapshot(
-      `"Failed to parse color: \\"12345\\""`
-    );
+    }).toThrowErrorMatchingInlineSnapshot(`"Failed to parse color: "12345""`);
   });
 
   it('throws an error if an invalid hsl string is provided', () => {
     expect(() => {
       parseToRgba('hsl(210,120%,4%)');
     }).toThrowErrorMatchingInlineSnapshot(
-      `"Failed to parse color: \\"hsl(210,120%,4%)\\""`
+      `"Failed to parse color: "hsl(210,120%,4%)""`
     );
 
     expect(() => {
       parseToRgba('hsla(210,100%,400%,0.7)');
     }).toThrowErrorMatchingInlineSnapshot(
-      `"Failed to parse color: \\"hsla(210,100%,400%,0.7)\\""`
+      `"Failed to parse color: "hsla(210,100%,400%,0.7)""`
     );
   });
 
@@ -363,7 +361,7 @@ describe('parseToRgb', () => {
     expect(() => {
       parseToRgba('notrealblue');
     }).toThrowErrorMatchingInlineSnapshot(
-      `"Failed to parse color: \\"notrealblue\\""`
+      `"Failed to parse color: "notrealblue""`
     );
   });
 });
