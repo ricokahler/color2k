@@ -328,6 +328,26 @@ describe('parseToRgb', () => {
     `);
   });
 
+  it('parses should parse an hsla color with an alpha value of zero', () => {
+    expect(parseToRgba('hsla(210,0.5%,0.5%,0)')).toMatchInlineSnapshot(`
+      [
+        1,
+        1,
+        1,
+        0,
+      ]
+    `);
+    expect(parseToRgba('hsla( 210 , 0.5% , 0.5% , 0.01 )'))
+      .toMatchInlineSnapshot(`
+      [
+        1,
+        1,
+        1,
+        0.01,
+      ]
+    `);
+  });
+
   it('throws an error if an invalid color string is provided', () => {
     expect(() => {
       parseToRgba('(174,67,255)');
