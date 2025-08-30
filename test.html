@@ -1,0 +1,813 @@
+<html><head><style>
+          :root {
+            font-family: -apple-system, BlinkMacSystemFont, avenir next, avenir,
+              segoe ui, helvetica neue, helvetica, Cantarell, Ubuntu, roboto,
+              noto, arial, sans-serif;
+
+            font-size: 16px;
+
+            color: #1f2328;
+          }
+
+          a {
+            color: palevioletred;
+          }
+
+          .content h1 {
+            position: sticky;
+            top: 0;
+            /* border-bottom: 1px solid rgb(216, 222, 228); */
+            background: white;
+            font-weight: 600;
+          }
+
+          h2 {
+            font-weight: 600;
+            border-bottom: 1px solid rgb(216, 222, 228);
+            padding-bottom: 7.2px;
+            position: sticky;
+            top: 42px;
+            background: white;
+            padding: 0.5rem 0;
+          }
+
+          h1 a {
+            text-decoration: none;
+            color: inherit;
+          }
+
+          blockquote {
+            margin: 0;
+            padding: 0 0 0 1rem;
+            border-left: 4px solid rgb(208, 215, 222);
+            color: #656d76;
+          }
+
+          body {
+            margin: 0;
+          }
+
+          .content {
+            max-width: 720px;
+            margin: 1rem auto;
+            padding: 0.25rem 1rem;
+            background: white;
+            border-radius: 0.5rem;
+          }
+
+          pre {
+            background: rgb(246, 248, 250);
+            border-radius: 0.5rem;
+            overflow: auto;
+            padding: 1rem;
+          }
+
+          .landing {
+            min-height: 100vh;
+            display: flex;
+          }
+
+          .landing--left {
+            flex: auto;
+            display: flex;
+          }
+
+          .landing--right {
+            flex: 0 1 auto;
+          }
+
+          .jumbotron {
+            margin: auto;
+          }
+
+          .jumbotron h1 {
+            font-size: 5rem;
+            margin: 0;
+          }
+
+          .jumbotron p {
+            font-size: 2rem;
+          }
+
+          table {
+          }
+
+          .swatch-set {
+            display: flex;
+          }
+
+          .swatch {
+            width: 128px;
+            height: 128px;
+            display: flex;
+            padding: 8px;
+          }
+
+          .swatch-color {
+            margin-top: auto;
+            margin-left: auto;
+            font-size: 12px;
+            text-align: right;
+            font-weight: bold;
+          }
+        </style></head><body><main><section class="landing"><div class="landing--left"><div class="jumbotron"><h1>color2k</h1><p>an extremely simple color parsing and transformation library composed of pure, tree-shakable functions.</p></div></div><div class="landing--right"><div class="swatch-set"><div><div class="swatch" style="background-color:hsla(340, 60%, 65%, 1)"><span class="swatch-color" style="color:#000">palevioletred</span></div><div class="swatch" style="background-color:hsla(340, 60%, 55%, 1)"><span class="swatch-color" style="color:#000">#D14775</span></div><div class="swatch" style="background-color:hsla(340, 60%, 45%, 1)"><span class="swatch-color" style="color:#fff">#B82E5C</span></div><div class="swatch" style="background-color:hsla(340, 60%, 35%, 1)"><span class="swatch-color" style="color:#fff">#8F2447</span></div><div class="swatch" style="background-color:hsla(340, 60%, 25%, 1)"><span class="swatch-color" style="color:#fff">#661A33</span></div></div><div><div class="swatch" style="background-color:hsla(28, 100%, 86%, 1)"><span class="swatch-color" style="color:#000">peachpuff</span></div><div class="swatch" style="background-color:hsla(28, 100%, 76%, 1)"><span class="swatch-color" style="color:#000">#FFBE85</span></div><div class="swatch" style="background-color:hsla(28, 100%, 66%, 1)"><span class="swatch-color" style="color:#000">#FFA352</span></div><div class="swatch" style="background-color:hsla(28, 100%, 56%, 1)"><span class="swatch-color" style="color:#000">#FF871F</span></div><div class="swatch" style="background-color:hsla(28, 100%, 46%, 1)"><span class="swatch-color" style="color:#000">#EB6D00</span></div></div><div><div class="swatch" style="background-color:hsla(37, 100%, 92%, 1)"><span class="swatch-color" style="color:#000">papayawhip</span></div><div class="swatch" style="background-color:hsla(37, 100%, 82%, 1)"><span class="swatch-color" style="color:#000">#FFDCA3</span></div><div class="swatch" style="background-color:hsla(37, 100%, 72%, 1)"><span class="swatch-color" style="color:#000">#FFC870</span></div><div class="swatch" style="background-color:hsla(37, 100%, 62%, 1)"><span class="swatch-color" style="color:#000">#FFB53D</span></div><div class="swatch" style="background-color:hsla(37, 100%, 52%, 1)"><span class="swatch-color" style="color:#000">#FFA10A</span></div></div><div><div class="swatch" style="background-color:hsla(340, 100%, 97%, 1)"><span class="swatch-color" style="color:#000">lavenderblush</span></div><div class="swatch" style="background-color:hsla(340, 100%, 87%, 1)"><span class="swatch-color" style="color:#000">#FFBDD3</span></div><div class="swatch" style="background-color:hsla(340, 100%, 77%, 1)"><span class="swatch-color" style="color:#000">#FF8AB1</span></div><div class="swatch" style="background-color:hsla(340, 100%, 67%, 1)"><span class="swatch-color" style="color:#000">#FF578F</span></div><div class="swatch" style="background-color:hsla(340, 100%, 57%, 1)"><span class="swatch-color" style="color:#000">#FF246D</span></div></div></div></div></section><section class="content"><h1 id="color2k-🎀httpscolor2kcom"><a href="https://color2k.com">color2k 🎀</a></h1>
+<p><a href="https://bundlejs.com/?q=color2k"><img src="https://deno.bundlejs.com/badge?q=color2k" alt="bundlejs" /></a> <a href="https://github.com/ricokahler/color2k/actions"><img src="https://badgen.net/github/checks/ricokahler/color2k" alt="github status checks" /></a> <a href="https://codecov.io/gh/ricokahler/color2k"><img src="https://codecov.io/gh/ricokahler/color2k/branch/master/graph/badge.svg" alt="codecov" /></a> <img src="https://badgen.net/npm/dw/color2k" alt="weekly downloads" /> <a href="https://github.com/semantic-release/semantic-release"><img src="https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg" alt="semantic-release" /></a></p>
+<blockquote>
+  <p>a simple color parsing and transformation library composed of pure, tree-shakable functions.</p>
+  <p>— uncomplicated by design 😇</p>
+</blockquote>
+<p>for simple usage, most bundles will end up being <a href="https://bundlejs.com/?q=color2k&treeshake=%5B%7B+darken+%7D%5D">roughly 2kB</a>.</p>
+<h2 id="✨-size-comparison">✨ size comparison</h2>
+<table>
+<thead>
+<tr>
+<th id="lib">lib</th>
+<th id="size">size</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/gka/chroma.js">chroma-js</a></td>
+<td><a href="https://bundlejs.com/?q=chroma-js">18.3 kB (gzip)</a></td>
+</tr>
+<tr>
+<td><a href="https://github.com/styled-components/polished">polished</a></td>
+<td><a href="https://bundlejs.com/?q=polished">12 kB (gzip)</a></td>
+</tr>
+<tr>
+<td><a href="https://github.com/Qix-/color">color</a></td>
+<td><a href="https://bundlejs.com/?q=color">8.48 kB (gzip)</a></td>
+</tr>
+<tr>
+<td><a href="https://github.com/bgrins/TinyColor">tinycolor2</a></td>
+<td><a href="https://bundlejs.com/?q=tinycolor2">5.35 kB (gzip)</a></td>
+</tr>
+<tr>
+<td>color2k</td>
+<td><a href="https://bundlejs.com/?q=color2k">2.9 kB (gzip)</a> 💖</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+  <p>👋 compare tree-shaken bundle outputs on <a href="https://bundlejs.com/?q=color2k%402.0.3&treeshake=%5B%7B+darken+%7D%5D">bundlejs.com</a></p>
+</blockquote>
+<h2 id="💾-installation">💾 installation</h2>
+<p>install with a package manager such as <code>npm</code></p>
+<pre><code>npm i color2k</code></pre>
+<p><strong>OR</strong> use with <a href="https://www.skypack.dev/">skypack.dev</a> in supported environments (e.g. <a href="https://deno.land/manual/linking_to_external_code">deno</a>, <a href="https://docs.skypack.dev/#whats-old-is-new-again">modern browsers</a>).</p>
+<pre><code class="js language-js">import { darken, transparentize } from "https://cdn.skypack.dev/color2k?min";</code></pre>
+<h2 id="🛠️-usage">🛠️ usage</h2>
+<pre><code class="js language-js">import { darken, transparentize } from "color2k";
+
+// e.g.
+darken("blue", 0.1); // hsla(240, 100%, 40%, 1)
+transparentize("red", 0.5); // rgba(255, 0, 0, 0.9)</code></pre>
+<h2 id="🤏-how-so-small">🤏 how so small?</h2>
+<p>there are three secrets that keep this lib especially small:</p>
+<h3 id="simplicity">simplicity</h3>
+<p>color2k is only a set of data-first pure functions—uncomplicated by design yet immediately useful.</p>
+<h3 id="less-branching">less branching</h3>
+<p>strings in. strings out.</p>
+<p>nearly all functions:</p>
+<ol>
+<li>take in the color as a string,</li>
+<li>parse it to <code>rgba</code> or <code>hsla</code> (depending on the transformation),</li>
+<li>apply the transformation,</li>
+<li>and then return the result of that transform as a string.</li>
+</ol>
+<p>this makes the library have much less code because it handles multiple inputs with the same parsing engine and results in very straight-forward and readable implementations</p>
+<pre><code class="ts language-ts">function darken(color: string, amount: number): string {
+  const [hue, saturation, lightness, alpha] = parseToHsla(color);
+  return hsla(hue, saturation, lightness - amount, alpha);
+}</code></pre>
+<pre><code class="ts language-ts">function transparentize(color: string, amount: number): string {
+  const [r, g, b, a] = parseToRgba(color);
+  return rgba(r, g, b, a - amount);
+}</code></pre>
+<pre><code class="ts language-ts">function desaturate(color: string, amount: number): string {
+  const [h, s, l, a] = parseToHsla(color);
+  return hsla(h, s - amount, l, a);
+}</code></pre>
+<h3 id="the-compressed-color-map-of-named-colors-🤫">the compressed color map of named colors 🤫</h3>
+<p>strings in, strings out also means having to handle any css <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/named-color">named-color</a>.</p>
+<p>in order to save on precious bytes, this library contains a "compressed" map of <em>hashed</em> keys to hex values. the hash function used is lossy so that the resulting map of keys to hex values that has to go in the bundle is smaller.</p>
+<pre><code class="ts language-ts">function nameToHex(color: string): string {
+  const normalizedColorName = color.toLowerCase().trim();
+  const result = compressedColorMap[hash(normalizedColorName)];
+  if (!result) throw new ColorError(color);
+  return `#${result}`;
+}</code></pre>
+<p>feel free to open an issue or pull request if you can think of ways to shrink this mechanism even more.</p>
+<h2 id="💖-credits-and-community">💖 credits and community</h2>
+<p>heavy credits goes to polished.js and sass. much of the implementation of this lib is proudly copied from polished!</p>
+<p>thank you to the community for also keeping this lib up to date with current standards:</p>
+<ul>
+<li><strong><a href="https://github.com/Myndex">@Myndex</a></strong> <a href="https://github.com/ricokahler/color2k/pull/472">https://github.com/ricokahler/color2k/pull/472</a></li>
+<li><strong><a href="https://github.com/delucis">@delucis</a></strong> <a href="https://github.com/ricokahler/color2k/pull/409">https://github.com/ricokahler/color2k/pull/409</a></li>
+</ul>
+<h2 id="📚-reference">📚 reference</h2>
+<p><a name="reference"></a></p>
+<!-- begin api docs -->
+<p>jump to:</p>
+<ul>
+<li><a href="#adjust-hue"><code>adjustHue</code></a></li>
+<li><a href="#darken"><code>darken</code></a></li>
+<li><a href="#desaturate"><code>desaturate</code></a></li>
+<li><a href="#get-contrast"><code>getContrast</code></a></li>
+<li><a href="#get-luminance"><code>getLuminance</code></a></li>
+<li><a href="#get-scale"><code>getScale</code></a></li>
+<li><a href="#guard"><code>guard</code></a></li>
+<li><a href="#has-bad-contrast"><code>hasBadContrast</code></a></li>
+<li><a href="#hsla"><code>hsla</code></a></li>
+<li><a href="#lighten"><code>lighten</code></a></li>
+<li><a href="#mix"><code>mix</code></a></li>
+<li><a href="#opacify"><code>opacify</code></a></li>
+<li><a href="#parse-to-hsla"><code>parseToHsla</code></a></li>
+<li><a href="#parse-to-rgba"><code>parseToRgba</code></a></li>
+<li><a href="#readable-color"><code>readableColor</code></a></li>
+<li><a href="#readable-color-is-black"><code>readableColorIsBlack</code></a></li>
+<li><a href="#rgba"><code>rgba</code></a></li>
+<li><a href="#saturate"><code>saturate</code></a></li>
+<li><a href="#to-hex"><code>toHex</code></a></li>
+<li><a href="#to-hsla"><code>toHsla</code></a></li>
+<li><a href="#to-rgba"><code>toRgba</code></a></li>
+<li><a href="#transparentize"><code>transparentize</code></a></li>
+</ul>
+<h4 id="adjusthuecolor-degrees-string--🔝reference"><code>adjustHue(color, degrees): string</code> | <a href="#reference">🔝</a></h4>
+<p><a name="adjust-hue"></a></p>
+<p>Adjusts the current hue of the color by the given degrees. Wraps around when<br />
+over 360.</p>
+<table>
+<thead>
+<tr>
+<th id="param">Param</th>
+<th id="type">Type</th>
+<th id="description">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>color</code></td>
+<td><code>string</code></td>
+<td>The input color</td>
+</tr>
+<tr>
+<td><code>degrees</code></td>
+<td><code>number</code></td>
+<td>degrees to adjust the input color, accepts degree integers (0 - 360) and wraps around on overflow</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://github.com/ricokahler/color2k/blob/master/src/adjustHue.ts">go to implementation →</a> &nbsp; <a href="https://github.com/ricokahler/color2k/blob/master/src/adjustHue.test.ts">see test for usage →</a></p>
+<h4 id="darkencolor-amount-string--🔝reference"><code>darken(color, amount): string</code> | <a href="#reference">🔝</a></h4>
+<p><a name="darken"></a></p>
+<p>Darkens using lightness. This is equivalent to subtracting the lightness<br />
+from the L in HSL.</p>
+<table>
+<thead>
+<tr>
+<th id="param">Param</th>
+<th id="type">Type</th>
+<th id="description">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>color</code></td>
+<td><code>string</code></td>
+<td>The input color</td>
+</tr>
+<tr>
+<td><code>amount</code></td>
+<td><code>number</code></td>
+<td>The amount to darken, given as a decimal between 0 and 1</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://github.com/ricokahler/color2k/blob/master/src/darken.ts">go to implementation →</a> &nbsp; <a href="https://github.com/ricokahler/color2k/blob/master/src/darken.test.ts">see test for usage →</a></p>
+<h4 id="desaturatecolor-amount-string--🔝reference"><code>desaturate(color, amount): string</code> | <a href="#reference">🔝</a></h4>
+<p><a name="desaturate"></a></p>
+<p>Desaturates the input color by the given amount via subtracting from the <code>s</code><br />
+in <code>hsla</code>.</p>
+<table>
+<thead>
+<tr>
+<th id="param">Param</th>
+<th id="type">Type</th>
+<th id="description">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>color</code></td>
+<td><code>string</code></td>
+<td>The input color</td>
+</tr>
+<tr>
+<td><code>amount</code></td>
+<td><code>number</code></td>
+<td>The amount to desaturate, given as a decimal between 0 and 1</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://github.com/ricokahler/color2k/blob/master/src/desaturate.ts">go to implementation →</a> &nbsp; <a href="https://github.com/ricokahler/color2k/blob/master/src/desaturate.test.ts">see test for usage →</a></p>
+<h4 id="getcontrastcolor1-color2-number--🔝reference"><code>getContrast(color1, color2): number</code> | <a href="#reference">🔝</a></h4>
+<p><a name="get-contrast"></a></p>
+<p>Returns the contrast ratio between two colors based on<br />
+<a href="http://www.w3.org/TR/WCAG20/#contrast-ratiodef">W3's recommended equation for calculating contrast</a>.</p>
+<table>
+<thead>
+<tr>
+<th id="param">Param</th>
+<th id="type">Type</th>
+<th id="description">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>color1</code></td>
+<td><code>string</code></td>
+<td>The input color</td>
+</tr>
+<tr>
+<td><code>color2</code></td>
+<td><code>string</code></td>
+<td>The second color that's compared against <code>color1</code> to calculate the contrast ratio.</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://github.com/ricokahler/color2k/blob/master/src/getContrast.ts">go to implementation →</a> &nbsp; <a href="https://github.com/ricokahler/color2k/blob/master/src/getContrast.test.ts">see test for usage →</a></p>
+<h4 id="getluminancecolor-number--🔝reference"><code>getLuminance(color): number</code> | <a href="#reference">🔝</a></h4>
+<p><a name="get-luminance"></a></p>
+<p>Returns a number (float) representing the luminance of a color.</p>
+<table>
+<thead>
+<tr>
+<th id="param">Param</th>
+<th id="type">Type</th>
+<th id="description">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>color</code></td>
+<td><code>string</code></td>
+<td>The input color</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://github.com/ricokahler/color2k/blob/master/src/getLuminance.ts">go to implementation →</a> &nbsp; <a href="https://github.com/ricokahler/color2k/blob/master/src/getLuminance.test.ts">see test for usage →</a></p>
+<h4 id="getscalecolors-n-number--string--🔝reference"><code>getScale(colors): (n: number) =&gt; string</code> | <a href="#reference">🔝</a></h4>
+<p><a name="get-scale"></a></p>
+<p>Creates a color scale function that interpolates colors within a given set of<br />
+colors. This function accepts an array of color strings and returns a new<br />
+function <code>scale(x)</code> that, when called with a decimal number between 0 and 1,<br />
+returns the color at that specific percentage along the color scale. The<br />
+colors are mixed linearly between the provided colors based on the input<br />
+percentage.</p>
+<pre><code class="js language-js">const scale = getScale("red", "yellow", "green");
+console.log(scale(0)); // rgba(255, 0, 0, 1)
+console.log(scale(0.5)); // rgba(255, 255, 0, 1)
+console.log(scale(1)); // rgba(0, 128, 0, 1)</code></pre>
+<p>If you'd like to limit the domain and range like chroma-js, we recommend<br />
+wrapping scale again.</p>
+<pre><code class="js language-js">const _scale = getScale("red", "yellow", "green");
+const scale = (x) =&gt; _scale(x / 100);
+
+console.log(scale(0)); // rgba(255, 0, 0, 1)
+console.log(scale(50)); // rgba(255, 255, 0, 1)
+console.log(scale(100)); // rgba(0, 128, 0, 1)</code></pre>
+<table>
+<thead>
+<tr>
+<th id="param">Param</th>
+<th id="type">Type</th>
+<th id="description">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>colors</code></td>
+<td><code>string[]</code></td>
+<td>An array of color strings used to define the stops along the scale.</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://github.com/ricokahler/color2k/blob/master/src/getScale.ts">go to implementation →</a> &nbsp; <a href="https://github.com/ricokahler/color2k/blob/master/src/getScale.test.ts">see test for usage →</a></p>
+<h4 id="guardlow-high-value-number--🔝reference"><code>guard(low, high, value): number</code> | <a href="#reference">🔝</a></h4>
+<p><a name="guard"></a></p>
+<p>Clamps a given value within the inclusive lower and upper bounds specified by <code>low</code> and <code>high</code>.</p>
+<pre><code class="js language-js">Math.min(Math.max(low, value), high);</code></pre>
+<table>
+<thead>
+<tr>
+<th id="param">Param</th>
+<th id="type">Type</th>
+<th id="description">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>low</code></td>
+<td><code>number</code></td>
+<td>The lower bound</td>
+</tr>
+<tr>
+<td><code>high</code></td>
+<td><code>number</code></td>
+<td>The upper bound</td>
+</tr>
+<tr>
+<td><code>value</code></td>
+<td><code>number</code></td>
+<td>The value being clamped.</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://github.com/ricokahler/color2k/blob/master/src/guard.ts">go to implementation →</a> &nbsp; <a href="https://github.com/ricokahler/color2k/blob/master/src/guard.test.ts">see test for usage →</a></p>
+<h4 id="hasbadcontrastcolor-standard-background-boolean--🔝reference"><code>hasBadContrast(color, standard, background): boolean</code> | <a href="#reference">🔝</a></h4>
+<p><a name="has-bad-contrast"></a></p>
+<p>Returns whether or not a color has bad contrast against a background<br />
+according to a given standard.</p>
+<table>
+<thead>
+<tr>
+<th id="param">Param</th>
+<th id="type">Type</th>
+<th id="description">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>color</code></td>
+<td><code>string</code></td>
+<td>The input color</td>
+</tr>
+<tr>
+<td><code>standard</code></td>
+<td><code>'decorative' | 'readable' | 'aa' | 'aaa' = 'aa'</code></td>
+<td>A string representing the accessibility standard against which to evaluate the color contrast</td>
+</tr>
+<tr>
+<td><code>background</code></td>
+<td><code>string = '#fff'</code></td>
+<td>The background color to test against the input <code>color</code>. Defaults to <code>#fff</code></td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://github.com/ricokahler/color2k/blob/master/src/hasBadContrast.ts">go to implementation →</a> &nbsp; <a href="https://github.com/ricokahler/color2k/blob/master/src/hasBadContrast.test.ts">see test for usage →</a></p>
+<h4 id="hslahue-saturation-lightness-alpha-string--🔝reference"><code>hsla(hue, saturation, lightness, alpha): string</code> | <a href="#reference">🔝</a></h4>
+<p><a name="hsla"></a></p>
+<p>Takes in hsla parts and constructs an hsla string</p>
+<table>
+<thead>
+<tr>
+<th id="param">Param</th>
+<th id="type">Type</th>
+<th id="description">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>hue</code></td>
+<td><code>number</code></td>
+<td>The color circle (from 0 to 360) - 0 (or 360) is red, 120 is green, 240 is blue</td>
+</tr>
+<tr>
+<td><code>saturation</code></td>
+<td><code>number</code></td>
+<td>Percentage of saturation, given as a decimal between 0 and 1</td>
+</tr>
+<tr>
+<td><code>lightness</code></td>
+<td><code>number</code></td>
+<td>Percentage of lightness, given as a decimal between 0 and 1</td>
+</tr>
+<tr>
+<td><code>alpha</code></td>
+<td><code>number</code></td>
+<td>Percentage of opacity, given as a decimal between 0 and 1</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://github.com/ricokahler/color2k/blob/master/src/hsla.ts">go to implementation →</a> &nbsp; <a href="https://github.com/ricokahler/color2k/blob/master/src/hsla.test.ts">see test for usage →</a></p>
+<h4 id="lightencolor-amount-string--🔝reference"><code>lighten(color, amount): string</code> | <a href="#reference">🔝</a></h4>
+<p><a name="lighten"></a></p>
+<p>Lightens a color by a given amount. Equivalent to <code>darken(color, -amount)</code>.</p>
+<table>
+<thead>
+<tr>
+<th id="param">Param</th>
+<th id="type">Type</th>
+<th id="description">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>color</code></td>
+<td><code>string</code></td>
+<td>The input color</td>
+</tr>
+<tr>
+<td><code>amount</code></td>
+<td><code>number</code></td>
+<td>The amount to darken, given as a decimal between 0 and 1</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://github.com/ricokahler/color2k/blob/master/src/lighten.ts">go to implementation →</a> &nbsp; <a href="https://github.com/ricokahler/color2k/blob/master/src/lighten.test.ts">see test for usage →</a></p>
+<h4 id="mixcolor1-color2-weight-string--🔝reference"><code>mix(color1, color2, weight): string</code> | <a href="#reference">🔝</a></h4>
+<p><a name="mix"></a></p>
+<p>Mixes two colors together based on a specified weight (credit to Sass).<br />
+The function calculates a new color by mixing the two input colors in<br />
+proportion to the weight and the inverse of the weight. The mixing considers<br />
+the alpha channel (transparency) of the colors, allowing for the creation of<br />
+semi-transparent colors if either or both input colors have transparency.</p>
+<p>A weight of 0.5 mixes the two colors equally, while a weight closer to 0<br />
+favors <code>color1</code>, and a weight closer to 1 favors <code>color2</code>.</p>
+<table>
+<thead>
+<tr>
+<th id="param">Param</th>
+<th id="type">Type</th>
+<th id="description">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>color1</code></td>
+<td><code>string</code></td>
+<td>The first color to mix</td>
+</tr>
+<tr>
+<td><code>color2</code></td>
+<td><code>string</code></td>
+<td>The second color to mix</td>
+</tr>
+<tr>
+<td><code>weight</code></td>
+<td><code>number</code></td>
+<td>A number between 0 and 1 representing the weight of <code>color2</code> in the mix</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://github.com/ricokahler/color2k/blob/master/src/mix.ts">go to implementation →</a> &nbsp; <a href="https://github.com/ricokahler/color2k/blob/master/src/mix.test.ts">see test for usage →</a></p>
+<h4 id="opacifycolor-amount-string--🔝reference"><code>opacify(color, amount): string</code> | <a href="#reference">🔝</a></h4>
+<p><a name="opacify"></a></p>
+<p>Takes a color and removes transparency. Equivalent to <code>transparentize(color, -amount)</code>.</p>
+<table>
+<thead>
+<tr>
+<th id="param">Param</th>
+<th id="type">Type</th>
+<th id="description">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>color</code></td>
+<td><code>string</code></td>
+<td>The input color</td>
+</tr>
+<tr>
+<td><code>amount</code></td>
+<td><code>number</code></td>
+<td>The amount to increase the opacity by, given as a decimal between 0 and 1</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://github.com/ricokahler/color2k/blob/master/src/opacify.ts">go to implementation →</a> &nbsp; <a href="https://github.com/ricokahler/color2k/blob/master/src/opacify.test.ts">see test for usage →</a></p>
+<h4 id="parsetohslacolor-number-number-number-number--🔝reference"><code>parseToHsla(color): [number, number, number, number]</code> | <a href="#reference">🔝</a></h4>
+<p><a name="parse-to-hsla"></a></p>
+<p>Parses a color in hue, saturation, lightness, and the alpha channel.</p>
+<p>Hue is a number between 0 and 360, saturation, lightness, and alpha are<br />
+decimal percentages between 0 and 1</p>
+<table>
+<thead>
+<tr>
+<th id="param">Param</th>
+<th id="type">Type</th>
+<th id="description">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>color</code></td>
+<td><code>string</code></td>
+<td>The input color</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://github.com/ricokahler/color2k/blob/master/src/parseToHsla.ts">go to implementation →</a> &nbsp; <a href="https://github.com/ricokahler/color2k/blob/master/src/parseToHsla.test.ts">see test for usage →</a></p>
+<h4 id="parsetorgbacolor-number-number-number-number--🔝reference"><code>parseToRgba(color): [number, number, number, number]</code> | <a href="#reference">🔝</a></h4>
+<p><a name="parse-to-rgba"></a></p>
+<p>Parses a color into red, green, blue, alpha parts.</p>
+<p>Red, green, and blue are integers between 0 and 255, alpha is a<br />
+decimal percentage between 0 and 1</p>
+<table>
+<thead>
+<tr>
+<th id="param">Param</th>
+<th id="type">Type</th>
+<th id="description">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>color</code></td>
+<td><code>string</code></td>
+<td>The input color</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://github.com/ricokahler/color2k/blob/master/src/parseToRgba.ts">go to implementation →</a> &nbsp; <a href="https://github.com/ricokahler/color2k/blob/master/src/parseToRgba.test.ts">see test for usage →</a></p>
+<h4 id="readablecolorcolor-string--🔝reference"><code>readableColor(color): string</code> | <a href="#reference">🔝</a></h4>
+<p><a name="readable-color"></a></p>
+<p>Returns black or white for best contrast depending on the luminosity of the<br />
+given color.</p>
+<table>
+<thead>
+<tr>
+<th id="param">Param</th>
+<th id="type">Type</th>
+<th id="description">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>color</code></td>
+<td><code>string</code></td>
+<td>The input color</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://github.com/ricokahler/color2k/blob/master/src/readableColor.ts">go to implementation →</a> &nbsp; <a href="https://github.com/ricokahler/color2k/blob/master/src/readableColor.test.ts">see test for usage →</a></p>
+<h4 id="readablecolorisblackcolor-boolean--🔝reference"><code>readableColorIsBlack(color): boolean</code> | <a href="#reference">🔝</a></h4>
+<p><a name="readable-color-is-black"></a></p>
+<p>An alternative function to <code>readableColor</code>. Returns whether or not the<br />
+readable color (i.e. the color to be place on top the input color) should be<br />
+black.</p>
+<table>
+<thead>
+<tr>
+<th id="param">Param</th>
+<th id="type">Type</th>
+<th id="description">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>color</code></td>
+<td><code>string</code></td>
+<td>The input color</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://github.com/ricokahler/color2k/blob/master/src/readableColorIsBlack.ts">go to implementation →</a> &nbsp; <a href="https://github.com/ricokahler/color2k/blob/master/src/readableColorIsBlack.test.ts">see test for usage →</a></p>
+<h4 id="rgbared-green-blue-alpha-string--🔝reference"><code>rgba(red, green, blue, alpha): string</code> | <a href="#reference">🔝</a></h4>
+<p><a name="rgba"></a></p>
+<p>Takes in rgba parts and returns an rgba string.</p>
+<table>
+<thead>
+<tr>
+<th id="param">Param</th>
+<th id="type">Type</th>
+<th id="description">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>red</code></td>
+<td><code>number</code></td>
+<td>The amount of red in the red channel, given in a number between 0 and 255 inclusive</td>
+</tr>
+<tr>
+<td><code>green</code></td>
+<td><code>number</code></td>
+<td>The amount of green in the red channel, given in a number between 0 and 255 inclusive</td>
+</tr>
+<tr>
+<td><code>blue</code></td>
+<td><code>number</code></td>
+<td>The amount of blue in the red channel, given in a number between 0 and 255 inclusive</td>
+</tr>
+<tr>
+<td><code>alpha</code></td>
+<td><code>number</code></td>
+<td>Percentage of opacity, given as a decimal between 0 and 1</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://github.com/ricokahler/color2k/blob/master/src/rgba.ts">go to implementation →</a> &nbsp; <a href="https://github.com/ricokahler/color2k/blob/master/src/rgba.test.ts">see test for usage →</a></p>
+<h4 id="saturatecolor-amount-string--🔝reference"><code>saturate(color, amount): string</code> | <a href="#reference">🔝</a></h4>
+<p><a name="saturate"></a></p>
+<p>Saturates a color by converting it to <code>hsl</code> and increasing the saturation<br />
+amount. Equivalent to <code>desaturate(color, -amount)</code>.</p>
+<table>
+<thead>
+<tr>
+<th id="param">Param</th>
+<th id="type">Type</th>
+<th id="description">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>color</code></td>
+<td><code>string</code></td>
+<td>The input color</td>
+</tr>
+<tr>
+<td><code>amount</code></td>
+<td><code>number</code></td>
+<td>The amount to darken, given as a decimal between 0 and 1</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://github.com/ricokahler/color2k/blob/master/src/saturate.ts">go to implementation →</a> &nbsp; <a href="https://github.com/ricokahler/color2k/blob/master/src/saturate.test.ts">see test for usage →</a></p>
+<h4 id="tohexcolor-string--🔝reference"><code>toHex(color): string</code> | <a href="#reference">🔝</a></h4>
+<p><a name="to-hex"></a></p>
+<p>Takes in any color and returns it as a hex code.</p>
+<table>
+<thead>
+<tr>
+<th id="param">Param</th>
+<th id="type">Type</th>
+<th id="description">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>color</code></td>
+<td><code>string</code></td>
+<td>The input color</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://github.com/ricokahler/color2k/blob/master/src/toHex.ts">go to implementation →</a> &nbsp; <a href="https://github.com/ricokahler/color2k/blob/master/src/toHex.test.ts">see test for usage →</a></p>
+<h4 id="tohslacolor-string--🔝reference"><code>toHsla(color): string</code> | <a href="#reference">🔝</a></h4>
+<p><a name="to-hsla"></a></p>
+<p>Takes in any color and returns it as an hsla string.</p>
+<table>
+<thead>
+<tr>
+<th id="param">Param</th>
+<th id="type">Type</th>
+<th id="description">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>color</code></td>
+<td><code>string</code></td>
+<td>The input color</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://github.com/ricokahler/color2k/blob/master/src/toHsla.ts">go to implementation →</a> &nbsp; <a href="https://github.com/ricokahler/color2k/blob/master/src/toHsla.test.ts">see test for usage →</a></p>
+<h4 id="torgbacolor-string--🔝reference"><code>toRgba(color): string</code> | <a href="#reference">🔝</a></h4>
+<p><a name="to-rgba"></a></p>
+<p>Takes in any color and returns it as an rgba string.</p>
+<table>
+<thead>
+<tr>
+<th id="param">Param</th>
+<th id="type">Type</th>
+<th id="description">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>color</code></td>
+<td><code>string</code></td>
+<td>The input color</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://github.com/ricokahler/color2k/blob/master/src/toRgba.ts">go to implementation →</a> &nbsp; <a href="https://github.com/ricokahler/color2k/blob/master/src/toRgba.test.ts">see test for usage →</a></p>
+<h4 id="transparentizecolor-amount-string--🔝reference"><code>transparentize(color, amount): string</code> | <a href="#reference">🔝</a></h4>
+<p><a name="transparentize"></a></p>
+<p>Takes in a color and makes it more transparent by convert to <code>rgba</code> and<br />
+decreasing the amount in the alpha channel.</p>
+<table>
+<thead>
+<tr>
+<th id="param">Param</th>
+<th id="type">Type</th>
+<th id="description">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>color</code></td>
+<td><code>string</code></td>
+<td>The input color</td>
+</tr>
+<tr>
+<td><code>amount</code></td>
+<td><code>number</code></td>
+<td>The amount to increase the transparency by, given as a decimal between 0 and 1</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://github.com/ricokahler/color2k/blob/master/src/transparentize.ts">go to implementation →</a> &nbsp; <a href="https://github.com/ricokahler/color2k/blob/master/src/transparentize.test.ts">see test for usage →</a></p></section></main></body></html>

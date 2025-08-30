@@ -2,9 +2,12 @@ import mix from './mix';
 import guard from './guard';
 
 /**
- * Given a series colors, this function will return a `scale(x)` function that
- * accepts a percentage as a decimal between 0 and 1 and returns the color at
- * that percentage in the scale.
+ * Creates a color scale function that interpolates colors within a given set of
+ * colors. This function accepts an array of color strings and returns a new
+ * function `scale(x)` that, when called with a decimal number between 0 and 1,
+ * returns the color at that specific percentage along the color scale. The
+ * colors are mixed linearly between the provided colors based on the input
+ * percentage.
  *
  * ```js
  * const scale = getScale('red', 'yellow', 'green');
@@ -24,6 +27,8 @@ import guard from './guard';
  * console.log(scale(50)); // rgba(255, 255, 0, 1)
  * console.log(scale(100)); // rgba(0, 128, 0, 1)
  * ```
+ * 
+ * @param colors An array of color strings used to define the stops along the scale.
  */
 function getScale(...colors: string[]): (n: number) => string {
   return (n) => {

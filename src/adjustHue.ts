@@ -5,7 +5,7 @@ import hsla from './hsla';
  * Adjusts the current hue of the color by the given degrees. Wraps around when
  * over 360.
  *
- * @param color input color
+ * @param color The input color
  * @param degrees degrees to adjust the input color, accepts degree integers
  * (0 - 360) and wraps around on overflow
  */

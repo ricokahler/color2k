@@ -2,7 +2,18 @@ import parseToRgba from './parseToRgba';
 import rgba from './rgba';
 
 /**
- * Mixes two colors together. Taken from sass's implementation.
+ * Mixes two colors together based on a specified weight (credit to Sass).
+ * The function calculates a new color by mixing the two input colors in
+ * proportion to the weight and the inverse of the weight. The mixing considers
+ * the alpha channel (transparency) of the colors, allowing for the creation of
+ * semi-transparent colors if either or both input colors have transparency.
+ *
+ * A weight of 0.5 mixes the two colors equally, while a weight closer to 0
+ * favors `color1`, and a weight closer to 1 favors `color2`.
+ *
+ * @param color1 The first color to mix
+ * @param color2 The second color to mix
+ * @param weight A number between 0 and 1 representing the weight of `color2` in the mix
  */
 function mix(color1: string, color2: string, weight: number): string {
   const normalize = (n: number, index: number) =>

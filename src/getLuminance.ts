@@ -4,6 +4,7 @@ import parseToRgba from './parseToRgba';
 
 /**
  * Returns a number (float) representing the luminance of a color.
+ * @param color The input color
  */
 function getLuminance(color: string): number {
   if (color === 'transparent') return 0;

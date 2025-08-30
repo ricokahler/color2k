@@ -1,9 +1,11 @@
 import getLuminance from './getLuminance';
 
 /**
- * An alternative function to `readableColor`. Returns whether or not the 
+ * An alternative function to `readableColor`. Returns whether or not the
  * readable color (i.e. the color to be place on top the input color) should be
  * black.
+ *
+ * @param color The input color
  */
 function readableColorIsBlack(color: string): boolean {
   return getLuminance(color) > 0.179;

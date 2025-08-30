@@ -7,6 +7,8 @@ import parseToRgba from './parseToRgba';
  *
  * Hue is a number between 0 and 360, saturation, lightness, and alpha are
  * decimal percentages between 0 and 1
+ * 
+ * @param color The input color
  */
 function parseToHsla(color: string): [number, number, number, number] {
   const [red, green, blue, alpha] = parseToRgba(color).map((value, index) =>

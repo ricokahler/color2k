@@ -3,6 +3,8 @@ import guard from './guard';
 
 /**
  * Takes in any color and returns it as a hex code.
+ *
+ * @param color The input color
  */
 function toHex(color: string): string {
   const [r, g, b, a] = parseToRgba(color);

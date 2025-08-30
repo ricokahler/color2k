@@ -12,6 +12,7 @@
     "email": "ricokahler@me.com",
     "url": "https://github.com/ricokahler"
   },
+  "type": "module",
   "keywords": [
     "color",
     "css-in-js",

@@ -1,16 +1,17 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import url from 'node:url';
 import ts from 'typescript';
-import showdown from 'showdown';
+import prettier from 'prettier';
 
-const converter = new showdown.Converter();
-
-export interface DocInfo {
+interface DocInfo {
   functionName: string;
   id: string;
   description: string;
   params: Array<{
     name: string;
     type: string;
-    description?: string;
+    description: string;
   }>;
   returnType: string;
 }
@@ -72,8 +73,9 @@ function getDocInfo(contents: string): DocInfo {
     }, {} as { [identifier: string]: string });
 
   const description = jsDoc.comment;
-  if (!description) throw new Error('No description');
-
+  if (typeof description !== 'string') {
+    throw new Error('Expected string for description');
+  }
   const syntaxList = findFirst(
     functionNode,
     (node): node is ts.SyntaxList => node.kind === ts.SyntaxKind.SyntaxList
@@ -99,13 +101,9 @@ function getDocInfo(contents: string): DocInfo {
 
     const name = getText(identifier).trim();
     const type = contents.substring(colonToken.end, paramNode.end).trim();
-    const description = paramDescriptions[name] as string | undefined;
+    const description = paramDescriptions[name] ?? '';
 
-    return {
-      name,
-      type,
-      ...(description && { description }),
-    };
+    return { name, type, description };
   });
 
   const returnTypeColonTokenIndex = functionNode
@@ -114,9 +112,8 @@ function getDocInfo(contents: string): DocInfo {
 
   if (returnTypeColonTokenIndex === -1) throw new Error('No return type colon');
 
-  const returnTypeNode = functionNode.getChildren()[
-    returnTypeColonTokenIndex + 1
-  ];
+  const returnTypeNode =
+    functionNode.getChildren()[returnTypeColonTokenIndex + 1];
 
   const returnType = getText(returnTypeNode).trim();
 
@@ -131,10 +128,79 @@ function getDocInfo(contents: string): DocInfo {
   return {
     functionName,
     id,
-    description: converter.makeHtml(description),
+    description,
     params,
     returnType,
   };
 }
 
-export default getDocInfo;
+const rootDir = path.resolve(
+  path.dirname(url.fileURLToPath(import.meta.url)),
+  '..'
+);
+
+const functionFiles = (
+  await fs.promises.readdir(path.resolve(rootDir, './src'))
+).filter(
+  (filename) =>
+    !filename.endsWith('.test.ts') &&
+    filename !== 'index.ts' &&
+    filename !== 'ColorError.ts'
+);
+
+const docs: DocInfo[] = [];
+for (const file of functionFiles) {
+  try {
+    const buffer = await fs.promises.readFile(
+      path.resolve(rootDir, `./src/${file}`)
+    );
+    const contents = buffer.toString();
+    docs.push(getDocInfo(contents));
+  } catch (e) {
+    console.warn(`Failed to create doc for ${file}. ${e.message}`);
+  }
+}
+docs.sort((a, b) => a.functionName.localeCompare(b.functionName));
+
+const tocMarkdown = docs
+  .map(({ functionName, id }) => `- [\`${functionName}\`](#${id})`)
+  .join('\n');
+
+const apiMarkdown = docs
+  .map((docInfo) => {
+    const { description, functionName, id, params, returnType } = docInfo;
+    const signature = `\`${functionName}(${params
+      .map((p) => p.name)
+      .join(', ')}): ${returnType}\``;
+
+    return (
+      `#### ${signature} | [🔝](#reference)\n\n` +
+      `<a name="${id}"></a>\n\n` +
+      `${description}\n\n` +
+      `| Param | Type | Description |\n` +
+      `| ----- | ---- | ------------|\n` +
+      params
+        .map(
+          ({ name, type, description }) =>
+            // prettier-ignore
+            `| \`${name}\` | \`${type.replace(/\|/g, '\\|')}\` | ${description} | `
+        )
+        .join('\n') +
+      `\n\n[go to implementation →](https://github.com/ricokahler/color2k/blob/main/src/${functionName}.ts) &nbsp; ` +
+      `[see test for usage →](https://github.com/ricokahler/color2k/blob/main/src/${functionName}.test.ts)\n`
+    );
+  })
+  .join('\n');
+
+const readmePath = path.resolve(rootDir, './README.md');
+const readme = await fs.promises.readFile(readmePath, 'utf-8');
+const docsMarker = '<!-- begin api docs -->';
+
+const [preApiContent] = readme.split(docsMarker);
+
+const newReadme = await prettier.format(
+  `${preApiContent}\n${docsMarker}\njump to:\n\n${tocMarkdown}\n${apiMarkdown}`,
+  { filepath: 'README.md' }
+);
+
+await fs.promises.writeFile(readmePath, newReadme);

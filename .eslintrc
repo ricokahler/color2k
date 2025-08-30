@@ -1,3 +1,66 @@
 {
-  "extends": "@sanity/eslint-config-studio"
+  "extends": "@sanity/eslint-config-studio",
+  "overrides": [
+    {
+      "files": ["**/*.?(m)ts?(x)"],
+      "plugins": ["@typescript-eslint"],
+      "parser": "@typescript-eslint/parser",
+      "parserOptions": {
+        "ecmaVersion": 2018,
+        "ecmaFeatures": { "jsx": true }
+      },
+      "rules": {
+        // https://typescript-eslint.io/rules/#extension-rules
+        "no-dupe-class-members": "off",
+        "@typescript-eslint/no-dupe-class-members": "error",
+
+        "no-empty-function": "off",
+        "@typescript-eslint/no-empty-function": "warn",
+
+        "no-extra-semi": "off",
+        "@typescript-eslint/no-extra-semi": "warn",
+
+        "no-loss-of-precision": "off",
+        "@typescript-eslint/no-loss-of-precision": "warn",
+
+        "no-redeclare": "off",
+        "@typescript-eslint/no-redeclare": "warn",
+
+        // TypeScript should do a good job at this
+        "no-unsafe-optional-chaining": "off",
+        "no-undef": "off",
+        "react/react-in-jsx-scope": "off",
+
+        "no-unused-vars": "off",
+        // https://github.com/facebook/create-react-app/blob/a422bf227cf5294a34d68696664e9568a152fd8f/packages/eslint-config-react-app/index.js#L82-L88
+        "@typescript-eslint/no-unused-vars": [
+          "warn",
+          { "args": "none", "ignoreRestSiblings": true }
+        ],
+
+        "no-use-before-define": "off",
+        // https://github.com/facebook/create-react-app/blob/a422bf227cf5294a34d68696664e9568a152fd8f/packages/eslint-config-react-app/index.js#L63-L71
+        "@typescript-eslint/no-use-before-define": [
+          "warn",
+          { "functions": false, "classes": false, "variables": false }
+        ],
+
+        "no-unused-expressions": "off",
+        // https://github.com/facebook/create-react-app/blob/a422bf227cf5294a34d68696664e9568a152fd8f/packages/eslint-config-react-app/index.js#L73-L80
+        "@typescript-eslint/no-unused-expressions": [
+          "warn",
+          {
+            "allowShortCircuit": true,
+            "allowTernary": true,
+            "allowTaggedTemplates": true
+          }
+        ],
+
+        // ts-only rules
+        "@typescript-eslint/no-empty-interface": "warn",
+        "@typescript-eslint/no-extra-non-null-assertion": "warn",
+        "@typescript-eslint/no-misused-new": "warn"
+      }
+    }
+  ]
 }

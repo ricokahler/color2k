@@ -2,9 +2,12 @@ import guard from './guard';
 import ColorError from './ColorError';
 
 /**
- * Parses a color into red, gree, blue, alpha parts
+ * Parses a color into red, green, blue, alpha parts.
  *
- * @param color the input color. Can be a RGB, RBGA, HSL, HSLA, or named color
+ * Red, green, and blue are integers between 0 and 255, alpha is a
+ * decimal percentage between 0 and 1
+ *
+ * @param color The input color
  */
 function parseToRgba(color: string): [number, number, number, number] {
   if (typeof color !== 'string') throw new ColorError(color);
@@ -55,6 +58,10 @@ function parseToRgba(color: string): [number, number, number, number] {
 
   throw new ColorError(color);
 }
+
+// blue, dark, green, light, medium, slate, gray, white, grey, yellow, violet, red, gold,
+// p a l e violet red
+// p e a c h p u f f
 
 function hash(str: string) {
   let hash = 5381;
