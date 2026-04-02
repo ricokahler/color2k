@@ -541,4 +541,178 @@ describe('parseToRgb', () => {
     // Lightness 0.9 is bright, so the result should be a bright color
     expect(g).toBeGreaterThan(200);
   });
+
+  // Modern space-separated rgb/rgba syntax
+  it('should parse modern rgb with space-separated values', () => {
+    expect(parseToRgba('rgb(255 0 0)')).toEqual([255, 0, 0, 1]);
+  });
+
+  it('should parse modern rgb with alpha', () => {
+    expect(parseToRgba('rgb(255 0 0 / 0.5)')).toEqual([255, 0, 0, 0.5]);
+  });
+
+  it('should parse modern rgb with percentage alpha', () => {
+    expect(parseToRgba('rgb(255 0 0 / 50%)')).toEqual([255, 0, 0, 0.5]);
+  });
+
+  it('should parse modern rgb with percentage values', () => {
+    expect(parseToRgba('rgb(100% 0% 0%)')).toEqual([255, 0, 0, 1]);
+    expect(parseToRgba('rgb(50% 50% 50%)')).toEqual([128, 128, 128, 1]);
+  });
+
+  it('should parse modern rgba alias', () => {
+    expect(parseToRgba('rgba(0 128 255 / 0.8)')).toEqual([0, 128, 255, 0.8]);
+  });
+
+  // Modern space-separated hsl/hsla syntax
+  it('should parse modern hsl with space-separated values', () => {
+    expect(parseToRgba('hsl(0 100% 50%)')).toEqual([255, 0, 0, 1]);
+  });
+
+  it('should parse modern hsl with alpha', () => {
+    expect(parseToRgba('hsl(0 100% 50% / 0.5)')).toEqual([255, 0, 0, 0.5]);
+  });
+
+  it('should parse modern hsl with angle units', () => {
+    // 120deg = green
+    const result1 = parseToRgba('hsl(120deg 100% 50%)');
+    const result2 = parseToRgba('hsl(120 100% 50%)');
+    expect(result1).toEqual(result2);
+    expect(result1).toEqual([0, 255, 0, 1]);
+  });
+
+  it('should reject modern hsl with out-of-range values', () => {
+    expect(() => parseToRgba('hsl(0 120% 50%)')).toThrow();
+    expect(() => parseToRgba('hsl(0 100% 150%)')).toThrow();
+  });
+
+  // hwb()
+  it('should parse a hwb color', () => {
+    // hwb(0 0% 0%) = red (hue 0, no white, no black)
+    expect(parseToRgba('hwb(0 0% 0%)')).toEqual([255, 0, 0, 1]);
+  });
+
+  it('should parse hwb white', () => {
+    // hwb(0 100% 0%) = white
+    expect(parseToRgba('hwb(0 100% 0%)')).toEqual([255, 255, 255, 1]);
+  });
+
+  it('should parse hwb black', () => {
+    // hwb(0 0% 100%) = black
+    expect(parseToRgba('hwb(0 0% 100%)')).toEqual([0, 0, 0, 1]);
+  });
+
+  it('should parse hwb gray', () => {
+    // hwb(0 50% 50%) = gray (w+b=1, achromatic)
+    const [r, g, b] = parseToRgba('hwb(0 50% 50%)');
+    expect(r).toBe(128);
+    expect(g).toBe(128);
+    expect(b).toBe(128);
+  });
+
+  it('should parse hwb with alpha', () => {
+    const [r, g, b, a] = parseToRgba('hwb(120 0% 0% / 0.5)');
+    expect(r).toBe(0);
+    expect(g).toBe(255);
+    expect(b).toBe(0);
+    expect(a).toBe(0.5);
+  });
+
+  it('should parse hwb with angle units', () => {
+    const result1 = parseToRgba('hwb(120deg 10% 20%)');
+    const result2 = parseToRgba('hwb(120 10% 20%)');
+    expect(result1).toEqual(result2);
+  });
+
+  // color() function
+  it('should parse color(srgb ...)', () => {
+    // color(srgb 1 0 0) = red
+    expect(parseToRgba('color(srgb 1 0 0)')).toEqual([255, 0, 0, 1]);
+    // color(srgb 0 0 0) = black
+    expect(parseToRgba('color(srgb 0 0 0)')).toEqual([0, 0, 0, 1]);
+  });
+
+  it('should parse color(srgb ...) with alpha', () => {
+    expect(parseToRgba('color(srgb 1 0 0 / 0.5)')).toEqual([255, 0, 0, 0.5]);
+  });
+
+  it('should parse color(srgb-linear ...)', () => {
+    // srgb-linear 1 0 0 should be red
+    expect(parseToRgba('color(srgb-linear 1 0 0)')).toEqual([255, 0, 0, 1]);
+    // srgb-linear 0 1 0 should be green
+    expect(parseToRgba('color(srgb-linear 0 1 0)')).toEqual([0, 255, 0, 1]);
+  });
+
+  it('should parse color(display-p3 ...)', () => {
+    // display-p3 1 0 0 is a red outside sRGB gamut
+    const [r, g, b] = parseToRgba('color(display-p3 1 0 0)');
+    expect(r).toBe(255);
+    // g and b should be small but not exactly 0 due to gamut mapping
+    expect(g).toBeLessThan(30);
+    expect(b).toBeLessThan(15);
+  });
+
+  it('should parse color(display-p3 ...) in-gamut', () => {
+    // display-p3 0.5 0.5 0.5 should be a neutral gray (in gamut)
+    const [r, g, b] = parseToRgba('color(display-p3 0.5 0.5 0.5)');
+    expect(r).toBeGreaterThan(120);
+    expect(r).toBeLessThan(140);
+    expect(g).toBeCloseTo(r, 0);
+    expect(b).toBeCloseTo(r, 0);
+  });
+
+  it('should parse color(a98-rgb ...)', () => {
+    const [r, g, b, a] = parseToRgba('color(a98-rgb 1 0 0)');
+    expect(a).toBe(1);
+    expect(r).toBe(255);
+    // a98-rgb red is wider than sRGB; gamut mapping shifts some into green
+    expect(g).toBeLessThan(100);
+  });
+
+  it('should parse color(rec2020 ...)', () => {
+    const [r, g, b, a] = parseToRgba('color(rec2020 1 0 0)');
+    expect(a).toBe(1);
+    expect(r).toBe(255);
+    // rec2020 red is very far outside sRGB; gamut mapping preserves hue
+    expect(g).toBeLessThan(80);
+  });
+
+  it('should parse color(prophoto-rgb ...)', () => {
+    const [r, g, b, a] = parseToRgba('color(prophoto-rgb 0.5 0.5 0.5)');
+    expect(a).toBe(1);
+    // Neutral gray should be similar across spaces
+    expect(r).toBeGreaterThan(100);
+    expect(Math.abs(r - g)).toBeLessThan(5);
+    expect(Math.abs(g - b)).toBeLessThan(5);
+  });
+
+  it('should parse color(xyz-d65 ...)', () => {
+    // D65 white point is roughly (0.9505, 1.0, 1.089)
+    const [r, g, b] = parseToRgba('color(xyz-d65 0.9505 1.0 1.089)');
+    expect(r).toBeGreaterThan(250);
+    expect(g).toBeGreaterThan(250);
+    expect(b).toBeGreaterThan(250);
+  });
+
+  it('should parse color(xyz-d50 ...)', () => {
+    const [r, g, b, a] = parseToRgba('color(xyz-d50 0 0 0)');
+    expect([r, g, b, a]).toEqual([0, 0, 0, 1]);
+  });
+
+  it('should parse color(xyz ...) as alias for xyz-d65', () => {
+    const result1 = parseToRgba('color(xyz 0.5 0.5 0.5)');
+    const result2 = parseToRgba('color(xyz-d65 0.5 0.5 0.5)');
+    expect(result1).toEqual(result2);
+  });
+
+  it('should parse color() with percentage values', () => {
+    // 100% = 1.0
+    const result1 = parseToRgba('color(srgb 100% 0% 0%)');
+    const result2 = parseToRgba('color(srgb 1 0 0)');
+    expect(result1).toEqual(result2);
+  });
+
+  it('should throw for unknown color spaces in color()', () => {
+    expect(() => parseToRgba('color(fake-space 1 0 0)')).toThrow();
+  });
 });

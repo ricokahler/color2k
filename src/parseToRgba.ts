@@ -4,7 +4,7 @@ import ColorError from './ColorError';
 /**
  * Parses a color into red, gree, blue, alpha parts
  *
- * @param color the input color. Can be a RGB, RBGA, HSL, HSLA, lab, lch, oklab, oklch, or named color
+ * @param color the input color. Can be a RGB, RBGA, HSL, HSLA, HWB, lab, lch, oklab, oklch, color(), or named color
  */
 function parseToRgba(color: string): [number, number, number, number] {
   if (typeof color !== 'string') throw new ColorError(color);
@@ -40,12 +40,56 @@ function parseToRgba(color: string): [number, number, number, number] {
     ] as [number, number, number, number];
   }
 
+  // Modern space-separated rgb/rgba: rgb(255 0 0) or rgb(255 0 0 / 0.5)
+  const rgbaModernMatch = rgbaModernRegex.exec(normalizedColor);
+  if (rgbaModernMatch) {
+    const [, rs, gs, bs, alphaS] = rgbaModernMatch;
+    return [
+      parseRgbComponent(rs),
+      parseRgbComponent(gs),
+      parseRgbComponent(bs),
+      parseAlpha(alphaS),
+    ];
+  }
+
   const hslaMatch = hslaRegex.exec(normalizedColor);
   if (hslaMatch) {
     const [h, s, l, a] = Array.from(hslaMatch).slice(1).map(parseFloat);
     if (guard(0, 100, s) !== s) throw new ColorError(color);
     if (guard(0, 100, l) !== l) throw new ColorError(color);
     return [...hslToRgb(h, s, l), Number.isNaN(a) ? 1 : a] as [
+      number,
+      number,
+      number,
+      number
+    ];
+  }
+
+  // Modern space-separated hsl/hsla: hsl(120 100% 50%) or hsl(120 100% 50% / 0.5)
+  const hslaModernMatch = hslaModernRegex.exec(normalizedColor);
+  if (hslaModernMatch) {
+    const [, hs, ss, ls, alphaS] = hslaModernMatch;
+    const h = parseAngle(hs);
+    const s = parseFloat(ss);
+    const l = parseFloat(ls);
+    if (guard(0, 100, s) !== s) throw new ColorError(color);
+    if (guard(0, 100, l) !== l) throw new ColorError(color);
+    return [...hslToRgb(h, s, l), parseAlpha(alphaS)] as [
+      number,
+      number,
+      number,
+      number
+    ];
+  }
+
+  // hwb(H W B) or hwb(H W B / alpha)
+  const hwbMatch = hwbRegex.exec(normalizedColor);
+  if (hwbMatch) {
+    const [, hs, ws, bs, alphaS] = hwbMatch;
+    const h = parseAngle(hs);
+    const w = parseFloat(ws) / 100;
+    const b = parseFloat(bs) / 100;
+    return [...hwbToRgb(h, w, b), parseAlpha(alphaS)] as [
       number,
       number,
       number,
@@ -87,6 +131,16 @@ function parseToRgba(color: string): [number, number, number, number] {
     const C = Cs.endsWith('%') ? (parseFloat(Cs) / 100) * 0.4 : parseFloat(Cs);
     const H = parseAngle(Hs);
     return oklchToRgba(L, C, H, parseAlpha(alphaS));
+  }
+
+  // color(space r g b) or color(space r g b / alpha)
+  const colorFnMatch = colorFnRegex.exec(normalizedColor);
+  if (colorFnMatch) {
+    const [, space, rs, gs, bs, alphaS] = colorFnMatch;
+    const rc = parseColorComponent(rs);
+    const gc = parseColorComponent(gs);
+    const bc = parseColorComponent(bs);
+    return colorFnToRgba(space.toLowerCase(), rc, gc, bc, parseAlpha(alphaS));
   }
 
   throw new ColorError(color);
@@ -154,6 +208,20 @@ const hslaRegex =
   /^hsla?\(\s*([\d.]+)\s*,\s*([\d.]+)%\s*,\s*([\d.]+)%(?:\s*,\s*([\d.]+))?\s*\)$/i;
 const namedColorRegex = /^[a-z]+$/i;
 
+// Modern space-separated rgb: rgb(255 0 0) or rgb(255 0 0 / 0.5)
+// Also supports percentages: rgb(100% 0% 0% / 50%)
+const rgbaModernRegex =
+  /^rgba?\(\s*([\d.]+%?)\s+([\d.]+%?)\s+([\d.]+%?)\s*(?:\/\s*([\d.]+%?))?\s*\)$/i;
+// Modern space-separated hsl: hsl(120 100% 50%) or hsl(120 100% 50% / 0.5)
+const hslaModernRegex =
+  /^hsla?\(\s*([\d.]+(?:deg|rad|grad|turn)?)\s+([\d.]+)%\s+([\d.]+)%\s*(?:\/\s*([\d.]+%?))?\s*\)$/i;
+// hwb(H W B) or hwb(H W B / alpha)
+const hwbRegex =
+  /^hwb\(\s*([\d.]+(?:deg|rad|grad|turn)?)\s+([\d.]+)%\s+([\d.]+)%\s*(?:\/\s*([\d.]+%?))?\s*\)$/i;
+// color(space r g b) or color(space r g b / alpha)
+const colorFnRegex =
+  /^color\(\s*([\w-]+)\s+([\d.e+-]+%?)\s+([\d.e+-]+%?)\s+([\d.e+-]+%?)\s*(?:\/\s*([\d.]+%?))?\s*\)$/i;
+
 // CSS Color Level 4: space-separated values with optional / alpha
 // lab(L a b) or lab(L a b / alpha)
 const labRegex =
@@ -182,6 +250,23 @@ function parseAlpha(value: string | undefined): number {
   if (value === undefined || value === '') return 1;
   if (value.endsWith('%')) return parseFloat(value) / 100;
   return parseFloat(value);
+}
+
+// Parse rgb component: number (0-255) or percentage (0%-100%)
+function parseRgbComponent(value: string): number {
+  if (value.endsWith('%')) return Math.round((parseFloat(value) / 100) * 255);
+  return parseInt(value, 10);
+}
+
+// Parse color() component: number or percentage (maps to 0-1 range)
+function parseColorComponent(value: string): number {
+  if (value.endsWith('%')) return parseFloat(value) / 100;
+  return parseFloat(value);
+}
+
+// sRGB gamma → sRGB linear (degamma)
+function srgbToLinear(c: number): number {
+  return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
 }
 
 // sRGB linear → sRGB gamma (inverse of the function in getLuminance)
@@ -430,6 +515,172 @@ function oklchToRgba(
   alpha: number
 ): [number, number, number, number] {
   return gamutMapToRgba(L, C, H, alpha);
+}
+
+// HWB → RGB (https://www.w3.org/TR/css-color-4/#hwb-to-rgb)
+function hwbToRgb(
+  hue: number,
+  white: number,
+  black: number
+): [number, number, number] {
+  // If w + b >= 1, it's achromatic
+  if (white + black >= 1) {
+    const gray = Math.round((white / (white + black)) * 255);
+    return [gray, gray, gray];
+  }
+  // Start with pure hue from HSL (s=100%, l=50%)
+  const rgb = hslToRgb(hue, 100, 50);
+  return rgb.map((c) => Math.round(c / 255 * (1 - white - black) * 255 + white * 255)) as [number, number, number];
+}
+
+// XYZ-D65 → linear sRGB matrix
+// prettier-ignore
+const XYZ_D65_TO_SRGB: [number, number, number, number, number, number, number, number, number] = [
+   3.2409699419045226, -1.5373831775700940, -0.4986107602930034,
+  -0.9692436362808796,  1.8759675015077202,  0.0415550574071756,
+   0.0556300796969937, -0.2039769588889765,  1.0569715142428786
+];
+
+// Bradford D50 → D65 chromatic adaptation
+// prettier-ignore
+const D50_TO_D65: [number, number, number, number, number, number, number, number, number] = [
+  0.9554734527042182, -0.023098536874261423, 0.0632593086610217,
+ -0.028369706963208136, 1.0099954580106629, 0.021041398966943008,
+  0.012314001688319899, -0.020507696433477912, 1.3303659366080753
+];
+
+// Color space definitions for color() function
+// Each space has: toXYZ matrix (to XYZ-D65), degamma function, and white point
+type M9 = [number, number, number, number, number, number, number, number, number];
+type ColorSpaceDef = {
+  toXYZ: M9;
+  degamma: (c: number) => number;
+  d50?: boolean; // true if matrices are relative to D50 (needs Bradford)
+};
+
+const identity = (c: number) => c;
+const a98Degamma = (c: number) => Math.pow(Math.abs(c), 563 / 256) * Math.sign(c);
+const rec2020Degamma = (c: number) => Math.pow(Math.abs(c), 2.4) * Math.sign(c);
+const prophotoEt = 1 / 512;
+const prophotoDegamma = (c: number) => {
+  const abs = Math.abs(c);
+  return abs < 16 * prophotoEt ? c / 16 : Math.sign(c) * Math.pow(abs, 1.8);
+};
+
+// prettier-ignore
+const COLOR_SPACES: { [key: string]: ColorSpaceDef } = {
+  'srgb': {
+    toXYZ: [
+      0.41239079926595934, 0.357584339383878,   0.1804807884018343,
+      0.21263900587151027, 0.715168678767756,   0.07219231536073371,
+      0.01933081871559182, 0.11919477979462598, 0.9505321522496607
+    ],
+    degamma: srgbToLinear,
+  },
+  'srgb-linear': {
+    toXYZ: [
+      0.41239079926595934, 0.357584339383878,   0.1804807884018343,
+      0.21263900587151027, 0.715168678767756,   0.07219231536073371,
+      0.01933081871559182, 0.11919477979462598, 0.9505321522496607
+    ],
+    degamma: identity,
+  },
+  'display-p3': {
+    toXYZ: [
+      0.4865709486482162,  0.26566769316909306, 0.1982172852343625,
+      0.2289745640697488,  0.6917385218365064,  0.079286914093745,
+      0.0000000000000000,  0.04511338185890264, 1.043944368900976
+    ],
+    degamma: srgbToLinear, // same gamma as sRGB
+  },
+  'a98-rgb': {
+    toXYZ: [
+      0.5766690429101305,  0.1855582379065463,  0.1882286462349947,
+      0.29734497525053605, 0.6273635662554661,  0.07529145849399788,
+      0.02703136138641234, 0.07068885253582723, 0.9913375368376388
+    ],
+    degamma: a98Degamma,
+  },
+  'rec2020': {
+    toXYZ: [
+      0.6369580483012914,  0.14461690358620832, 0.1688809751641721,
+      0.2627002120112671,  0.6779980715188708,  0.05930171646986196,
+      0.000000000000000,   0.028072693049087428,1.060985057710791
+    ],
+    degamma: rec2020Degamma,
+  },
+  'prophoto-rgb': {
+    toXYZ: [
+      0.79776664490064230, 0.13518129740053308, 0.03134773412839220,
+      0.28807482881940130, 0.71183523424187300, 0.00008993693872564,
+      0.00000000000000000, 0.00000000000000000, 0.82510460251046020
+    ],
+    degamma: prophotoDegamma,
+    d50: true, // ProPhoto uses D50
+  },
+};
+
+// Convert color() input to linear sRGB, then gamut map to RGBA
+function colorFnToRgba(
+  space: string,
+  r: number,
+  g: number,
+  b: number,
+  alpha: number
+): [number, number, number, number] {
+  // xyz-d65 and xyz are direct XYZ → linear sRGB
+  if (space === 'xyz-d65' || space === 'xyz') {
+    const lin = mul3(XYZ_D65_TO_SRGB, [r, g, b]);
+    return linearToGamutMappedRgba(lin, alpha);
+  }
+
+  // xyz-d50 needs Bradford adaptation first
+  if (space === 'xyz-d50') {
+    const d65 = mul3(D50_TO_D65, [r, g, b]);
+    const lin = mul3(XYZ_D65_TO_SRGB, d65);
+    return linearToGamutMappedRgba(lin, alpha);
+  }
+
+  const def = COLOR_SPACES[space];
+  if (!def) throw new ColorError(`color(${space} ...)`);
+
+  // Degamma the input values
+  const lr = def.degamma(r);
+  const lg = def.degamma(g);
+  const lb = def.degamma(b);
+
+  // Convert to XYZ (D65 or D50 depending on space)
+  let xyz = mul3(def.toXYZ, [lr, lg, lb]);
+
+  // If the space uses D50, adapt to D65
+  if (def.d50) {
+    xyz = mul3(D50_TO_D65, xyz);
+  }
+
+  // XYZ-D65 → linear sRGB
+  const lin = mul3(XYZ_D65_TO_SRGB, xyz);
+  return linearToGamutMappedRgba(lin, alpha);
+}
+
+// Convert linear sRGB to gamut-mapped RGBA via OKLCH
+function linearToGamutMappedRgba(
+  lin: [number, number, number],
+  alpha: number
+): [number, number, number, number] {
+  // If already in gamut, just convert directly (fast path)
+  if (isInGamut(lin)) {
+    return [
+      linearToRgbChannel(lin[0]),
+      linearToRgbChannel(lin[1]),
+      linearToRgbChannel(lin[2]),
+      alpha,
+    ];
+  }
+  // Out of gamut — convert to OKLab → OKLCH and gamut map
+  const [okL, okA, okB] = linearRgbToOklab(lin[0], lin[1], lin[2]);
+  const C = Math.sqrt(okA * okA + okB * okB);
+  const H = C < 0.0001 ? 0 : ((Math.atan2(okB, okA) * 180) / Math.PI + 360) % 360;
+  return gamutMapToRgba(okL, C, H, alpha);
 }
 
 const roundColor = (color: number): number => {
