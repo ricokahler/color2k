@@ -314,7 +314,7 @@ test('all of them', async () => {
         "id": "parse-to-rgba",
         "params": [
           {
-            "description": "the input color. Can be a RGB, RBGA, HSL, HSLA, or named color",
+            "description": "the input color. Can be a RGB, RBGA, HSL, HSLA, lab, lch, oklab, oklch, or named color",
             "name": "color",
             "type": "string",
           },

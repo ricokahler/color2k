@@ -4,7 +4,7 @@ import ColorError from './ColorError';
 /**
  * Parses a color into red, gree, blue, alpha parts
  *
- * @param color the input color. Can be a RGB, RBGA, HSL, HSLA, or named color
+ * @param color the input color. Can be a RGB, RBGA, HSL, HSLA, lab, lch, oklab, oklch, or named color
  */
 function parseToRgba(color: string): [number, number, number, number] {
   if (typeof color !== 'string') throw new ColorError(color);
@@ -51,6 +51,42 @@ function parseToRgba(color: string): [number, number, number, number] {
       number,
       number
     ];
+  }
+
+  const labMatch = labRegex.exec(normalizedColor);
+  if (labMatch) {
+    const [, Ls, as_, bs, alphaS] = labMatch;
+    const L = Ls.endsWith('%') ? parseFloat(Ls) : parseFloat(Ls);
+    const a = as_.endsWith('%') ? (parseFloat(as_) / 100) * 125 : parseFloat(as_);
+    const b = bs.endsWith('%') ? (parseFloat(bs) / 100) * 125 : parseFloat(bs);
+    return labToRgba(L, a, b, parseAlpha(alphaS));
+  }
+
+  const lchMatch = lchRegex.exec(normalizedColor);
+  if (lchMatch) {
+    const [, Ls, Cs, Hs, alphaS] = lchMatch;
+    const L = Ls.endsWith('%') ? parseFloat(Ls) : parseFloat(Ls);
+    const C = Cs.endsWith('%') ? (parseFloat(Cs) / 100) * 150 : parseFloat(Cs);
+    const H = parseAngle(Hs);
+    return lchToRgba(L, C, H, parseAlpha(alphaS));
+  }
+
+  const oklabMatch = oklabRegex.exec(normalizedColor);
+  if (oklabMatch) {
+    const [, Ls, as_, bs, alphaS] = oklabMatch;
+    const L = Ls.endsWith('%') ? parseFloat(Ls) / 100 : parseFloat(Ls);
+    const a = as_.endsWith('%') ? (parseFloat(as_) / 100) * 0.4 : parseFloat(as_);
+    const b = bs.endsWith('%') ? (parseFloat(bs) / 100) * 0.4 : parseFloat(bs);
+    return oklabToRgba(L, a, b, parseAlpha(alphaS));
+  }
+
+  const oklchMatch = oklchRegex.exec(normalizedColor);
+  if (oklchMatch) {
+    const [, Ls, Cs, Hs, alphaS] = oklchMatch;
+    const L = Ls.endsWith('%') ? parseFloat(Ls) / 100 : parseFloat(Ls);
+    const C = Cs.endsWith('%') ? (parseFloat(Cs) / 100) * 0.4 : parseFloat(Cs);
+    const H = parseAngle(Hs);
+    return oklchToRgba(L, C, H, parseAlpha(alphaS));
   }
 
   throw new ColorError(color);
@@ -117,6 +153,284 @@ const rgbaRegex = new RegExp(
 const hslaRegex =
   /^hsla?\(\s*([\d.]+)\s*,\s*([\d.]+)%\s*,\s*([\d.]+)%(?:\s*,\s*([\d.]+))?\s*\)$/i;
 const namedColorRegex = /^[a-z]+$/i;
+
+// CSS Color Level 4: space-separated values with optional / alpha
+// lab(L a b) or lab(L a b / alpha)
+const labRegex =
+  /^lab\(\s*([\d.]+%?)\s+([\d.e+-]+%?)\s+([\d.e+-]+%?)\s*(?:\/\s*([\d.]+%?))?\s*\)$/i;
+// lch(L C H) or lch(L C H / alpha)
+const lchRegex =
+  /^lch\(\s*([\d.]+%?)\s+([\d.]+%?)\s+([\d.e+-]+(?:deg|rad|grad|turn)?)\s*(?:\/\s*([\d.]+%?))?\s*\)$/i;
+// oklab(L a b) or oklab(L a b / alpha)
+const oklabRegex =
+  /^oklab\(\s*([\d.]+%?)\s+([\d.e+-]+%?)\s+([\d.e+-]+%?)\s*(?:\/\s*([\d.]+%?))?\s*\)$/i;
+// oklch(L C H) or oklch(L C H / alpha)
+const oklchRegex =
+  /^oklch\(\s*([\d.]+%?)\s+([\d.]+%?)\s+([\d.e+-]+(?:deg|rad|grad|turn)?)\s*(?:\/\s*([\d.]+%?))?\s*\)$/i;
+
+// Parse angle value supporting deg, rad, grad, turn units
+function parseAngle(value: string): number {
+  const num = parseFloat(value);
+  if (value.endsWith('rad')) return (num * 180) / Math.PI;
+  if (value.endsWith('grad')) return (num * 360) / 400;
+  if (value.endsWith('turn')) return num * 360;
+  return num; // deg or unitless
+}
+
+// Parse alpha: percentage or number, default 1
+function parseAlpha(value: string | undefined): number {
+  if (value === undefined || value === '') return 1;
+  if (value.endsWith('%')) return parseFloat(value) / 100;
+  return parseFloat(value);
+}
+
+// sRGB linear → sRGB gamma (inverse of the function in getLuminance)
+function linearToSrgb(c: number): number {
+  return c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055;
+}
+
+// Matrix-vector multiply for 3x3 (flat array)
+function mul3(
+  m: [number, number, number, number, number, number, number, number, number],
+  v: [number, number, number]
+): [number, number, number] {
+  return [
+    m[0] * v[0] + m[1] * v[1] + m[2] * v[2],
+    m[3] * v[0] + m[4] * v[1] + m[5] * v[2],
+    m[6] * v[0] + m[7] * v[1] + m[8] * v[2],
+  ];
+}
+
+// LMS → linear sRGB combined matrix (LMStoXYZ_D65 * XYZ_D65_to_linearSRGB)
+// prettier-ignore
+const LMS_TO_SRGB: [number, number, number, number, number, number, number, number, number] = [
+   4.0767416621, -3.3077115913,  0.2309699292,
+  -1.2684380046,  2.6097574011, -0.3413193965,
+  -0.0041960863, -0.7034186147,  1.7076147010
+];
+
+// linear sRGB → LMS combined matrix (inverse of above)
+// prettier-ignore
+const SRGB_TO_LMS: [number, number, number, number, number, number, number, number, number] = [
+  0.4122214708, 0.5363325363, 0.0514459929,
+  0.2119034982, 0.6806995451, 0.1073969566,
+  0.0883024619, 0.2817188376, 0.6299787005
+];
+
+// OKLab → LMS (cube root domain)
+function oklabToLMSg(L: number, a: number, b: number): [number, number, number] {
+  return [
+    L + 0.3963377774 * a + 0.2158037573 * b,
+    L - 0.1055613458 * a - 0.0638541728 * b,
+    L - 0.0894841775 * a - 1.2914855480 * b,
+  ];
+}
+
+// OKLab → linear sRGB
+function oklabToLinearRgb(L: number, a: number, b: number): [number, number, number] {
+  const [lg, mg, sg] = oklabToLMSg(L, a, b);
+  return mul3(LMS_TO_SRGB, [lg * lg * lg, mg * mg * mg, sg * sg * sg]);
+}
+
+// linear sRGB → OKLab
+function linearRgbToOklab(r: number, g: number, b: number): [number, number, number] {
+  const [l, m, s] = mul3(SRGB_TO_LMS, [r, g, b]);
+  const lg = Math.cbrt(l), mg = Math.cbrt(m), sg = Math.cbrt(s);
+  return [
+    0.2104542553 * lg + 0.7936177850 * mg - 0.0040720468 * sg,
+    1.9779984951 * lg - 2.4285922050 * mg + 0.4505937099 * sg,
+    0.0259040371 * lg + 0.7827717662 * mg - 0.8086757660 * sg,
+  ];
+}
+
+// Check if linear sRGB values are in gamut (within [0, 1] with small tolerance)
+function isInGamut(rgb: [number, number, number]): boolean {
+  const e = -0.0001;
+  return rgb[0] >= e && rgb[0] <= 1.0001 && rgb[1] >= e && rgb[1] <= 1.0001 && rgb[2] >= e && rgb[2] <= 1.0001;
+}
+
+// Clamp linear sRGB to [0, 1] and convert to gamma sRGB [0, 255]
+function linearToRgbChannel(c: number): number {
+  return Math.round(Math.min(255, Math.max(0, linearToSrgb(Math.min(1, Math.max(0, c))) * 255)));
+}
+
+// DeltaEOK: Euclidean distance in OKLab space
+function deltaEOK(
+  lab1: [number, number, number],
+  lab2: [number, number, number]
+): number {
+  return Math.sqrt(
+    (lab1[0] - lab2[0]) ** 2 +
+    (lab1[1] - lab2[1]) ** 2 +
+    (lab1[2] - lab2[2]) ** 2
+  );
+}
+
+// CSS Gamut Mapping Algorithm (per CSS Color Level 4 spec)
+// Binary search on OKLCH chroma to find the largest in-gamut chroma
+// that preserves lightness and hue.
+function gamutMapOklch(
+  L: number,
+  C: number,
+  H: number
+): [number, number, number] {
+  const JND = 0.02;
+  const EPSILON = 0.0001;
+
+  // If lightness is at extremes, return black or white
+  if (L >= 1) return [1, 1, 1];
+  if (L <= 0) return [0, 0, 0];
+
+  // If already in gamut, convert directly
+  const hRad = (H * Math.PI) / 180;
+  const cosH = Math.cos(hRad);
+  const sinH = Math.sin(hRad);
+
+  let rgb = oklabToLinearRgb(L, C * cosH, C * sinH);
+  if (isInGamut(rgb)) return rgb;
+
+  // Binary search: reduce chroma until in gamut
+  let lo = 0;
+  let hi = C;
+  let loInGamut = true;
+
+  // Clip and check initial distance
+  let clipped: [number, number, number] = [
+    Math.min(1, Math.max(0, rgb[0])),
+    Math.min(1, Math.max(0, rgb[1])),
+    Math.min(1, Math.max(0, rgb[2])),
+  ];
+  let clippedLab = linearRgbToOklab(clipped[0], clipped[1], clipped[2]);
+  let currentLab: [number, number, number] = [L, C * cosH, C * sinH];
+
+  if (deltaEOK(clippedLab, currentLab) < JND) {
+    return clipped;
+  }
+
+  while (hi - lo > EPSILON) {
+    const mid = (lo + hi) / 2;
+    currentLab = [L, mid * cosH, mid * sinH];
+    rgb = oklabToLinearRgb(currentLab[0], currentLab[1], currentLab[2]);
+
+    if (loInGamut && isInGamut(rgb)) {
+      lo = mid;
+      continue;
+    }
+
+    clipped = [
+      Math.min(1, Math.max(0, rgb[0])),
+      Math.min(1, Math.max(0, rgb[1])),
+      Math.min(1, Math.max(0, rgb[2])),
+    ];
+    clippedLab = linearRgbToOklab(clipped[0], clipped[1], clipped[2]);
+    const dE = deltaEOK(clippedLab, currentLab);
+
+    if (dE < JND) {
+      if (JND - dE < EPSILON) break;
+      loInGamut = false;
+      lo = mid;
+    } else {
+      hi = mid;
+    }
+  }
+
+  return clipped;
+}
+
+// Convert gamut-mapped linear sRGB to final RGBA output
+function gamutMapToRgba(
+  L: number,
+  C: number,
+  H: number,
+  alpha: number
+): [number, number, number, number] {
+  const [lr, lg, lb] = gamutMapOklch(L, C, H);
+  return [linearToRgbChannel(lr), linearToRgbChannel(lg), linearToRgbChannel(lb), alpha];
+}
+
+// CIE Lab → XYZ-D50
+const labKappa = 24389 / 27; // 29^3/3^3
+// D50 white point
+const D50 = [0.3457 / 0.3585, 1.0, (1.0 - 0.3457 - 0.3585) / 0.3585] as const;
+
+// CIE Lab → OKLab (via XYZ-D50 → XYZ-D65 → linear sRGB → OKLab)
+function labToOklab(
+  L: number,
+  a: number,
+  b: number
+): [number, number, number] {
+  // Lab → XYZ-D50
+  const f1 = (L + 16) / 116;
+  const f0 = a / 500 + f1;
+  const f2 = f1 - b / 200;
+
+  const x =
+    (f0 > 24 / 116 ? f0 * f0 * f0 : (116 * f0 - 16) / labKappa) * D50[0];
+  const y = L > 8 ? Math.pow((L + 16) / 116, 3) : L / labKappa;
+  const z =
+    (f2 > 24 / 116 ? f2 * f2 * f2 : (116 * f2 - 16) / labKappa) * D50[2];
+
+  // XYZ-D50 → XYZ-D65 (Bradford chromatic adaptation)
+  // prettier-ignore
+  const [xd65, yd65, zd65] = mul3([
+    0.9554734527042182, -0.023098536874261423, 0.0632593086610217,
+   -0.028369706963208136, 1.0099954580106629, 0.021041398966943008,
+    0.012314001688319899, -0.020507696433477912, 1.3303659366080753
+  ], [x, y, z]);
+
+  // XYZ-D65 → linear sRGB → OKLab
+  // prettier-ignore
+  const [lr, lg, lb] = mul3([
+     3.2409699419045226, -1.5373831775700940, -0.4986107602930034,
+    -0.9692436362808796,  1.8759675015077202,  0.0415550574071756,
+     0.0556300796969937, -0.2039769588889765,  1.0569715142428786
+  ], [xd65, yd65, zd65]);
+
+  return linearRgbToOklab(lr, lg, lb);
+}
+
+// Convert Lab/LCH to gamut-mapped RGBA by going through OKLab → OKLCH
+function labToRgba(
+  L: number,
+  a: number,
+  b: number,
+  alpha: number
+): [number, number, number, number] {
+  const [okL, okA, okB] = labToOklab(L, a, b);
+  const C = Math.sqrt(okA * okA + okB * okB);
+  const H = C < 0.0001 ? 0 : ((Math.atan2(okB, okA) * 180) / Math.PI + 360) % 360;
+  return gamutMapToRgba(okL, C, H, alpha);
+}
+
+function oklabToRgba(
+  L: number,
+  a: number,
+  b: number,
+  alpha: number
+): [number, number, number, number] {
+  const C = Math.sqrt(a * a + b * b);
+  const H = C < 0.0001 ? 0 : ((Math.atan2(b, a) * 180) / Math.PI + 360) % 360;
+  return gamutMapToRgba(L, C, H, alpha);
+}
+
+function lchToRgba(
+  L: number,
+  C: number,
+  H: number,
+  alpha: number
+): [number, number, number, number] {
+  const hRad = (H * Math.PI) / 180;
+  return labToRgba(L, C * Math.cos(hRad), C * Math.sin(hRad), alpha);
+}
+
+function oklchToRgba(
+  L: number,
+  C: number,
+  H: number,
+  alpha: number
+): [number, number, number, number] {
+  return gamutMapToRgba(L, C, H, alpha);
+}
 
 const roundColor = (color: number): number => {
   return Math.round(color * 255);

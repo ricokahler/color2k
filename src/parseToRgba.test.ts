@@ -384,4 +384,161 @@ describe('parseToRgb', () => {
       `"Failed to parse color: "notrealblue""`
     );
   });
+
+  // CSS Color Level 4: lab()
+  it('should parse a lab color', () => {
+    // lab(50 40 -20) — a medium color
+    const [r, g, b, a] = parseToRgba('lab(50 40 -20)');
+    expect(a).toBe(1);
+    expect(r).toBeGreaterThan(0);
+    expect(r).toBeLessThan(256);
+  });
+
+  it('should parse lab black and white', () => {
+    expect(parseToRgba('lab(0 0 0)')).toEqual([0, 0, 0, 1]);
+    const [r, g, b] = parseToRgba('lab(100 0 0)');
+    expect(r).toBeGreaterThanOrEqual(254);
+    expect(g).toBeGreaterThanOrEqual(254);
+    expect(b).toBeGreaterThanOrEqual(254);
+  });
+
+  it('should parse lab with alpha', () => {
+    const [, , , a] = parseToRgba('lab(50 40 -20 / 0.5)');
+    expect(a).toBe(0.5);
+  });
+
+  it('should parse lab with percentage alpha', () => {
+    const [, , , a] = parseToRgba('lab(50 40 -20 / 50%)');
+    expect(a).toBe(0.5);
+  });
+
+  it('should parse lab with percentage a/b values', () => {
+    // 100% of a/b maps to 125
+    const result1 = parseToRgba('lab(50 32% -16%)');
+    const result2 = parseToRgba('lab(50 40 -20)');
+    expect(result1).toEqual(result2);
+  });
+
+  // CSS Color Level 4: lch()
+  it('should parse a lch color', () => {
+    const [r, g, b, a] = parseToRgba('lch(50 30 270)');
+    expect(a).toBe(1);
+    expect(r).toBeGreaterThan(0);
+    expect(r).toBeLessThan(256);
+  });
+
+  it('should parse lch black and white', () => {
+    expect(parseToRgba('lch(0 0 0)')).toEqual([0, 0, 0, 1]);
+    const [r, g, b] = parseToRgba('lch(100 0 0)');
+    expect(r).toBeGreaterThanOrEqual(254);
+    expect(g).toBeGreaterThanOrEqual(254);
+    expect(b).toBeGreaterThanOrEqual(254);
+  });
+
+  it('should parse lch with alpha', () => {
+    const [, , , a] = parseToRgba('lch(50 30 270 / 0.75)');
+    expect(a).toBe(0.75);
+  });
+
+  it('should parse lch with angle units', () => {
+    // 270deg should equal no unit
+    const result1 = parseToRgba('lch(50 30 270deg)');
+    const result2 = parseToRgba('lch(50 30 270)');
+    expect(result1).toEqual(result2);
+
+    // 0.75turn = 270deg
+    const result3 = parseToRgba('lch(50 30 0.75turn)');
+    expect(result3[0]).toBeCloseTo(result2[0], 0);
+    expect(result3[1]).toBeCloseTo(result2[1], 0);
+    expect(result3[2]).toBeCloseTo(result2[2], 0);
+  });
+
+  // CSS Color Level 4: oklab()
+  it('should parse an oklab color', () => {
+    const [r, g, b, a] = parseToRgba('oklab(0.5 0.1 -0.1)');
+    expect(a).toBe(1);
+    expect(r).toBeGreaterThan(0);
+    expect(r).toBeLessThan(256);
+  });
+
+  it('should parse oklab black and white', () => {
+    expect(parseToRgba('oklab(0 0 0)')).toEqual([0, 0, 0, 1]);
+    const [r, g, b] = parseToRgba('oklab(1 0 0)');
+    expect(r).toBeGreaterThanOrEqual(254);
+    expect(g).toBeGreaterThanOrEqual(254);
+    expect(b).toBeGreaterThanOrEqual(254);
+  });
+
+  it('should parse oklab with alpha', () => {
+    const [, , , a] = parseToRgba('oklab(0.5 0.1 -0.1 / 0.3)');
+    expect(a).toBe(0.3);
+  });
+
+  it('should parse oklab with percentage L', () => {
+    // 50% lightness = 0.5
+    const result1 = parseToRgba('oklab(50% 0.1 -0.1)');
+    const result2 = parseToRgba('oklab(0.5 0.1 -0.1)');
+    expect(result1).toEqual(result2);
+  });
+
+  // CSS Color Level 4: oklch()
+  it('should parse an oklch color', () => {
+    const [r, g, b, a] = parseToRgba('oklch(0.7 0.15 180)');
+    expect(a).toBe(1);
+    // This is a saturated teal; red channel clamps to 0 (out of sRGB gamut)
+    expect(r).toBeGreaterThanOrEqual(0);
+    expect(g).toBeGreaterThan(0);
+    expect(b).toBeGreaterThan(0);
+  });
+
+  it('should parse oklch black and white', () => {
+    expect(parseToRgba('oklch(0 0 0)')).toEqual([0, 0, 0, 1]);
+    const [r, g, b] = parseToRgba('oklch(1 0 0)');
+    expect(r).toBeGreaterThanOrEqual(254);
+    expect(g).toBeGreaterThanOrEqual(254);
+    expect(b).toBeGreaterThanOrEqual(254);
+  });
+
+  it('should parse oklch with alpha', () => {
+    const [, , , a] = parseToRgba('oklch(0.7 0.15 180 / 0.8)');
+    expect(a).toBe(0.8);
+  });
+
+  it('should parse oklch with angle units', () => {
+    const result1 = parseToRgba('oklch(0.7 0.15 180deg)');
+    const result2 = parseToRgba('oklch(0.7 0.15 180)');
+    expect(result1).toEqual(result2);
+  });
+
+  it('should clamp out-of-gamut colors to valid sRGB', () => {
+    // Very saturated oklch should still produce valid 0-255 values
+    const [r, g, b] = parseToRgba('oklch(0.9 0.4 150)');
+    expect(r).toBeGreaterThanOrEqual(0);
+    expect(r).toBeLessThanOrEqual(255);
+    expect(g).toBeGreaterThanOrEqual(0);
+    expect(g).toBeLessThanOrEqual(255);
+    expect(b).toBeGreaterThanOrEqual(0);
+    expect(b).toBeLessThanOrEqual(255);
+  });
+
+  it('should produce correct known oklch conversions', () => {
+    // oklch(0.628 0.258 29.23) ≈ red-ish (#ff0000 is oklch(0.628 0.258 29.23))
+    const [r, g, b] = parseToRgba('oklch(0.628 0.258 29.23)');
+    expect(r).toBeGreaterThan(240);
+    expect(g).toBeLessThan(15);
+    expect(b).toBeLessThan(15);
+  });
+
+  it('should gamut map out-of-gamut colors by reducing chroma, not naive clamping', () => {
+    // oklch(0.9 0.4 150) is way out of sRGB gamut (very saturated green)
+    // Gamut mapping should reduce chroma to bring it in-gamut while
+    // preserving lightness and hue. The result should still be green-ish
+    // (G channel should be the dominant channel).
+    const [r, g, b] = parseToRgba('oklch(0.9 0.4 150)');
+    expect(g).toBeGreaterThan(r);
+    expect(g).toBeGreaterThan(b);
+
+    // Lightness 0.9 is bright, so the result should be a bright color
+    expect(g).toBeGreaterThan(200);
+  });
 });
