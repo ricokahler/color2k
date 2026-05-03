@@ -1,0 +1,8 @@
+{
+    "private": true,
+    "name": "@types/color2k",
+    "version": "2.0.9999",
+    "projects": [
+      "https://github.com/ricokahler/color2k"
+    ]
+  }
