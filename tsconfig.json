@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "jsx": "react",
     "strict": true,
     "esModuleInterop": true,
@@ -10,10 +10,10 @@
     "isolatedModules": true,
     "declaration": true,
     "emitDeclarationOnly": true,
+    "rootDir": "./src",
     "outDir": "./dist",
     "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "baseUrl": "."
+    "noUnusedParameters": true
   },
   "include": ["src/**/*"],
   "exclude": ["src/**/*.test.ts"]
