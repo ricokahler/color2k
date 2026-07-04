@@ -8,6 +8,16 @@ color2k is a color parsing and manipulation library with the objective of keepin
 
 The full bundle size is [currently 2.8kB](https://bundlephobia.com/result?p=color2k) but [gets as small as 2.1k](https://bundlejs.com/?q=color2k&treeshake=[{darken}]) with tree shaking.
 
+## Table of contents
+
+- [Size comparison](#size-comparison)
+- [Installation](#installation)
+- [Usage](#usage)
+- [How so small?](#how-so-small)
+- [Trust and publishing](#trust-and-publishing)
+- [Credits](#credits)
+- [API](#api)
+
 ## Size comparison
 
 | lib                                                       | size                                                  |

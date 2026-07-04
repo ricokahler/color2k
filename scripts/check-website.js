@@ -10,6 +10,9 @@ function assert(condition, message) {
 }
 
 const scriptTags = html.match(/<script\b/gi) || [];
+const ricoNavIndex = html.indexOf('href="https://rico.codes">rico.codes</a>');
+const npmNavIndex = html.indexOf('aria-label="npm package"');
+const githubNavIndex = html.indexOf('aria-label="GitHub repository"');
 
 assert(
   scriptTags.length === 1 &&
@@ -27,6 +30,14 @@ assert(
   html.includes('aria-label="GitHub repository"') &&
     html.includes('aria-label="npm package"'),
   'Missing icon-only package links'
+);
+assert(
+  ricoNavIndex !== -1 &&
+    npmNavIndex !== -1 &&
+    githubNavIndex !== -1 &&
+    ricoNavIndex < npmNavIndex &&
+    npmNavIndex < githubNavIndex,
+  'Unexpected site nav order'
 );
 assert(
   html.includes('class="site-footer"') &&
