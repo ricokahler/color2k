@@ -1,6 +1,18 @@
 {
-  "extends": ["config:base", "schedule:monthly"],
+  "extends": ["config:recommended", "schedule:monthly"],
   "groupName": "all",
   "rebaseWhen": "behind-base-branch",
-  "automerge": true
+  "automerge": false,
+  "dependencyDashboard": true,
+  "enabledManagers": ["npm", "github-actions"],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 5am on monday"]
+  },
+  "packageRules": [
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions"
+    }
+  ]
 }

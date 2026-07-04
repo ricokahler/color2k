@@ -2,7 +2,16 @@ import parseToRgba from './parseToRgba';
 import guard from './guard';
 
 /**
- * Takes in any color and returns it as a hex code.
+ * Converts a color to a hex color string.
+ *
+ * Includes an alpha channel when the input color is not fully opaque.
+ *
+ * ```js
+ * toHex('palevioletred'); // '#db7093'
+ * ```
+ *
+ * @param color The input color.
+ * @returns A hex color string.
  */
 function toHex(color: string): string {
   const [r, g, b, a] = parseToRgba(color);

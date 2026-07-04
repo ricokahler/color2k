@@ -1,12 +1,18 @@
 import guard from './guard';
 
 /**
- * Takes in rgba parts and returns an rgba string
+ * Builds an `rgba` color string from red, green, blue, and alpha channel
+ * values.
  *
- * @param red The amount of red in the red channel, given in a number between 0 and 255 inclusive
- * @param green The amount of green in the red channel, given in a number between 0 and 255 inclusive
- * @param blue The amount of blue in the red channel, given in a number between 0 and 255 inclusive
- * @param alpha Percentage of opacity, given as a decimal between 0 and 1
+ * ```js
+ * rgba(255, 0, 0, 1); // 'rgba(255, 0, 0, 1)'
+ * ```
+ *
+ * @param red The red channel value from 0 to 255.
+ * @param green The green channel value from 0 to 255.
+ * @param blue The blue channel value from 0 to 255.
+ * @param alpha The opacity as a decimal between 0 and 1.
+ * @returns An `rgba` color string.
  */
 function rgba(red: number, green: number, blue: number, alpha: number): string {
   return `rgba(${guard(0, 255, red).toFixed()}, ${guard(

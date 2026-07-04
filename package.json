@@ -22,6 +22,9 @@
     "chroma-js"
   ],
   "sideEffects": false,
+  "files": [
+    "dist"
+  ],
   "main": "./dist/index.main.cjs.js",
   "unpkg": "./dist/index.unpkg.umd.js",
   "jsdelivr": "./dist/index.unpkg.umd.js",
@@ -38,44 +41,38 @@
     ],
     "./package.json": "./package.json"
   },
+  "publishConfig": {
+    "provenance": true
+  },
   "scripts": {
     "build": "./scripts/build",
-    "lint": "eslint src --ext .ts,.tsx,.js,.jsx",
+    "audit:prod": "npm audit --omit=dev",
+    "check": "npm run lint && npm test -- --coverage && npm run build && npm run docs:check && npm run website && npm run website:check && npm run pack:check && npm run audit:prod",
+    "docs:check": "CHECK_DOCS=1 node ./scripts/docs.js",
+    "docs:generate": "node ./scripts/docs.js",
+    "lint": "eslint src --ext .ts,.js",
+    "pack:check": "npm run build && node ./scripts/check-package.js",
     "prepare": "npm run build",
     "test": "jest",
-    "website": "node ./scripts/website.js"
+    "website": "node ./scripts/website.js",
+    "website:check": "node ./scripts/check-website.js"
   },
   "devDependencies": {
-    "@babel/core": "7.28.5",
-    "@babel/node": "7.28.0",
+    "@babel/core": "7.29.7",
+    "@babel/eslint-parser": "7.28.5",
     "@babel/preset-env": "7.28.5",
-    "@babel/preset-react": "7.28.5",
     "@babel/preset-typescript": "7.28.5",
     "@babel/register": "7.28.3",
-    "@rollup/plugin-alias": "4.0.4",
     "@rollup/plugin-babel": "6.1.0",
     "@rollup/plugin-node-resolve": "15.3.1",
-    "@rollup/plugin-terser": "0.4.4",
-    "@sanity/eslint-config-studio": "2.0.4",
     "@types/jest": "29.5.14",
-    "@types/react": "19.2.14",
-    "@types/react-dom": "19.2.3",
-    "@types/showdown": "2.0.6",
-    "autoprefixer": "10.4.27",
-    "@babel/eslint-parser": "7.28.5",
-    "babel-plugin-module-resolver": "5.0.2",
-    "cssnano": "5.1.15",
     "eslint": "8.57.1",
     "jest": "29.7.0",
-    "postcss": "8.5.6",
-    "preact": "10.28.4",
-    "preact-render-to-string": "5.2.6",
+    "markdown-it": "14.3.0",
     "prettier": "2.8.8",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
     "rollup": "3.30.0",
-    "semantic-release": "24.2.9",
-    "showdown": "2.1.0",
+    "semantic-release": "25.0.5",
+    "shiki": "4.3.1",
     "typescript": "4.9.5"
   }
 }

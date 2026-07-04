@@ -7,9 +7,9 @@ require('@babel/register')({
   ],
 });
 
-require('../website/index.ts')
-  .default()
+require('../website/docs')
+  .generateReadme({ check: process.env.CHECK_DOCS === '1' })
   .catch((error) => {
-    console.error(error);
+    console.error(error.message);
     process.exitCode = 1;
   });

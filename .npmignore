@@ -2,6 +2,7 @@
 .vscode
 build
 coverage
+docs
 node_modules
 scripts
 src
@@ -15,4 +16,6 @@ babel.config.json
 jest.config.js
 renovate.json
 rollup.config.js
+rollup.config.mjs
+SECURITY.md
 tsconfig.json

@@ -3,7 +3,14 @@ import parseToRgba from './parseToRgba';
 // https://github.com/styled-components/polished/blob/0764c982551b487469043acb56281b0358b3107b/src/color/getLuminance.js
 
 /**
- * Returns a number (float) representing the luminance of a color.
+ * Returns the relative luminance of a color using the WCAG formula.
+ *
+ * ```js
+ * getLuminance('papayawhip'); // 0.877971001998354
+ * ```
+ *
+ * @param color The input color.
+ * @returns A number between 0 for darkest black and 1 for lightest white.
  */
 function getLuminance(color: string): number {
   if (color === 'transparent') return 0;

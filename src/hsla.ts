@@ -1,12 +1,18 @@
 import guard from './guard';
 
 /**
- * Takes in hsla parts and constructs an hsla string
+ * Builds an `hsla` color string from hue, saturation, lightness, and alpha
+ * channel values.
  *
- * @param hue The color circle (from 0 to 360) - 0 (or 360) is red, 120 is green, 240 is blue
- * @param saturation Percentage of saturation, given as a decimal between 0 and 1
- * @param lightness Percentage of lightness, given as a decimal between 0 and 1
- * @param alpha Percentage of opacity, given as a decimal between 0 and 1
+ * ```js
+ * hsla(0, 1, 0.5, 1); // 'hsla(0, 100%, 50%, 1)'
+ * ```
+ *
+ * @param hue The color wheel angle from 0 to 360.
+ * @param saturation The saturation as a decimal between 0 and 1.
+ * @param lightness The lightness as a decimal between 0 and 1.
+ * @param alpha The opacity as a decimal between 0 and 1.
+ * @returns An `hsla` color string.
  */
 function hsla(
   hue: number,
