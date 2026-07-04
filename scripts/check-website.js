@@ -24,6 +24,10 @@ assert(!html.includes('Preact'), 'Unexpected Preact runtime');
 assert(!html.includes('hydrate('), 'Unexpected hydration code');
 assert(!html.includes('window.docs'), 'Unexpected client docs payload');
 assert(!html.includes('<link rel="stylesheet"'), 'Unexpected external CSS');
+assert(
+  html.includes('<link rel="icon" href="/favicon.svg" type="image/svg+xml" />'),
+  'Missing SVG favicon'
+);
 assert(html.includes('🌈 color2k'), 'Missing rainbow color2k heading');
 assert(html.includes('class="site-header"'), 'Missing site header');
 assert(
