@@ -24,10 +24,19 @@ assert(!html.includes('<link rel="stylesheet"'), 'Unexpected external CSS');
 assert(html.includes('🌈 color2k'), 'Missing rainbow color2k heading');
 assert(html.includes('class="site-header"'), 'Missing site header');
 assert(
+  html.includes('aria-label="GitHub repository"') &&
+    html.includes('aria-label="npm package"'),
+  'Missing icon-only package links'
+);
+assert(
   html.includes('class="site-footer"') &&
     html.includes('https://rico.codes') &&
-    html.includes('mailto:hello@rico.codes'),
-  'Missing Rico footer links'
+    html.includes('mailto:hello@rico.codes') &&
+    html.includes('>blog</a>') &&
+    html.includes('>GitHub</a>') &&
+    !html.includes('>Twitter</a>') &&
+    !html.includes('>RSS</a>'),
+  'Unexpected Rico footer links'
 );
 assert(
   html.includes('.site-header{position:sticky') ||

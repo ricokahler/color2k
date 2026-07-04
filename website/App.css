@@ -74,7 +74,7 @@ a:hover {
   display: flex;
   margin-left: auto;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
   font-size: 0.94rem;
   font-weight: 500;
   white-space: nowrap;
@@ -88,6 +88,27 @@ a:hover {
 .site-nav a:hover,
 .site-footer a:hover {
   color: var(--accent);
+}
+
+.site-icon-link {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+}
+
+.site-icon-link:hover {
+  text-decoration: none;
+}
+
+.site-icon-link svg {
+  display: block;
+}
+
+.site-icon-link-npm svg {
+  width: 22px;
+  height: 22px;
 }
 
 .page-shell {
@@ -293,9 +314,14 @@ a:hover {
   }
 
   .site-nav {
-    gap: 12px;
+    gap: 10px;
     overflow-x: auto;
     font-size: 0.9rem;
+  }
+
+  .site-icon-link {
+    width: 30px;
+    height: 30px;
   }
 
   .page-shell {
