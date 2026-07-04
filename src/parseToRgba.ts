@@ -2,9 +2,16 @@ import guard from './guard';
 import ColorError from './ColorError';
 
 /**
- * Parses a color into red, gree, blue, alpha parts
+ * Parses a color into red, green, blue, and alpha channel values.
  *
- * @param color the input color. Can be a RGB, RBGA, HSL, HSLA, or named color
+ * Supports hex, RGB, RGBA, HSL, HSLA, CSS named colors, and `transparent`.
+ *
+ * ```js
+ * parseToRgba('rgba(255, 0, 0, 0.5)'); // [255, 0, 0, 0.5]
+ * ```
+ *
+ * @param color The input color.
+ * @returns A tuple of red, green, blue, and alpha channel values.
  */
 function parseToRgba(color: string): [number, number, number, number] {
   if (typeof color !== 'string') throw new ColorError(color);

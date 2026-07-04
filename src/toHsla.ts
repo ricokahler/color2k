@@ -2,7 +2,14 @@ import parseToHsla from './parseToHsla';
 import hsla from './hsla';
 
 /**
- * Takes in any color and returns it as an hsla string.
+ * Converts a color to an `hsla` color string.
+ *
+ * ```js
+ * toHsla('peachpuff'); // 'hsla(28, 100%, 86%, 1)'
+ * ```
+ *
+ * @param color The input color.
+ * @returns An `hsla` color string.
  */
 function toHsla(color: string): string {
   return hsla(...parseToHsla(color));

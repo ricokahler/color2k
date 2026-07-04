@@ -8,8 +8,18 @@ const guidelines = {
 };
 
 /**
- * Returns whether or not a color has bad contrast against a background
- * according to a given standard.
+ * Returns whether a color fails a contrast threshold against a background.
+ *
+ * The supported standards are `decorative`, `readable`, `aa`, and `aaa`.
+ *
+ * ```js
+ * hasBadContrast('red', 'aa'); // true
+ * ```
+ *
+ * @param color The foreground color.
+ * @param standard The contrast standard to test against.
+ * @param background The background color.
+ * @returns `true` when the contrast ratio is below the selected standard.
  */
 function hasBadContrast(
   color: string,
