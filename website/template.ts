@@ -14,7 +14,7 @@ function template({ bodyHtml, css, structuredData }: Params) {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>color2k</title>
+    <title>🌈 color2k</title>
     <meta
       name="description"
       content="A tiny color parsing and manipulation library for JavaScript."
@@ -24,7 +24,7 @@ function template({ bodyHtml, css, structuredData }: Params) {
       content="color, parsing, css, css-in-js, tinycolor, polished, chroma-js, npm, javascript"
     />
     <link rel="canonical" href="https://color2k.com/" />
-    <meta property="og:title" content="color2k" />
+    <meta property="og:title" content="🌈 color2k" />
     <meta property="og:site_name" content="color2k" />
     <meta property="og:url" content="https://color2k.com/" />
     <meta
@@ -34,7 +34,7 @@ function template({ bodyHtml, css, structuredData }: Params) {
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://color2k.com/demo-image.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="color2k" />
+    <meta name="twitter:title" content="🌈 color2k" />
     <meta
       name="twitter:description"
       content="A tiny color parsing and manipulation library for JavaScript."
@@ -51,9 +51,32 @@ function template({ bodyHtml, css, structuredData }: Params) {
     )}</script>
   </head>
   <body>
+    <header class="site-header">
+      <div class="site-header-inner">
+        <a class="site-brand" href="/" aria-label="color2k home">
+          <span aria-hidden="true">🌈</span>
+          <span>color2k</span>
+        </a>
+        <nav class="site-nav" aria-label="Primary">
+          <a href="https://github.com/ricokahler/color2k">GitHub</a>
+          <a href="https://www.npmjs.com/package/color2k">npm</a>
+          <a href="https://rico.codes">rico.codes</a>
+        </nav>
+      </div>
+    </header>
     <main class="page-shell">
       <article class="markdown-body">${bodyHtml}</article>
     </main>
+    <footer class="site-footer">
+      <nav aria-label="Rico Kahler links">
+        <ul class="site-footer-links">
+          <li><a href="mailto:hello@rico.codes">hello@rico.codes</a></li>
+          <li><a href="https://github.com/ricokahler">GitHub</a></li>
+          <li><a href="https://twitter.com/rico_kahler">Twitter</a></li>
+          <li><a href="https://rico.codes/rss.xml">RSS</a></li>
+        </ul>
+      </nav>
+    </footer>
   </body>
 </html>`;
 }

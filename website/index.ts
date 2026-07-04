@@ -32,6 +32,7 @@ function createSlugger() {
         .toLowerCase()
         .replace(/<[^>]+>/g, '')
         .replace(/[^\w\s-]/g, '')
+        .trim()
         .replace(/\s+/g, '-')
         .replace(/-+/g, '-') || 'section';
     const count = seen.get(base) || 0;
@@ -146,6 +147,11 @@ function getStructuredData() {
     '@type': 'SoftwareSourceCode',
     name: pkg.name,
     description: pkg.description,
+    author: {
+      '@type': 'Person',
+      name: 'Rico Kahler',
+      url: 'https://rico.codes',
+    },
     codeRepository: pkg.repository.url.replace(/^git\+/, ''),
     programmingLanguage: 'TypeScript',
     runtimePlatform: 'JavaScript',
@@ -154,6 +160,7 @@ function getStructuredData() {
     sameAs: [
       'https://www.npmjs.com/package/color2k',
       'https://github.com/ricokahler/color2k',
+      'https://rico.codes',
     ],
   };
 }

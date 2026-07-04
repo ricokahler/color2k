@@ -39,10 +39,61 @@ a:hover {
   text-decoration: underline;
 }
 
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.site-header-inner {
+  display: flex;
+  width: min(100% - 32px, 980px);
+  min-height: 58px;
+  margin: 0 auto;
+  align-items: center;
+  gap: 24px;
+}
+
+.site-brand {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--text);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.site-brand:hover {
+  text-decoration: none;
+}
+
+.site-nav {
+  display: flex;
+  margin-left: auto;
+  align-items: center;
+  gap: 18px;
+  font-size: 0.94rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.site-nav a,
+.site-footer a {
+  color: var(--text);
+}
+
+.site-nav a:hover,
+.site-footer a:hover {
+  color: var(--accent);
+}
+
 .page-shell {
   width: min(100% - 32px, 980px);
   margin: 0 auto;
-  padding: 32px 0 64px;
+  padding: 28px 0 56px;
 }
 
 .markdown-body {
@@ -62,6 +113,7 @@ a:hover {
 .markdown-body h3,
 .markdown-body h4 {
   position: relative;
+  scroll-margin-top: 82px;
   margin: 24px 0 16px;
   font-weight: 600;
   line-height: 1.25;
@@ -210,10 +262,50 @@ a:hover {
   vertical-align: middle;
 }
 
+.site-footer {
+  width: min(100% - 32px, 980px);
+  margin: 0 auto;
+  padding: 24px 0 40px;
+  border-top: 1px solid var(--muted);
+}
+
+.site-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 24px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  font-size: 1.12rem;
+  line-height: 1.4;
+}
+
 @media (max-width: 640px) {
+  .site-header-inner {
+    width: min(100% - 24px, 980px);
+    min-height: 54px;
+    gap: 14px;
+  }
+
+  .site-brand {
+    font-size: 1rem;
+  }
+
+  .site-nav {
+    gap: 12px;
+    overflow-x: auto;
+    font-size: 0.9rem;
+  }
+
   .page-shell {
     width: min(100% - 24px, 980px);
     padding: 24px 0 48px;
+  }
+
+  .site-footer {
+    width: min(100% - 24px, 980px);
+    padding: 20px 0 32px;
   }
 
   .markdown-body {
@@ -230,5 +322,10 @@ a:hover {
 
   .heading-anchor {
     opacity: 1;
+  }
+
+  .site-footer-links {
+    gap: 12px 18px;
+    font-size: 1rem;
   }
 }
