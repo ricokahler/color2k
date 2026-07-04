@@ -30,29 +30,63 @@ Inspect the pack output and confirm it only includes:
 - `README.md`
 - `package.json`
 
-## npm settings
+## One-time trusted publishing setup
 
-Before publishing:
+Configure this before the first release from the new workflow:
 
-1. Confirm npm trusted publishing is configured for this repository and workflow.
-2. Confirm the workflow uses GitHub-hosted runners.
-3. Confirm the release job has `id-token: write`.
-4. Confirm legacy `NPM_TOKEN` publishing is no longer required.
-5. Confirm package token settings match the intended 2FA/token policy.
+1. On npm, open the `color2k` package settings.
+2. Add a Trusted Publisher with:
+   - Provider: GitHub Actions
+   - Organization or user: `ricokahler`
+   - Repository: `color2k`
+   - Workflow filename: `release.yml`
+   - Environment name: `npm-publish`
+   - Allowed actions: `npm publish`
+3. On GitHub, create or confirm the `npm-publish` environment.
+4. Add required reviewers to the `npm-publish` environment.
+5. Restrict the environment to deploy only from `main`, if branch protection
+   settings allow it.
+6. Confirm there is no `NPM_TOKEN` required by `.github/workflows/release.yml`.
+7. After the first trusted publish works, revoke any old npm automation token
+   for this package.
+
+## Provenance requirements
+
+Before publishing, confirm:
+
+1. The release workflow is on the default branch.
+2. The workflow runs on a GitHub-hosted runner.
+3. The release job has `id-token: write`.
+4. `package.json` contains:
+
+```json
+{
+  "publishConfig": {
+    "provenance": true
+  }
+}
+```
+
+5. The release workflow sets `NPM_CONFIG_PROVENANCE=true`.
+6. The package repository URL in `package.json` matches the public GitHub repo.
 
 ## Publish
 
-1. Get explicit maintainer approval.
-2. Run the release workflow from `main`.
-3. Watch the workflow until completion.
-4. Verify the npm package page:
+1. Merge the approved PR to `main`.
+2. Confirm the release workflow file is present on `main`.
+3. In GitHub, open Actions, then the `Release` workflow.
+4. Click Run workflow and select branch `main`.
+5. Approve the `npm-publish` environment deployment when prompted.
+6. Watch the workflow until completion.
+7. Verify the npm package page:
    - Correct version.
    - Correct `latest` dist tag.
    - Provenance present.
    - README rendered correctly.
    - Package file list matches expectations.
-5. Smoke install in a temporary project:
+8. Smoke install in a temporary project:
    - CommonJS require.
    - ESM import.
    - TypeScript type resolution.
    - UMD bundle presence if CDN usage remains supported.
+9. Run `npm audit signatures` in the smoke project.
