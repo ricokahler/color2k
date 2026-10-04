@@ -179,6 +179,17 @@ describe('parseToRgb', () => {
     `);
   });
 
+  it('should ignore surrounding whitespace for supported color formats', () => {
+    expect(parseToRgba(' red ')).toEqual(parseToRgba('red'));
+    expect(parseToRgba(' #fff ')).toEqual(parseToRgba('#fff'));
+    expect(parseToRgba(' rgb(174, 67, 255) ')).toEqual(
+      parseToRgba('rgb(174, 67, 255)')
+    );
+    expect(parseToRgba(' hsl(210, 10%, 4%) ')).toEqual(
+      parseToRgba('hsl(210, 10%, 4%)')
+    );
+  });
+
   it('should parse an 8-digit hex color representation', () => {
     expect(parseToRgba('#Ff43AEFF')).toMatchInlineSnapshot(`
       [

@@ -18,7 +18,9 @@ function parseToRgba(color: string): [number, number, number, number] {
   if (color.trim().toLowerCase() === 'transparent') return [0, 0, 0, 0];
 
   let normalizedColor = color.trim();
-  normalizedColor = namedColorRegex.test(color) ? nameToHex(color) : color;
+  normalizedColor = namedColorRegex.test(normalizedColor)
+    ? nameToHex(normalizedColor)
+    : normalizedColor;
 
   const reducedHexMatch = reducedHexRegex.exec(normalizedColor);
   if (reducedHexMatch) {
