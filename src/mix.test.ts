@@ -1,5 +1,16 @@
 import mix from './mix';
 
+test('mix unequal alpha at a non-half weight', () => {
+  expect(mix('red', 'rgba(0, 0, 255, 0.5)', 0.25)).toBe(
+    'rgba(230, 0, 25, 0.875)'
+  );
+});
+
+test('preserve endpoint colors with unequal alpha', () => {
+  expect(mix('red', 'rgba(0, 0, 255, 0.5)', 1)).toBe('rgba(0, 0, 255, 0.5)');
+  expect(mix('rgba(255, 0, 0, 0.5)', 'blue', 0)).toBe('rgba(255, 0, 0, 0.5)');
+});
+
 test('mix red with white', () => {
   expect(mix('red', 'white', 0.5)).toMatchInlineSnapshot(
     `"rgba(255, 128, 128, 1)"`
