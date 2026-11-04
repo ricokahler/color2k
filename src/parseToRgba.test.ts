@@ -377,6 +377,14 @@ describe('parseToRgb', () => {
     );
   });
 
+  it('ignores leading and trailing whitespace', () => {
+    expect(parseToRgba(' red ')).toEqual([255, 0, 0, 1]);
+    expect(parseToRgba(' #f00')).toEqual([255, 0, 0, 1]);
+    expect(parseToRgba('#ff0000 ')).toEqual([255, 0, 0, 1]);
+    expect(parseToRgba(' rgba(255, 0, 0, 0.5) ')).toEqual([255, 0, 0, 0.5]);
+    expect(parseToRgba('hsl(0, 100%, 50%) ')).toEqual([255, 0, 0, 1]);
+  });
+
   it('throws an error if an invalid named color is provided', () => {
     expect(() => {
       parseToRgba('notrealblue');
