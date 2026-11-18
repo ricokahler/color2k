@@ -2,11 +2,11 @@
 
 [![bundlephobia](https://badgen.net/bundlephobia/minzip/color2k)](https://bundlephobia.com/result?p=color2k) [![github status checks](https://badgen.net/github/checks/ricokahler/color2k)](https://github.com/ricokahler/color2k/actions) [![codecov](https://codecov.io/gh/ricokahler/color2k/branch/master/graph/badge.svg)](https://codecov.io/gh/ricokahler/color2k) ![weekly downloads](https://badgen.net/npm/dw/color2k) [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
-> a color parsing and manipulation lib served in roughly 2kB or less (2.8kB to be more precise)
+> a color parsing and manipulation lib served in roughly 2kB or less (2.3kB to be more precise)
 
 color2k is a color parsing and manipulation library with the objective of keeping the bundle size as small as possible while still satisfying all of your color manipulation needs in an sRGB space.
 
-The full bundle size is [currently 2.8kB](https://bundlephobia.com/result?p=color2k) but [gets as small as 2.1k](https://bundlejs.com/?q=color2k&treeshake=[{darken}]) with tree shaking.
+The full bundle size is [currently 2.3kB](https://bundlephobia.com/result?p=color2k) but [gets as small as 1.6kB](https://bundlejs.com/?q=color2k&treeshake=[{darken}]) with tree shaking.
 
 ## Table of contents
 
@@ -26,7 +26,7 @@ The full bundle size is [currently 2.8kB](https://bundlephobia.com/result?p=colo
 | [polished](https://github.com/styled-components/polished) | [11.2kB](https://bundlephobia.com/result?p=polished)  |
 | [color](https://github.com/Qix-/color)                    | [7.6kB](https://bundlephobia.com/result?p=color)      |
 | [tinycolor2](https://github.com/bgrins/TinyColor)         | [5kB](https://bundlephobia.com/result?p=tinycolor2)   |
-| color2k                                                   | [2.8kB](https://bundlephobia.com/result?p=color2k) 😎 |
+| color2k                                                   | [2.3kB](https://bundlephobia.com/result?p=color2k) 😎 |
 
 👋 Compare tree-shaken bundle outputs on [bundlejs.com](https://bundlejs.com/?share=PTAEFcDsGMHsFt4FNIBdQENIBNRIB4AOsATuvLNuADZIDOoqsoc8hGJSjAFkgJYlQdPgC96oAFASQeIqXQAqUADMSCUACJo3NfAwBaAFZ0NAbmlgCxMqCWr1G4tT51e2MxdnXFK3ZrjUpB4yVvK2vg6ofJAAngGkAEweoTYA3tgcANYoAL4R8P6wgSQJmR5AA)
 

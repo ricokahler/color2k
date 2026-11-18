@@ -10,7 +10,8 @@ Use this checklist before any npm publish.
 4. Confirm CI is green.
 5. Confirm semantic-release dry run reports the expected next version.
 
-For the documentation overhaul release, the expected next version is `2.0.4`.
+For the smaller named-color map release (a `feat:` commit), the expected next
+version is `2.1.0`.
 
 ## Local validation
 
