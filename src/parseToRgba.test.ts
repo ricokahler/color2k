@@ -179,6 +179,17 @@ describe('parseToRgb', () => {
     `);
   });
 
+  it('should ignore surrounding whitespace for supported color formats', () => {
+    expect(parseToRgba(' red ')).toEqual(parseToRgba('red'));
+    expect(parseToRgba(' #fff ')).toEqual(parseToRgba('#fff'));
+    expect(parseToRgba(' rgb(174, 67, 255) ')).toEqual(
+      parseToRgba('rgb(174, 67, 255)')
+    );
+    expect(parseToRgba(' hsl(210, 10%, 4%) ')).toEqual(
+      parseToRgba('hsl(210, 10%, 4%)')
+    );
+  });
+
   it('should parse an 8-digit hex color representation', () => {
     expect(parseToRgba('#Ff43AEFF')).toMatchInlineSnapshot(`
       [
@@ -374,6 +385,24 @@ describe('parseToRgb', () => {
       parseToRgba('hsla(210,100%,400%,0.7)');
     }).toThrowErrorMatchingInlineSnapshot(
       `"Failed to parse color: "hsla(210,100%,400%,0.7)""`
+    );
+  });
+
+  it('ignores leading and trailing whitespace', () => {
+    expect(parseToRgba(' red ')).toEqual([255, 0, 0, 1]);
+    expect(parseToRgba(' #f00')).toEqual([255, 0, 0, 1]);
+    expect(parseToRgba('#ff0000 ')).toEqual([255, 0, 0, 1]);
+    expect(parseToRgba(' rgba(255, 0, 0, 0.5) ')).toEqual([255, 0, 0, 0.5]);
+    expect(parseToRgba('hsl(0, 100%, 50%) ')).toEqual([255, 0, 0, 1]);
+    expect(parseToRgba(' RED ')).toEqual([255, 0, 0, 1]);
+    expect(parseToRgba('\ttransparent\n')).toEqual([0, 0, 0, 0]);
+  });
+
+  it('reports the original input when a trimmed color is invalid', () => {
+    expect(() => parseToRgba('  ')).toThrow('Failed to parse color: "  "');
+    expect(() => parseToRgba('\t\t')).toThrow('Failed to parse color: "\t\t"');
+    expect(() => parseToRgba(' notrealblue ')).toThrow(
+      'Failed to parse color: " notrealblue "'
     );
   });
 

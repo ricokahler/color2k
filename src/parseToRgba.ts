@@ -15,13 +15,15 @@ import ColorError from './ColorError';
  */
 function parseToRgba(color: string): [number, number, number, number] {
   if (typeof color !== 'string') throw new ColorError(color);
-  if (color.trim().toLowerCase() === 'transparent') return [0, 0, 0, 0];
+  // Ignore surrounding whitespace; errors still report the original `color`.
+  const input = color.trim();
+  if (input.toLowerCase() === 'transparent') return [0, 0, 0, 0];
 
-  if (namedColorRegex.test(color)) {
+  if (namedColorRegex.test(input)) {
     // named colors: hash the name, then walk `colorMap` (see below)
     let hash = 852;
-    let i = color.length;
-    while (i) hash = (hash * 56 + (color.charCodeAt(--i) % 32)) % 4701;
+    let i = input.length;
+    while (i) hash = (hash * 56 + (input.charCodeAt(--i) % 32)) % 4701;
     for (; (hash -= colorMap.charCodeAt(i) % 95) > 0; i += 5);
     if (hash === 0) {
       return [
@@ -37,7 +39,7 @@ function parseToRgba(color: string): [number, number, number, number] {
     }
   }
 
-  const reducedHexMatch = reducedHexRegex.exec(color);
+  const reducedHexMatch = reducedHexRegex.exec(input);
   if (reducedHexMatch) {
     const arr = Array.from(reducedHexMatch).slice(1);
     return [
@@ -46,7 +48,7 @@ function parseToRgba(color: string): [number, number, number, number] {
     ] as [number, number, number, number];
   }
 
-  const hexMatch = hexRegex.exec(color);
+  const hexMatch = hexRegex.exec(input);
   if (hexMatch) {
     const arr = Array.from(hexMatch).slice(1);
     return [
@@ -55,7 +57,7 @@ function parseToRgba(color: string): [number, number, number, number] {
     ] as [number, number, number, number];
   }
 
-  const rgbaMatch = rgbaRegex.exec(color);
+  const rgbaMatch = rgbaRegex.exec(input);
   if (rgbaMatch) {
     const arr = Array.from(rgbaMatch).slice(1);
     return [
@@ -64,7 +66,7 @@ function parseToRgba(color: string): [number, number, number, number] {
     ] as [number, number, number, number];
   }
 
-  const hslaMatch = hslaRegex.exec(color);
+  const hslaMatch = hslaRegex.exec(input);
   if (hslaMatch) {
     const [h, s, l, a] = Array.from(hslaMatch).slice(1).map(parseFloat);
     if (guard(0, 100, s) !== s) throw new ColorError(color);
