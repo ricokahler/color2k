@@ -45,9 +45,106 @@ function escapeTableCell(value: string) {
   return value.replace(/\|/g, '\\|').replace(/\n+/g, ' ');
 }
 
-function getDisplayName(doc: DocInfo) {
+export function getDisplayName(doc: DocInfo) {
   if (doc.kind === 'class') return doc.functionName;
-  return `${doc.functionName}(${doc.params.map(({ name }) => name).join(', ')})`;
+  return `${doc.functionName}(${doc.params
+    .map(({ name, rest }) => `${rest ? '...' : ''}${name}`)
+    .join(', ')})`;
+}
+
+/**
+ * Turns a heading into its anchor the same way GitHub does, so the links in
+ * the generated index work in the README and on the website.
+ */
+export function slugify(title: string) {
+  return (
+    title
+      .trim()
+      .toLowerCase()
+      .replace(/<[^>]+>/g, '')
+      .replace(/[^\w\s-]/g, '')
+      .trim()
+      .replace(/\s/g, '-') || 'section'
+  );
+}
+
+/** The first sentence of a doc comment, on one line. */
+export function getSummary(doc: DocInfo) {
+  const firstParagraph = doc.description.split(/\n\s*\n/)[0].replace(/\s+/g, ' ');
+  const sentenceEnd = firstParagraph.search(/\.(\s|$)/);
+  return sentenceEnd === -1
+    ? firstParagraph
+    : firstParagraph.slice(0, sentenceEnd + 1);
+}
+
+/**
+ * Every public export belongs to exactly one group. `getGroupedDocs` throws
+ * when an export is missing so a new function can't be left out of the index.
+ */
+export const API_GROUPS: Array<{ title: string; names: string[] }> = [
+  { title: 'Parse', names: ['parseToRgba', 'parseToHsla'] },
+  { title: 'Convert', names: ['toHex', 'toRgba', 'toHsla', 'rgba', 'hsla'] },
+  {
+    title: 'Adjust',
+    names: [
+      'darken',
+      'lighten',
+      'saturate',
+      'desaturate',
+      'adjustHue',
+      'opacify',
+      'transparentize',
+    ],
+  },
+  { title: 'Mix', names: ['mix', 'getScale'] },
+  {
+    title: 'Contrast',
+    names: [
+      'getContrast',
+      'getLuminance',
+      'hasBadContrast',
+      'readableColor',
+      'readableColorIsBlack',
+    ],
+  },
+  { title: 'Utilities', names: ['guard', 'ColorError'] },
+];
+
+export function getGroupedDocs(docs: DocInfo[] = getAllDocs()) {
+  const byName = new Map(docs.map((doc) => [doc.functionName, doc]));
+  const grouped = API_GROUPS.map(({ title, names }) => ({
+    title,
+    docs: names.map((name) => {
+      const doc = byName.get(name);
+      if (!doc) throw new Error(`API_GROUPS lists unknown export ${name}`);
+      byName.delete(name);
+      return doc;
+    }),
+  }));
+
+  if (byName.size) {
+    throw new Error(
+      `Add ${Array.from(byName.keys()).join(', ')} to API_GROUPS in website/docs.ts`
+    );
+  }
+
+  return grouped;
+}
+
+function renderIndex(docs: DocInfo[]) {
+  return [
+    '| | Function | What it does |',
+    '| --- | --- | --- |',
+    ...getGroupedDocs(docs).flatMap(({ title, docs: groupDocs }) =>
+      groupDocs.map((doc, index) => {
+        const name = getDisplayName(doc);
+        return `| ${index === 0 ? `**${title}**` : ''} | [\`${name}\`](#${slugify(
+          name
+        )}) | ${escapeTableCell(getSummary(doc))} |`;
+      })
+    ),
+    '',
+  ].join('\n');
 }
 
 function renderParams(doc: DocInfo) {
@@ -88,6 +185,7 @@ export function generateApiMarkdown(docs: DocInfo[] = getAllDocs()) {
     '',
     'This section is generated from the JSDoc comments in `src/*.ts`.',
     '',
+    renderIndex(docs),
     ...docs.flatMap((doc) => [
       `### ${getDisplayName(doc)}`,
       '',
@@ -141,4 +239,96 @@ export async function generateReadme({ check = false } = {}) {
   }
 
   fs.writeFileSync(readmePath, next);
+}
+
+interface Package {
+  description: string;
+}
+
+const SITE_URL = 'https://color2k.com';
+const REPO_URL = 'https://github.com/ricokahler/color2k';
+export const AGENT_NOTES_START = '<!-- AGENT-NOTES-START -->';
+export const AGENT_NOTES_END = '<!-- AGENT-NOTES-END -->';
+
+function between(text: string, start: string, end: string) {
+  const startIndex = text.indexOf(start);
+  const endIndex = text.indexOf(end);
+
+  if (startIndex === -1 || endIndex === -1 || endIndex < startIndex) {
+    throw new Error(`README.md is missing ${start} ... ${end}`);
+  }
+
+  return text.slice(startIndex + start.length, endIndex).trim();
+}
+
+/**
+ * The README without its GitHub-only header (logo, tagline, badges). The
+ * website and `llms-full.txt` both start from the first `## ` heading.
+ */
+export function getReadmeBody(readme: string) {
+  const firstSection = readme.search(/^## /m);
+  if (firstSection === -1) throw new Error('README.md has no `## ` heading');
+  return readme.slice(firstSection);
+}
+
+/** Removes the generator markers, which sit on lines of their own. */
+function stripComments(markdown: string) {
+  return markdown.replace(/^<!--.*-->\n/gm, '');
+}
+
+/**
+ * `llms.txt` in the llmstxt.org format: a title, a one-line summary, the
+ * rules an agent needs before writing code, then links.
+ */
+export function generateLlmsTxt(
+  readme: string,
+  pkg: Package,
+  docs: DocInfo[] = getAllDocs()
+) {
+  return [
+    '# color2k',
+    '',
+    `> ${pkg.description}`,
+    '',
+    between(readme, AGENT_NOTES_START, AGENT_NOTES_END),
+    '',
+    '## Docs',
+    '',
+    `- [Full documentation](${SITE_URL}/llms-full.txt): install, recipes and the complete API in one Markdown file`,
+    `- [Website](${SITE_URL}/): the same documentation as HTML, with a playground`,
+    `- [README](${REPO_URL}/blob/main/README.md): the source of all of the above`,
+    '',
+    ...getGroupedDocs(docs).flatMap(({ title, docs: groupDocs }) => [
+      `## API: ${title}`,
+      '',
+      ...groupDocs.map((doc) => {
+        const name = getDisplayName(doc);
+        return `- [${name}](${SITE_URL}/#${slugify(name)}): \`${
+          doc.signature
+        }\`. ${getSummary(doc)}`;
+      }),
+      '',
+    ]),
+    '## Optional',
+    '',
+    `- [Source code](${REPO_URL}): one small TypeScript file per function in \`src/\``,
+    `- [npm package](https://www.npmjs.com/package/color2k): versions and provenance`,
+    `- [Releases](${REPO_URL}/releases): changelog`,
+    `- [Contributing](${REPO_URL}/blob/main/CONTRIBUTING.md): how to work on color2k`,
+    '',
+  ].join('\n');
+}
+
+/** `llms-full.txt`: the whole README (recipes and API) as plain Markdown. */
+export function generateLlmsFullTxt(readme: string, pkg: Package) {
+  return [
+    '# color2k',
+    '',
+    `> ${pkg.description}`,
+    '',
+    `Website: ${SITE_URL}/ | Source: ${REPO_URL} | npm: https://www.npmjs.com/package/color2k`,
+    '',
+    stripComments(getReadmeBody(readme)).trim(),
+    '',
+  ].join('\n');
 }

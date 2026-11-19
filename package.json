@@ -1,11 +1,13 @@
 {
   "name": "color2k",
   "version": "2.0.0",
-  "description": "a color parsing and manipulation lib served in roughly 2kB",
+  "description": "Color parsing and manipulation for JavaScript and TypeScript in 2.4 kB. Zero dependencies, tree-shakeable, sRGB.",
+  "homepage": "https://color2k.com",
   "repository": {
     "type": "git",
     "url": "https://github.com/ricokahler/color2k.git"
   },
+  "bugs": "https://github.com/ricokahler/color2k/issues",
   "license": "MIT",
   "author": {
     "name": "Rico Kahler",
@@ -14,10 +16,24 @@
   },
   "keywords": [
     "color",
+    "colors",
+    "css",
     "css-in-js",
-    "tinycolor",
     "color-parser",
     "color-manipulation",
+    "hex",
+    "rgb",
+    "hsl",
+    "darken",
+    "lighten",
+    "mix",
+    "contrast",
+    "wcag",
+    "a11y",
+    "theming",
+    "typescript",
+    "tiny",
+    "tinycolor",
     "polished",
     "chroma-js"
   ],
@@ -47,10 +63,11 @@
   "scripts": {
     "build": "./scripts/build",
     "audit:prod": "npm audit --omit=dev",
-    "check": "npm run lint && npm run color-map && npm test -- --coverage && npm run build && npm run docs:check && npm run website && npm run website:check && npm run pack:check && npm run audit:prod",
+    "check": "npm run lint && npm run color-map && npm test -- --coverage && npm run build && npm run docs:check && npm run examples:check && npm run website && npm run website:check && npm run pack:check && npm run audit:prod",
     "color-map": "node -r ./scripts/register.js ./scripts/color-map.ts",
     "docs:check": "CHECK_DOCS=1 node ./scripts/docs.js",
     "docs:generate": "node ./scripts/docs.js",
+    "examples:check": "node ./scripts/check-examples.js",
     "lint": "eslint src --ext .ts,.js",
     "pack:check": "npm run build && node ./scripts/check-package.js",
     "prepare": "npm run build",

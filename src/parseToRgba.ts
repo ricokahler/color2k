@@ -4,7 +4,9 @@ import ColorError from './ColorError';
 /**
  * Parses a color into red, green, blue, and alpha channel values.
  *
- * Supports hex, RGB, RGBA, HSL, HSLA, CSS named colors, and `transparent`.
+ * Supports hex (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`), comma-separated
+ * `rgb()`, `rgba()`, `hsl()` and `hsla()`, CSS named colors, and
+ * `transparent`. Throws a `ColorError` for anything else.
  *
  * ```js
  * parseToRgba('rgba(255, 0, 0, 0.5)'); // [255, 0, 0, 0.5]

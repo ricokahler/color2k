@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 120" role="img" aria-labelledby="t"><title id="t">color2k</title>
+<defs>
+<g id="a" fill-rule="evenodd"><path transform="translate(0 0)" d="M10 24L44 24L54 34L54 47L34 47L34 44L20 44L20 64L34 64L34 61L54 61L54 74L44 84L10 84L0 74L0 34Z"/><path transform="translate(62 0)" d="M10 24L48 24L58 34L58 74L48 84L10 84L0 74L0 34ZM20 44L20 64L38 64L38 44Z"/><path transform="translate(128 0)" d="M0 6L6 0L20 0L20 84L0 84Z"/><path transform="translate(156 0)" d="M10 24L48 24L58 34L58 74L48 84L10 84L0 74L0 34ZM20 44L20 64L38 64L38 44Z"/><path transform="translate(222 0)" d="M0 24L34 24L44 34L44 50L26 50L26 44L20 44L20 84L0 84Z"/></g>
+<g id="b" fill-rule="evenodd"><path transform="translate(280 0)" d="M10 0L48 0L58 10L58 38L30 64L58 64L58 84L0 84L0 58L38 30L38 20L20 20L20 30L0 30L0 10Z"/><path transform="translate(346 0)" d="M0 6L6 0L20 0L20 84L0 84ZM19 40L33 24L60 24L19 74ZM33 84L60 84L39 45L19 62Z"/></g>
+<clipPath id="k"><path transform="translate(0 0)" d="M10 0L48 0L58 10L58 38L30 64L58 64L58 84L0 84L0 58L38 30L38 20L20 20L20 30L0 30L0 10Z"/><path transform="translate(66 0)" d="M0 6L6 0L20 0L20 84L0 84ZM19 40L33 24L60 24L19 74ZM33 84L60 84L39 45L19 62Z"/></clipPath>
+</defs>
+<g transform="translate(31.9 14) skewX(-12)">
+<g transform="translate(7 7)" fill="#10131f" stroke="#10131f" stroke-width="10" stroke-linejoin="round"><use href="#a"/><use href="#b"/></g>
+<g fill="#10131f" stroke="#10131f" stroke-width="10" stroke-linejoin="round"><use href="#a"/><use href="#b"/></g>
+<use href="#a" fill="#fff"/>
+<g transform="translate(280 0)" clip-path="url(#k)"><rect x="-10" y="0.0" width="146" height="17.3" fill="#ff3b5c"/><rect x="-10" y="16.8" width="146" height="17.3" fill="#ff9f1c"/><rect x="-10" y="33.6" width="146" height="17.3" fill="#ffd60a"/><rect x="-10" y="50.4" width="146" height="17.3" fill="#2ec4b6"/><rect x="-10" y="67.2" width="146" height="17.3" fill="#5e60ce"/></g>
+</g>
+</svg>

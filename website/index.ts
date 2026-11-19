@@ -1,14 +1,35 @@
 import fs from 'fs';
 import path from 'path';
+import { execFileSync } from 'child_process';
 import template from './template';
-import { generateReadme } from './docs';
+import {
+  generateLlmsFullTxt,
+  generateLlmsTxt,
+  generateReadme,
+  getAllDocs,
+  getReadmeBody,
+  slugify,
+} from './docs';
+import * as color2k from '../src';
+
+const playground = require('./playground');
 
 const MarkdownIt = require('markdown-it');
 
 interface Heading {
   slug: string;
   title: string;
+  level: number;
 }
+
+const PLAYGROUND_COLOR = '#5e60ce';
+const PLAYGROUND_PRESETS = [
+  'tomato',
+  'gold',
+  '#2ec4b6',
+  'rebeccapurple',
+  'hsl(210, 100%, 50%)',
+];
 
 function repoPath(...parts: string[]) {
   return path.resolve(__dirname, '..', ...parts);
@@ -26,15 +47,7 @@ function createSlugger() {
   const seen = new Map<string, number>();
 
   return (title: string) => {
-    const base =
-      title
-        .trim()
-        .toLowerCase()
-        .replace(/<[^>]+>/g, '')
-        .replace(/[^\w\s-]/g, '')
-        .trim()
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-') || 'section';
+    const base = slugify(title);
     const count = seen.get(base) || 0;
     seen.set(base, count + 1);
     return count === 0 ? base : `${base}-${count}`;
@@ -60,12 +73,20 @@ function getLanguage(lang: string) {
   return aliases[normalized] || normalized || 'text';
 }
 
+// The themes' comment gray is too faint for our backgrounds, and comments are
+// where the examples show their results.
+const colorReplacements = {
+  'github-light': { '#6a737d': '#59616e' },
+  'github-dark': { '#6a737d': '#9aa3b2' },
+};
+
 async function renderMarkdown(markdown: string) {
   const { createHighlighter } = await import('shiki');
   const highlighter = await createHighlighter({
-    themes: ['github-light'],
+    themes: ['github-light', 'github-dark'],
     langs: [
       'bash',
+      'html',
       'javascript',
       'json',
       'jsx',
@@ -77,6 +98,7 @@ async function renderMarkdown(markdown: string) {
   });
   const slug = createSlugger();
   const headingQueue: Heading[] = [];
+  const headings: Heading[] = [];
   const md = new MarkdownIt({
     html: true,
     linkify: true,
@@ -87,7 +109,9 @@ async function renderMarkdown(markdown: string) {
       try {
         return highlighter.codeToHtml(code, {
           lang: language,
-          theme: 'github-light',
+          themes: { light: 'github-light', dark: 'github-dark' },
+          defaultColor: false,
+          colorReplacements,
         });
       } catch {
         return `<pre><code>${escapeHtml(code)}</code></pre>`;
@@ -114,7 +138,9 @@ async function renderMarkdown(markdown: string) {
     const title = getHeadingTitle(tokens[idx + 1]);
     const id = slug(title);
     tokens[idx].attrSet('id', id);
-    headingQueue.push({ slug: id, title });
+    const heading = { slug: id, title, level: Number(tokens[idx].tag.slice(1)) };
+    headingQueue.push(heading);
+    headings.push(heading);
     return defaultHeadingOpen(tokens, idx, options, env, self);
   };
 
@@ -134,7 +160,50 @@ async function renderMarkdown(markdown: string) {
     return `${anchor}${defaultHeadingClose(tokens, idx, options, env, self)}`;
   };
 
-  return md.render(markdown);
+  // Wide tables scroll inside their own box instead of widening the page.
+  md.renderer.rules.table_open = () => '<div class="table-scroll"><table>\n';
+  md.renderer.rules.table_close = () => '</table></div>\n';
+
+  // The hero is dark in both themes, so its snippet only needs the dark theme.
+  const quickstart = /```js\n([\s\S]*?)```/.exec(markdown);
+  if (!quickstart) throw new Error('README.md has no quickstart example');
+  const heroCodeHtml = highlighter.codeToHtml(quickstart[1].trimEnd(), {
+    lang: 'javascript',
+    theme: 'github-dark',
+    colorReplacements,
+  });
+
+  return { html: md.render(markdown) as string, headings, heroCodeHtml };
+}
+
+/** Sections, with the recipes and API entries nested under theirs. */
+function getToc(headings: Heading[]) {
+  const toc: Array<Heading & { children: Heading[] }> = [];
+
+  for (const heading of headings) {
+    if (heading.level === 2) {
+      toc.push({ ...heading, children: [] });
+    } else if (heading.level === 3 && toc.length) {
+      toc[toc.length - 1].children.push({
+        ...heading,
+        // `darken(color, amount)` is listed as `darken`.
+        title: heading.title.replace(/\(.*\)$/, ''),
+      });
+    }
+  }
+
+  return toc;
+}
+
+/** The UMD build, served as `/color2k.js` for the playground. */
+function getBrowserBundle() {
+  const bundle = repoPath('dist/index.unpkg.umd.js');
+  if (!fs.existsSync(bundle)) {
+    execFileSync(repoPath('scripts/build'), { cwd: repoPath(), stdio: 'inherit' });
+  }
+  return fs
+    .readFileSync(bundle, { encoding: 'utf8' })
+    .replace(/\n\/\/# sourceMappingURL=.*\n?$/, '\n');
 }
 
 function getStructuredData() {
@@ -147,6 +216,7 @@ function getStructuredData() {
     '@type': 'SoftwareSourceCode',
     name: pkg.name,
     description: pkg.description,
+    keywords: pkg.keywords.join(', '),
     author: {
       '@type': 'Person',
       name: 'Rico Kahler',
@@ -174,30 +244,59 @@ async function render() {
   const css = fs.readFileSync(path.resolve(__dirname, './App.css'), {
     encoding: 'utf8',
   });
-  const bodyHtml = await renderMarkdown(readme);
+  const pkg = JSON.parse(
+    fs.readFileSync(repoPath('package.json'), { encoding: 'utf8' })
+  );
+  // The README's logo and badges are for GitHub and npm; the site has a hero.
+  const { html: bodyHtml, headings, heroCodeHtml } = await renderMarkdown(
+    getReadmeBody(readme)
+  );
   const buildFolder = repoPath('build');
 
   await fs.promises.rm(buildFolder, { recursive: true, force: true });
   await fs.promises.mkdir(buildFolder, { recursive: true });
 
-  await fs.promises.writeFile(
-    path.resolve(buildFolder, './index.html'),
-    template({ bodyHtml, css, structuredData: getStructuredData() })
-  );
+  const write = (file: string, contents: string) =>
+    fs.promises.writeFile(path.resolve(buildFolder, file), contents);
 
-  await fs.promises.writeFile(
-    path.resolve(buildFolder, './robots.txt'),
+  await write(
+    'index.html',
+    template({
+      bodyHtml,
+      css,
+      description: pkg.description,
+      heroCodeHtml,
+      exportCount: getAllDocs().filter(({ kind }) => kind === 'function').length,
+      playgroundColor: PLAYGROUND_COLOR,
+      playgroundHtml: playground(color2k, PLAYGROUND_COLOR),
+      playgroundPresets: PLAYGROUND_PRESETS,
+      playgroundSource: fs.readFileSync(
+        path.resolve(__dirname, './playground.js'),
+        { encoding: 'utf8' }
+      ),
+      structuredData: getStructuredData(),
+      toc: getToc(headings),
+    })
+  );
+  await write('color2k.js', getBrowserBundle());
+  await write('llms.txt', generateLlmsTxt(readme, pkg));
+  await write('llms-full.txt', generateLlmsFullTxt(readme, pkg));
+
+  await write(
+    'robots.txt',
     ['User-agent: *', 'Allow: /', '', 'Sitemap: https://color2k.com/sitemap.xml', ''].join('\n')
   );
 
-  await fs.promises.writeFile(
-    path.resolve(buildFolder, './sitemap.xml'),
+  await write(
+    'sitemap.xml',
     [
       '<?xml version="1.0" encoding="UTF-8"?>',
       '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-      '  <url>',
-      '    <loc>https://color2k.com/</loc>',
-      '  </url>',
+      ...['', 'llms.txt', 'llms-full.txt'].flatMap((page) => [
+        '  <url>',
+        `    <loc>https://color2k.com/${page}</loc>`,
+        '  </url>',
+      ]),
       '</urlset>',
       '',
     ].join('\n')

@@ -1,65 +1,171 @@
+interface TocItem {
+  slug: string;
+  title: string;
+  children: Array<{ slug: string; title: string }>;
+}
+
 interface Params {
   bodyHtml: string;
   css: string;
+  description: string;
+  exportCount: number;
+  heroCodeHtml: string;
+  playgroundColor: string;
+  playgroundHtml: string;
+  playgroundPresets: string[];
+  playgroundSource: string;
   structuredData: object;
+  toc: TocItem[];
 }
+
+const title = 'color2k: color parsing and manipulation in 2.4 kB';
 
 function escapeJsonForHtml(value: object) {
   return JSON.stringify(value).replace(/</g, '\\u003c');
 }
 
-function template({ bodyHtml, css, structuredData }: Params) {
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function renderToc(toc: TocItem[]) {
+  return toc
+    .map(
+      ({ slug, title, children }) => `<li>
+            <a href="#${slug}">${escapeHtml(title)}</a>${
+        children.length
+          ? `
+            <ul>
+              ${children
+                .map(
+                  (child) =>
+                    `<li><a href="#${child.slug}">${escapeHtml(child.title)}</a></li>`
+                )
+                .join('\n              ')}
+            </ul>`
+          : ''
+      }
+          </li>`
+    )
+    .join('\n          ');
+}
+
+// The only JavaScript on the page. Everything is rendered at build time; this
+// re-renders the playground when the color changes and wires the copy button.
+function clientScript(playgroundSource: string) {
+  return `${playgroundSource.replace(/\nif \(typeof module[^\n]*\n?$/, '\n')}
+(function () {
+  var out = document.getElementById('play-out');
+  var text = document.getElementById('play-text');
+  var picker = document.getElementById('play-picker');
+  var error = document.getElementById('play-error');
+  var controls = document.getElementById('play-controls');
+  if (!out || !window.color2k) return;
+
+  function update(value, from) {
+    try {
+      out.innerHTML = playground(color2k, value);
+      error.textContent = '';
+      text.removeAttribute('aria-invalid');
+      if (from !== text) text.value = value;
+      if (from !== picker) picker.value = color2k.toHex(value).slice(0, 7);
+    } catch (e) {
+      error.textContent = e.message;
+      text.setAttribute('aria-invalid', 'true');
+    }
+  }
+
+  controls.hidden = false;
+  text.addEventListener('input', function () { update(text.value, text); });
+  picker.addEventListener('input', function () { update(picker.value, picker); });
+  controls.addEventListener('click', function (event) {
+    var color = event.target.getAttribute && event.target.getAttribute('data-color');
+    if (color) update(color);
+  });
+
+  var copy = document.getElementById('copy-install');
+  if (copy && navigator.clipboard) {
+    copy.hidden = false;
+    copy.addEventListener('click', function () {
+      navigator.clipboard.writeText('npm i color2k').then(function () {
+        copy.textContent = 'Copied';
+        setTimeout(function () { copy.textContent = 'Copy'; }, 1500);
+      });
+    });
+  }
+})();`;
+}
+
+function template({
+  bodyHtml,
+  css,
+  description,
+  exportCount,
+  heroCodeHtml,
+  playgroundColor,
+  playgroundHtml,
+  playgroundPresets,
+  playgroundSource,
+  structuredData,
+  toc,
+}: Params) {
+  const safeDescription = escapeHtml(description);
+
   return `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>🌈 color2k</title>
-    <meta
-      name="description"
-      content="A tiny color parsing and manipulation library for JavaScript."
-    />
+    <title>${title}</title>
+    <meta name="description" content="${safeDescription}" />
     <meta
       name="keywords"
-      content="color, parsing, css, css-in-js, tinycolor, polished, chroma-js, npm, javascript"
+      content="color, parsing, css, css-in-js, tinycolor, polished, chroma-js, npm, javascript, typescript"
     />
     <link rel="canonical" href="https://color2k.com/" />
-    <meta property="og:title" content="🌈 color2k" />
+    <meta property="og:title" content="${title}" />
     <meta property="og:site_name" content="color2k" />
     <meta property="og:url" content="https://color2k.com/" />
-    <meta
-      property="og:description"
-      content="A tiny color parsing and manipulation library for JavaScript."
-    />
+    <meta property="og:description" content="${safeDescription}" />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://color2k.com/demo-image.png" />
+    <meta property="og:image" content="https://color2k.com/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="color2k: color parsing and manipulation in 2.4 kB" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="🌈 color2k" />
-    <meta
-      name="twitter:description"
-      content="A tiny color parsing and manipulation library for JavaScript."
-    />
-    <meta name="twitter:image" content="https://color2k.com/demo-image.png" />
+    <meta name="twitter:title" content="${title}" />
+    <meta name="twitter:description" content="${safeDescription}" />
+    <meta name="twitter:image" content="https://color2k.com/og.png" />
     <meta name="author" content="Rico Kahler" />
+    <meta name="theme-color" content="#10131f" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="manifest" href="/site.webmanifest" />
+    <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt" />
+    <link rel="alternate" type="text/plain" href="/llms-full.txt" title="llms-full.txt" />
     <style>${css}</style>
     <script type="application/ld+json">${escapeJsonForHtml(
       structuredData
     )}</script>
   </head>
   <body>
+    <a class="skip-link" href="#content">Skip to content</a>
     <header class="site-header">
       <div class="site-header-inner">
         <a class="site-brand" href="/" aria-label="color2k home">
-          <span aria-hidden="true">🌈</span>
-          <span>color2k</span>
+          <img src="/logo.svg" alt="color2k" width="115" height="30" />
         </a>
         <nav class="site-nav" aria-label="Primary">
-          <a href="https://rico.codes">rico.codes</a>
+          <a class="site-nav-text" href="#recipes">Recipes</a>
+          <a class="site-nav-text" href="#api">API</a>
+          <a class="site-nav-text" href="/llms.txt">llms.txt</a>
+          <a class="site-nav-text site-nav-rico" href="https://rico.codes">rico.codes</a>
           <a
             class="site-icon-link site-icon-link-npm"
             href="https://www.npmjs.com/package/color2k"
@@ -83,18 +189,90 @@ function template({ bodyHtml, css, structuredData }: Params) {
         </nav>
       </div>
     </header>
-    <main class="page-shell">
-      <article class="markdown-body">${bodyHtml}</article>
-    </main>
+    <div class="hero">
+      <div class="hero-inner">
+        <div class="hero-copy">
+        <img class="hero-logo" src="/logo.svg" alt="" width="460" height="120" />
+        <h1>Color parsing and manipulation in&nbsp;2.4&nbsp;kB.</h1>
+        <p class="hero-lead">
+          Darken, lighten, mix, convert and check contrast with plain
+          functions. Zero dependencies, tree-shakeable, TypeScript included.
+        </p>
+        <div class="hero-actions">
+          <div class="hero-install">
+            <code>npm i color2k</code>
+            <button type="button" id="copy-install" hidden>Copy</button>
+          </div>
+          <a class="hero-button" href="#quickstart">Quickstart</a>
+          <a class="hero-link" href="#api">API reference</a>
+        </div>
+        <dl class="hero-stats">
+          <div><dt>min + gzip</dt><dd>2.4 kB</dd></div>
+          <div><dt>dependencies</dt><dd>0</dd></div>
+          <div><dt>functions</dt><dd>${exportCount}</dd></div>
+          <div><dt>types</dt><dd>built in</dd></div>
+        </dl>
+        </div>
+        <div class="hero-code">${heroCodeHtml}</div>
+      </div>
+      <div class="hero-stripes" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+    <section class="play" id="playground" aria-labelledby="playground-title">
+      <div class="play-inner">
+        <div class="play-head">
+          <h2 id="playground-title">Try it</h2>
+          <p>This page loads the real 2.4 kB library. It is also in your console as <code>color2k</code>.</p>
+        </div>
+        <div class="play-controls" id="play-controls" hidden>
+          <input type="color" id="play-picker" value="${escapeHtml(
+            playgroundColor
+          )}" aria-label="Pick a color" />
+          <input
+            type="text"
+            id="play-text"
+            value="${escapeHtml(playgroundColor)}"
+            aria-label="Any CSS color string"
+            aria-describedby="play-error"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+          />
+          ${playgroundPresets
+            .map(
+              (preset) =>
+                `<button type="button" data-color="${escapeHtml(
+                  preset
+                )}">${escapeHtml(preset)}</button>`
+            )
+            .join('\n          ')}
+        </div>
+        <p class="play-error" id="play-error" role="status"></p>
+        <div id="play-out">${playgroundHtml}</div>
+      </div>
+    </section>
+    <div class="page-shell">
+      <nav class="toc" aria-label="On this page">
+        <ul>
+          ${renderToc(toc)}
+        </ul>
+      </nav>
+      <main id="content">
+        <article class="markdown-body">${bodyHtml}</article>
+      </main>
+    </div>
     <footer class="site-footer">
       <nav aria-label="Rico Kahler links">
         <ul class="site-footer-links">
           <li><a href="mailto:hello@rico.codes">hello@rico.codes</a></li>
           <li><a href="https://rico.codes">blog</a></li>
           <li><a href="https://github.com/ricokahler">GitHub</a></li>
+          <li><a href="/llms.txt">llms.txt</a></li>
+          <li><a href="/llms-full.txt">llms-full.txt</a></li>
         </ul>
       </nav>
     </footer>
+    <script src="/color2k.js"></script>
+    <script>${clientScript(playgroundSource)}</script>
   </body>
 </html>`;
 }

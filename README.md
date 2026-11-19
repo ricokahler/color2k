@@ -1,89 +1,427 @@
-# [🌈 color2k](https://color2k.com)
+<p align="center">
+  <a href="https://color2k.com">
+    <img src="./website/static/logo.svg" alt="color2k" width="440" />
+  </a>
+</p>
 
-[![bundlephobia](https://badgen.net/bundlephobia/minzip/color2k)](https://bundlephobia.com/result?p=color2k) [![github status checks](https://badgen.net/github/checks/ricokahler/color2k)](https://github.com/ricokahler/color2k/actions) [![codecov](https://codecov.io/gh/ricokahler/color2k/branch/main/graph/badge.svg)](https://codecov.io/gh/ricokahler/color2k) ![weekly downloads](https://badgen.net/npm/dw/color2k) [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
+<p align="center">
+  <strong>Color parsing and manipulation in 2.4 kB.</strong><br />
+  Zero dependencies. Tree-shakeable. TypeScript included.
+</p>
 
-> a color parsing and manipulation lib served in roughly 2kB or less (2.4kB to be more precise)
+<p align="center">
+  <a href="https://www.npmjs.com/package/color2k"><img src="https://img.shields.io/npm/v/color2k" alt="npm version" /></a>
+  <a href="https://bundlephobia.com/package/color2k"><img src="https://img.shields.io/bundlephobia/minzip/color2k" alt="minified and gzipped size" /></a>
+  <a href="https://github.com/ricokahler/color2k/actions/workflows/test.yml"><img src="https://img.shields.io/github/actions/workflow/status/ricokahler/color2k/test.yml?branch=main" alt="build status" /></a>
+  <a href="https://codecov.io/gh/ricokahler/color2k"><img src="https://codecov.io/gh/ricokahler/color2k/branch/main/graph/badge.svg" alt="code coverage" /></a>
+  <a href="https://www.npmjs.com/package/color2k"><img src="https://img.shields.io/npm/dw/color2k" alt="weekly downloads" /></a>
+</p>
 
-color2k is a color parsing and manipulation library with the objective of keeping the bundle size as small as possible while still satisfying all of your color manipulation needs in an sRGB space.
+<p align="center">
+  <a href="#quickstart">Quickstart</a> ·
+  <a href="#recipes">Recipes</a> ·
+  <a href="#api">API</a> ·
+  <a href="https://color2k.com">color2k.com</a> ·
+  <a href="https://color2k.com/llms.txt">llms.txt</a>
+</p>
 
-The full bundle size is [currently 2.4kB](https://bundlephobia.com/result?p=color2k) but [gets as small as 1.6kB](https://bundlejs.com/?q=color2k&treeshake=[{darken}]) with tree shaking.
+## Why color2k
 
-## Table of contents
+Most apps need a handful of color jobs: darken a brand color for a hover state, fade it for a focus ring, pick black or white text, check contrast. color2k does those jobs and nothing else, so it costs almost nothing to ship.
 
-- [Size comparison](#size-comparison)
-- [Installation](#installation)
-- [Usage](#usage)
-- [How so small?](#how-so-small)
-- [Trust and publishing](#trust-and-publishing)
-- [Credits](#credits)
-- [API](#api)
+- **Tiny.** 2.4 kB for everything, about 1.7 kB if you only import `darken`.
+- **Plain functions.** CSS color strings go in, CSS color strings come out. No classes, no chaining, no plugins.
+- **Everything you reach for.** Parse, convert, lighten, darken, saturate, fade, mix, build scales and check WCAG contrast.
+- **Safe to depend on.** Zero dependencies, a thorough test suite, TypeScript types and npm provenance.
 
-## Size comparison
+| Library | Size (min + gzip) |
+| --- | --- |
+| [chroma-js](https://github.com/gka/chroma.js) | [16.7 kB](https://bundlephobia.com/package/chroma-js) |
+| [polished](https://github.com/styled-components/polished) | [11.6 kB](https://bundlephobia.com/package/polished) |
+| [color](https://github.com/Qix-/color) | [8.5 kB](https://bundlephobia.com/package/color) |
+| [tinycolor2](https://github.com/bgrins/TinyColor) | [5.4 kB](https://bundlephobia.com/package/tinycolor2) |
+| [colord](https://github.com/omgovich/colord) with the names, mix and a11y plugins | 4.9 kB |
+| **color2k** | [**2.4 kB**](https://bundlephobia.com/package/color2k) |
 
-| lib                                                       | size                                                  |
-| --------------------------------------------------------- | ----------------------------------------------------- |
-| [chroma-js](https://github.com/gka/chroma.js)             | [13.7kB](https://bundlephobia.com/result?p=chroma-js) |
-| [polished](https://github.com/styled-components/polished) | [11.2kB](https://bundlephobia.com/result?p=polished)  |
-| [color](https://github.com/Qix-/color)                    | [7.6kB](https://bundlephobia.com/result?p=color)      |
-| [tinycolor2](https://github.com/bgrins/TinyColor)         | [5kB](https://bundlephobia.com/result?p=tinycolor2)   |
-| color2k                                                   | [2.4kB](https://bundlephobia.com/result?p=color2k) 😎 |
+Sizes are from Bundlephobia in November 2026. colord's 2.1 kB core has no named colors, mixing or contrast checks, so it is measured (with esbuild) with the plugins that match what color2k does.
 
-👋 Compare tree-shaken bundle outputs on [bundlejs.com](https://bundlejs.com/?share=PTAEFcDsGMHsFt4FNIBdQENIBNRIB4AOsATuvLNuADZIDOoqsoc8hGJSjAFkgJYlQdPgC96oAFASQeIqXQAqUADMSCUACJo3NfAwBaAFZ0NAbmlgCxMqCWr1G4tT51e2MxdnXFK3ZrjUpB4yVvK2vg6ofJAAngGkAEweoTYA3tgcANYoAL4R8P6wgSQJmR5AA)
-
-## Installation
-
-Install with a package manager such as `npm`
+## Quickstart
 
 ```
 npm i color2k
 ```
 
-**OR** use with [skypack.dev](https://www.skypack.dev/) in supported environments (e.g. [deno](https://deno.land/manual/linking_to_external_code), [modern browsers](https://docs.skypack.dev/#whats-old-is-new-again)).
-
 ```js
-import { darken, transparentize } from 'https://cdn.skypack.dev/color2k?min';
+import { darken, mix, readableColor, toHex } from 'color2k';
+
+darken('rebeccapurple', 0.1); // 'hsla(270, 50%, 30%, 1)'
+mix('gold', 'tomato', 0.5); // 'rgba(255, 157, 36, 1)'
+readableColor('gold'); // '#000'
+toHex('rgb(102, 51, 153)'); // '#663399'
 ```
 
-## Usage
+That is the whole idea. Every function takes a color as a CSS string and every amount is a decimal between 0 and 1.
+
+color2k ships ES modules, CommonJS and a UMD build, so it also works without a bundler.
+
+In Node.js with `require`:
+
+```js
+const { darken } = require('color2k');
+
+darken('white', 0.1); // 'hsla(0, 0%, 90%, 1)'
+```
+
+In the browser as a module:
+
+```html
+<script type="module">
+  import { darken } from 'https://esm.sh/color2k';
+</script>
+```
+
+Or as a global named `color2k`:
+
+```html
+<script src="https://unpkg.com/color2k"></script>
+```
+
+## Recipes
+
+Every example here runs against the built package in CI, so what you copy is what works.
+
+### Theme from one brand color
+
+Derive hover, active, subtle and focus colors instead of hard-coding them.
+
+```js
+import { darken, readableColor, transparentize } from 'color2k';
+
+function createTheme(brand) {
+  return {
+    brand,
+    brandHover: darken(brand, 0.06),
+    brandActive: darken(brand, 0.12),
+    brandSubtle: transparentize(brand, 0.88),
+    focusRing: transparentize(brand, 0.6),
+    onBrand: readableColor(brand),
+  };
+}
+
+const theme = createTheme('rebeccapurple');
+
+theme.brandHover; // 'hsla(270, 50%, 34%, 1)'
+theme.brandSubtle; // 'rgba(102, 51, 153, 0.12)'
+theme.onBrand; // '#fff'
+```
+
+Turn it into CSS custom properties:
 
 ```js
 import { darken, transparentize } from 'color2k';
 
-// e.g.
-darken('blue', 0.1);
-transparentize('red', 0.5);
+const theme = {
+  brand: 'rebeccapurple',
+  'brand-hover': darken('rebeccapurple', 0.06),
+  'focus-ring': transparentize('rebeccapurple', 0.6),
+};
+
+for (const [name, value] of Object.entries(theme)) {
+  globalThis.document?.documentElement.style.setProperty(`--${name}`, value);
+}
 ```
 
-## How so small?
+### Readable text on any background
 
-There are two secrets that keep this lib especially small:
+```js
+import { readableColor, readableColorIsBlack } from 'color2k';
 
-1. Simplicity — only handles basic color manipulation functions
-2. Less branching in code — only support two color models as outputs, namely `rgba` and `hsla`
+readableColor('gold'); // '#000'
+readableColor('midnightblue'); // '#fff'
 
-### Why only `rgba` and `hsla` as outputs?
+// Use your own ink and paper colors instead of pure black and white.
+const text = readableColorIsBlack('gold') ? '#1a1a1a' : '#fafafa'; // '#1a1a1a'
+```
 
-This lib was created with the use case of CSS-in-JS in mind. At the end of the day, all that matters is that the browser can understand the color string you gave it as a `background-color`.
+### Contrast checks
 
-Because only those two color models are supported, we don't have to add code to deal with optional alpha channels or converting to non-browser supported color models (e.g. CMYK).
+`getContrast` returns the WCAG contrast ratio, from 1 to 21. `hasBadContrast` compares it to a standard: `'decorative'` (1.5), `'readable'` (3), `'aa'` (4.5, the default) or `'aaa'` (7).
 
-We believe that this lib is sufficient for all of your color manipulation needs. If we're missing a feature, feel free to [open an issue](https://github.com/ricokahler/color2k/issues/new) 😎.
+```js
+import { getContrast, hasBadContrast } from 'color2k';
+
+getContrast('#767676', 'white').toFixed(2); // '4.54'
+
+hasBadContrast('#767676'); // false
+hasBadContrast('#767676', 'aaa'); // true
+hasBadContrast('gold', 'aa', 'midnightblue'); // false
+```
+
+Darken a color until it passes AA on its background:
+
+```js
+import { darken, hasBadContrast, toHex } from 'color2k';
+
+function accessible(color, background = '#fff') {
+  let result = color;
+
+  for (let i = 0; i < 50 && hasBadContrast(result, 'aa', background); i++) {
+    result = darken(result, 0.02);
+  }
+
+  return toHex(result);
+}
+
+accessible('#4dabf7'); // '#0a75cd'
+```
+
+### Color scales
+
+`getScale` takes two or more colors and returns a function. Give it a number from 0 to 1 and it gives you the color at that point.
+
+```js
+import { getScale, toHex } from 'color2k';
+
+const heat = getScale('#2ec4b6', '#ffd60a', '#ff3b5c');
+
+heat(0); // 'rgba(46, 196, 182, 1)'
+heat(0.5); // 'rgba(255, 214, 10, 1)'
+heat(0.75); // 'rgba(255, 137, 51, 1)'
+
+const steps = [0, 0.25, 0.5, 0.75, 1].map((n) => toHex(heat(n)));
+
+steps; // ['#2ec4b6', '#97cd60', '#ffd60a', '#ff8933', '#ff3b5c']
+```
+
+### Tints and shades
+
+`mix` blends two colors. A weight of 0 is all the first color and 1 is all the second.
+
+```js
+import { mix, toHex } from 'color2k';
+
+const tint = toHex(mix('rebeccapurple', 'white', 0.8)); // '#e0d6eb'
+const shade = toHex(mix('rebeccapurple', 'black', 0.4)); // '#3d1f5c'
+```
+
+### Tailwind palette
+
+Generate a 50 to 950 palette from one color, then use it in a Tailwind config or as `@theme` variables.
+
+```js
+import { getScale, toHex } from 'color2k';
+
+function palette(color) {
+  const scale = getScale('white', color, 'black');
+  const steps = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+
+  return Object.fromEntries(
+    steps.map((step) => [step, toHex(scale(step / 1000))])
+  );
+}
+
+const brand = palette('#6d28d9');
+
+brand[100]; // '#e2d4f7'
+brand[500]; // '#6d28d9'
+brand[900]; // '#16082b'
+
+// Tailwind 3: tailwind.config.js
+const config = { theme: { extend: { colors: { brand } } } };
+
+// Tailwind 4: paste into `@theme { ... }`
+const variables = Object.entries(brand)
+  .map(([step, hex]) => `--color-brand-${step}: ${hex};`)
+  .join('\n');
+```
+
+### CSS-in-JS
+
+color2k was built for this. The output is always a string the browser understands.
+
+```jsx
+import styled from 'styled-components';
+import { darken, readableColor, transparentize } from 'color2k';
+
+const Button = styled.button`
+  background: ${(props) => props.$color};
+  color: ${(props) => readableColor(props.$color)};
+
+  &:hover {
+    background: ${(props) => darken(props.$color, 0.08)};
+  }
+
+  &:focus-visible {
+    box-shadow: 0 0 0 3px ${(props) => transparentize(props.$color, 0.6)};
+  }
+`;
+
+<Button $color="#0d6efd">Save</Button>;
+```
+
+### React
+
+```jsx
+import { useMemo } from 'react';
+import { readableColor, transparentize } from 'color2k';
+
+function Tag({ color, children }) {
+  const style = useMemo(
+    () => ({
+      background: color,
+      color: readableColor(color),
+      boxShadow: `0 0 0 4px ${transparentize(color, 0.8)}`,
+    }),
+    [color]
+  );
+
+  return <span style={style}>{children}</span>;
+}
+
+<Tag color="tomato">New</Tag>;
+```
+
+### Convert between formats
+
+```js
+import { parseToHsla, parseToRgba, toHex, toHsla, toRgba } from 'color2k';
+
+toHex('hsl(210, 100%, 50%)'); // '#0080ff'
+toRgba('#0080ff'); // 'rgba(0, 128, 255, 1)'
+toHsla('#0080ff'); // 'hsla(210, 100%, 50%, 1)'
+
+// Need the numbers? Parse to a tuple.
+parseToRgba('#0080ff80'); // [0, 128, 255, 0.5019607843137255]
+parseToHsla('tomato'); // [9.130434782608695, 1, 0.6392156862745098, 1]
+```
+
+Build a color string from numbers with `rgba` and `hsla`:
+
+```js
+import { hsla, rgba } from 'color2k';
+
+rgba(0, 128, 255, 0.5); // 'rgba(0, 128, 255, 0.5)'
+hsla(210, 1, 0.5, 1); // 'hsla(210, 100%, 50%, 1)'
+```
+
+### Validate a color string
+
+color2k throws a `ColorError` when it can't parse a color, so validation is a `try`:
+
+```js
+import { ColorError, parseToRgba } from 'color2k';
+
+function isColor(value) {
+  try {
+    parseToRgba(value);
+    return true;
+  } catch (error) {
+    if (error instanceof ColorError) return false;
+    throw error;
+  }
+}
+
+isColor('#0d6efd'); // true
+isColor('rgb(13, 110, 253)'); // true
+isColor('rgb(13 110 253)'); // false
+isColor('#12345'); // false
+```
+
+Named colors are stored as hashes to save bytes, so about 3% of made-up words are accepted as if they were a color name. Hex, `rgb()` and `hsl()` strings are always checked exactly. If you validate free-form user input, also check it against your own list or `CSS.supports('color', value)` in the browser.
+
+### Invert and complement
+
+```js
+import { adjustHue, parseToRgba, rgba } from 'color2k';
+
+function invert(color) {
+  const [red, green, blue, alpha] = parseToRgba(color);
+  return rgba(255 - red, 255 - green, 255 - blue, alpha);
+}
+
+invert('white'); // 'rgba(0, 0, 0, 1)'
+invert('#0d6efd'); // 'rgba(242, 145, 2, 1)'
+
+// The opposite side of the color wheel.
+adjustHue('#0d6efd', 180); // 'hsla(36, 98%, 52%, 1)'
+```
+
+## Supported colors
+
+color2k works in sRGB and parses the color syntax that every browser has supported for years.
+
+| Input | Examples |
+| --- | --- |
+| Hex | `#f00`, `#f008`, `#ff0000`, `#ff000080` |
+| `rgb()` and `rgba()` with commas | `rgb(255, 0, 0)`, `rgba(255, 0, 0, 0.5)` |
+| `hsl()` and `hsla()` with commas | `hsl(0, 100%, 50%)`, `hsla(0, 100%, 50%, 0.5)` |
+| Named colors, in any letter case | `red`, `rebeccapurple`, `PapayaWhip` |
+| `transparent` | `transparent` |
+
+Whitespace around a color is ignored. Anything else throws a `ColorError`.
+
+| Output | Returned by |
+| --- | --- |
+| `hsla()` string | `darken`, `lighten`, `saturate`, `desaturate`, `adjustHue`, `toHsla`, `hsla` |
+| `rgba()` string | `transparentize`, `opacify`, `mix`, `getScale`, `toRgba`, `rgba` |
+| Hex string | `toHex` |
+| `'#000'` or `'#fff'` | `readableColor` |
+
+Every output is valid input, so wrap any result in `toHex`, `toRgba` or `toHsla` to get the format you want.
+
+Not supported yet:
+
+- Space-separated syntax such as `rgb(255 0 0 / 50%)` and `hsl(0deg 100% 50%)`.
+- Percentages for alpha or for `rgb()` channels, such as `rgba(255, 0, 0, 50%)`.
+- `hwb()`, `lab()`, `lch()`, `oklab()`, `oklch()` and `color()`.
+
+Good to know: `hsla()` output is rounded to whole degrees and percents, so converting to HSL and back can move a channel by a step or two. `toHex(lighten('#ffb537', 0))` is `#ffb638`. Keep the original string when you need the exact color back.
+
+## For AI agents
+
+The docs are published as plain Markdown for language models and coding agents:
+
+- [color2k.com/llms.txt](https://color2k.com/llms.txt) is a short index in the [llms.txt](https://llmstxt.org) format.
+- [color2k.com/llms-full.txt](https://color2k.com/llms-full.txt) is all of these docs, recipes and API included, in one file.
+
+Both are generated from the README and the JSDoc comments in `src`, and the same JSDoc ships in the package's type definitions, so your editor shows it too. The rules that matter when writing code with color2k:
+
+<!-- AGENT-NOTES-START -->
+- Install with `npm i color2k`. Use named imports: `import { darken, toHex } from 'color2k'`. There is no default export and no chaining.
+- Colors are CSS strings, in and out. Inputs can be hex (3, 4, 6 or 8 digits), comma-separated `rgb()`, `rgba()`, `hsl()` or `hsla()`, a named color, or `transparent`.
+- Amounts are decimals from 0 to 1 and are absolute. `darken(color, 0.1)` lowers lightness by 10 percentage points. It is not a 10% relative change.
+- `darken`, `lighten`, `saturate`, `desaturate` and `adjustHue` return `hsla()` strings. `transparentize`, `opacify`, `mix` and `getScale` return `rgba()` strings. Wrap a result in `toHex` when you need hex.
+- `mix(color1, color2, weight)`: weight 0 returns `color1` and weight 1 returns `color2`.
+- `getScale('red', 'yellow', 'green')` takes colors as separate arguments, not an array, and returns a function of a number from 0 to 1.
+- `readableColor(background)` returns `'#000'` or `'#fff'`. `hasBadContrast(color, standard = 'aa', background = '#fff')` returns `true` when contrast is too low.
+- Invalid input throws a `ColorError`. Space-separated `rgb(0 0 0 / 50%)`, percentage alpha, `oklch()`, `lab()` and `color()` are not supported.
+- sRGB only. There are no CMYK, LAB or wide-gamut conversions.
+<!-- AGENT-NOTES-END -->
+
+## How it stays small
+
+- **It does less.** Only the color functions that apps use every day, in sRGB.
+- **Two output formats.** Results are `rgba()` or `hsla()` strings, which every browser understands, plus `toHex` when you need hex. That removes the code other libraries spend on optional alpha channels and extra color models.
+- **A compressed color-name table.** The 148 CSS named colors are stored as a hashed string instead of a lookup object.
+- **No shared state.** Each function is its own module, so bundlers drop what you don't import.
+
+Missing something? [Open an issue](https://github.com/ricokahler/color2k/issues/new/choose).
 
 ## Trust and publishing
 
-color2k is intentionally small and boring:
-
 - Zero runtime dependencies.
-- A narrow published package surface, limited to `dist`, `README.md`, `LICENSE`, and `package.json`.
-- npm provenance is configured through trusted publishing for release builds.
-- The README and docs site are generated from the JSDoc comments in `src/*.ts`.
-- Security issues can be reported through the process in [SECURITY.md](https://github.com/ricokahler/color2k/blob/main/SECURITY.md).
+- The published package contains only `dist`, `README.md`, `LICENSE` and `package.json`.
+- Releases are published from GitHub Actions with npm provenance through trusted publishing.
+- The README, website and llms files are generated from the JSDoc comments in `src`, and CI fails if they drift.
+- Report security issues through the process in [SECURITY.md](https://github.com/ricokahler/color2k/blob/main/SECURITY.md).
 
-Before publishing, maintainers should run the checks in [docs/release-checklist.md](https://github.com/ricokahler/color2k/blob/main/docs/release-checklist.md).
+## Contributing
+
+Issues and pull requests are welcome. [CONTRIBUTING.md](https://github.com/ricokahler/color2k/blob/main/CONTRIBUTING.md) covers the setup, and [AGENTS.md](https://github.com/ricokahler/color2k/blob/main/AGENTS.md) has the same rules for coding agents.
 
 ## Credits
 
-Heavy credit goes to polished.js and Sass. Much of the implementation of this lib is copied from polished.
+Heavy credit goes to [polished](https://github.com/styled-components/polished) and [Sass](https://sass-lang.com). Much of the implementation of this lib is copied from polished.
 
 Thanks to everyone who has contributed fixes, including [@dajiaohuang](https://github.com/dajiaohuang) and [@Ismayil77](https://github.com/Ismayil77) for whitespace handling in color strings ([#561](https://github.com/ricokahler/color2k/pull/561), [#567](https://github.com/ricokahler/color2k/pull/567)), and [@feritcemkahraman](https://github.com/feritcemkahraman) for the Sass alpha weighting in `mix` ([#564](https://github.com/ricokahler/color2k/pull/564)). See all [contributors](https://github.com/ricokahler/color2k/graphs/contributors).
 
@@ -91,6 +429,32 @@ Thanks to everyone who has contributed fixes, including [@dajiaohuang](https://g
 ## API
 
 This section is generated from the JSDoc comments in `src/*.ts`.
+
+| | Function | What it does |
+| --- | --- | --- |
+| **Parse** | [`parseToRgba(color)`](#parsetorgbacolor) | Parses a color into red, green, blue, and alpha channel values. |
+|  | [`parseToHsla(color)`](#parsetohslacolor) | Parses a color into hue, saturation, lightness, and alpha channel values. |
+| **Convert** | [`toHex(color)`](#tohexcolor) | Converts a color to a hex color string. |
+|  | [`toRgba(color)`](#torgbacolor) | Converts a color to an `rgba` color string. |
+|  | [`toHsla(color)`](#tohslacolor) | Converts a color to an `hsla` color string. |
+|  | [`rgba(red, green, blue, alpha)`](#rgbared-green-blue-alpha) | Builds an `rgba` color string from red, green, blue, and alpha channel values. |
+|  | [`hsla(hue, saturation, lightness, alpha)`](#hslahue-saturation-lightness-alpha) | Builds an `hsla` color string from hue, saturation, lightness, and alpha channel values. |
+| **Adjust** | [`darken(color, amount)`](#darkencolor-amount) | Darkens a color by subtracting from the lightness channel in HSL space. |
+|  | [`lighten(color, amount)`](#lightencolor-amount) | Lightens a color by adding to the lightness channel in HSL space. |
+|  | [`saturate(color, amount)`](#saturatecolor-amount) | Saturates a color by adding to the saturation channel in HSL space. |
+|  | [`desaturate(color, amount)`](#desaturatecolor-amount) | Desaturates a color by subtracting from the saturation channel in HSL space. |
+|  | [`adjustHue(color, degrees)`](#adjusthuecolor-degrees) | Rotates a color's hue by the given number of degrees and returns the result as an `hsla` string. |
+|  | [`opacify(color, amount)`](#opacifycolor-amount) | Makes a color more opaque by increasing the alpha channel. |
+|  | [`transparentize(color, amount)`](#transparentizecolor-amount) | Makes a color more transparent by decreasing the alpha channel. |
+| **Mix** | [`mix(color1, color2, weight)`](#mixcolor1-color2-weight) | Mixes two colors together using the Sass mix algorithm and returns an `rgba` color string. |
+|  | [`getScale(...colors)`](#getscalecolors) | Returns a scale function that interpolates through a list of colors. |
+| **Contrast** | [`getContrast(color1, color2)`](#getcontrastcolor1-color2) | Returns the contrast ratio between two colors based on the WCAG contrast ratio formula. |
+|  | [`getLuminance(color)`](#getluminancecolor) | Returns the relative luminance of a color using the WCAG formula. |
+|  | [`hasBadContrast(color, standard, background)`](#hasbadcontrastcolor-standard-background) | Returns whether a color fails a contrast threshold against a background. |
+|  | [`readableColor(color)`](#readablecolorcolor) | Returns black or white, whichever has better contrast against the given color. |
+|  | [`readableColorIsBlack(color)`](#readablecolorisblackcolor) | Returns whether black is the more readable color to place on top of the input color. |
+| **Utilities** | [`guard(low, high, value)`](#guardlow-high-value) | Clamps a number between a lower and upper bound. |
+|  | [`ColorError`](#colorerror) | Error thrown when color2k cannot parse an input color. |
 
 ### adjustHue(color, degrees)
 
@@ -238,10 +602,10 @@ getLuminance('papayawhip'); // 0.877971001998354
 
 [Source](https://github.com/ricokahler/color2k/blob/main/src/getLuminance.ts)
 
-### getScale(colors)
+### getScale(...colors)
 
 ```ts
-function getScale(colors: string[]): (n: number) => string
+function getScale(...colors: string[]): (n: number) => string
 ```
 
 Returns a scale function that interpolates through a list of colors.
@@ -478,7 +842,9 @@ function parseToRgba(color: string): [number, number, number, number]
 
 Parses a color into red, green, blue, and alpha channel values.
 
-Supports hex, RGB, RGBA, HSL, HSLA, CSS named colors, and `transparent`.
+Supports hex (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`), comma-separated
+`rgb()`, `rgba()`, `hsl()` and `hsla()`, CSS named colors, and
+`transparent`. Throws a `ColorError` for anything else.
 
 ```js
 parseToRgba('rgba(255, 0, 0, 0.5)'); // [255, 0, 0, 0.5]
