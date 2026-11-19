@@ -700,7 +700,9 @@ var showcase = (function () {
         }
         return true;
       } catch (e) {
-        error.textContent = e.message;
+        // Echo a long entry back shortened, so it cannot stretch the page.
+        var message = e.message;
+        error.textContent = message.length > 72 ? message.slice(0, 69) + '..."' : message;
         text.setAttribute('aria-invalid', 'true');
         return false;
       }

@@ -430,6 +430,16 @@ async function render() {
     inlineResults(getSiteBody(readme))
   );
   const groups = getGroupedDocs();
+  // The docs find exports by reading src/index.ts. Hold that against what the
+  // module really exports, so one written in another shape cannot slip past
+  // the function list, the API section and the llms files.
+  const documented = getAllDocs().map(({ functionName }) => functionName);
+  const missing = Object.keys(color2k).filter((name) => !documented.includes(name));
+  if (missing.length) {
+    throw new Error(
+      `src/index.ts exports ${missing.join(', ')} in a form the docs cannot read. Use one \`export { default as name } from './name';\` line per export.`
+    );
+  }
   const sizes = JSON.parse(
     fs.readFileSync(repoPath('docs/sizes.json'), { encoding: 'utf8' })
   );

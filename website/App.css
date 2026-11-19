@@ -166,6 +166,7 @@ h3 {
 
 .site-brand {
   display: inline-flex;
+  min-height: 44px;
   flex: none;
   align-items: center;
 }
@@ -190,7 +191,12 @@ h3 {
 }
 
 .site-nav a {
-  padding: 8px 6px;
+  display: inline-flex;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 7px;
+  align-items: center;
+  justify-content: center;
   border-radius: 8px;
   color: #fff;
 }
@@ -206,8 +212,8 @@ h3 {
   background: var(--yellow);
 }
 
-.site-nav-extra,
-.site-icon-link {
+.site-nav .site-nav-extra,
+.site-nav .site-icon-link {
   display: none;
 }
 
@@ -242,17 +248,17 @@ h3 {
   }
 
   .site-nav a {
-    padding: 8px 12px;
+    padding: 0 12px;
   }
 
   .site-nav .site-nav-extra {
-    display: inline;
+    display: inline-flex;
   }
 
   .site-nav .site-icon-link {
     display: inline-flex;
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     padding: 0;
     align-items: center;
     justify-content: center;
@@ -323,7 +329,7 @@ h3 {
   right: 14%;
   bottom: 10px;
   min-width: 64px;
-  min-height: 36px;
+  min-height: 44px;
   margin-right: 14px;
   padding: 0 14px;
   border: 0;
@@ -377,7 +383,7 @@ h3 {
 .hero-install {
   display: flex;
   width: 100%;
-  min-height: 50px;
+  min-height: 56px;
   padding: 6px 6px 6px 16px;
   align-items: center;
   justify-content: space-between;
@@ -393,7 +399,8 @@ h3 {
 }
 
 .hero-install button {
-  min-height: 38px;
+  min-width: 44px;
+  min-height: 44px;
   padding: 0 14px;
   border: 0;
   border-radius: 6px;
@@ -567,6 +574,7 @@ h3 {
 
 .studio-bar-inner {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   width: var(--wide);
   margin: 0 auto;
   padding: 10px 0;
@@ -624,8 +632,8 @@ h3 {
 }
 
 .studio-row input[type="color"] {
-  width: 44px;
-  height: 40px;
+  width: 48px;
+  height: 44px;
   padding: 2px;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -635,7 +643,7 @@ h3 {
 
 .studio-row input[type="text"] {
   width: 8.2rem;
-  height: 40px;
+  height: 44px;
   padding: 0 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -651,7 +659,8 @@ h3 {
 
 .studio-row button {
   display: inline-flex;
-  height: 40px;
+  min-width: 44px;
+  height: 44px;
   padding: 0 14px;
   align-items: center;
   gap: 7px;
@@ -693,7 +702,7 @@ h3 {
 
 .studio-tiles a {
   display: flex;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 12px;
   align-items: center;
   gap: 8px;
@@ -739,7 +748,9 @@ h3 {
 }
 
 .studio-error {
+  min-width: 0;
   margin: 0;
+  overflow-wrap: anywhere;
   color: var(--fail);
   font-family: var(--mono);
   font-size: 0.85rem;
@@ -758,7 +769,13 @@ h3 {
   min-width: 0;
   grid-template-columns: minmax(0, 1fr);
   gap: 14px;
-  scroll-margin-top: 240px;
+}
+
+/* The bar above is pinned over this part of the page. Anything here that
+   takes focus or is jumped to scrolls clear of it, never under it. */
+.look,
+.looks * {
+  scroll-margin-top: 268px;
 }
 
 /* A theme card: a small product screen. Every color in it is one of the
@@ -879,6 +896,7 @@ h3 {
   display: flex;
   min-width: 0;
   padding: 10px;
+  overflow: hidden;
   flex-direction: column;
   gap: 2px;
   border: 1px solid var(--border);
@@ -1109,6 +1127,16 @@ h3 {
   text-transform: uppercase;
 }
 
+/* Three cells share a phone's width, so their labels sit closer together. */
+[data-theme="serious"] .t-stat {
+  padding: 9px 7px;
+}
+
+[data-theme="serious"] .t-stat small {
+  font-size: 0.6rem;
+  letter-spacing: 0.05em;
+}
+
 [data-theme="serious"] .t-chip,
 [data-theme="serious"] .t-note,
 [data-theme="serious"] .t-tag {
@@ -1159,7 +1187,7 @@ h3 {
 }
 
 [data-theme="serious"] .t-stat b {
-  font-size: 1.3rem;
+  font-size: 1.1rem;
 }
 
 [data-theme="serious"] .t-chart {
@@ -1375,6 +1403,11 @@ h3 {
     top: 60px;
   }
 
+  .look,
+  .looks * {
+    scroll-margin-top: 232px;
+  }
+
   .studio-head {
     padding: 80px 0 28px;
   }
@@ -1395,14 +1428,7 @@ h3 {
   }
 
   .studio-row button {
-    height: 36px;
-    font-size: 0.86rem;
-  }
-
-  .studio-row input[type="text"],
-  .studio-row input[type="color"] {
-    height: 36px;
-    font-size: 0.95rem;
+    font-size: 0.88rem;
   }
 
   /* With all three cards on screen the tiles would only repeat them. */
@@ -1518,8 +1544,8 @@ h3 {
 
 .fn {
   display: grid;
-  padding: 14px 0;
-  gap: 6px;
+  padding: 6px 0 14px;
+  gap: 4px;
   border-bottom: 1px solid var(--border);
   contain: layout paint;
 }
@@ -1536,7 +1562,10 @@ h3 {
 }
 
 .fn-head a {
-  min-width: 0;
+  display: inline-flex;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
   color: var(--text);
   font-size: 0.98rem;
   font-weight: 700;
@@ -1959,6 +1988,13 @@ h3 {
   line-height: 1.4;
 }
 
+.site-footer-links a {
+  display: inline-flex;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+}
+
 
 /* On a phone the contents list opens from the top of the docs. */
 .toc-phone {
@@ -1986,8 +2022,9 @@ h3 {
 }
 
 .toc-phone a {
-  display: block;
-  padding: 7px 0;
+  display: flex;
+  min-height: 44px;
+  align-items: center;
   color: var(--text);
 }
 

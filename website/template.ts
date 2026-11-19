@@ -190,8 +190,8 @@ function template({
         <nav class="site-nav" aria-label="Sections">
           <a href="#themes" data-spy="themes">Themes</a>
           <a href="#functions" data-spy="functions">Functions</a>
-          <a href="#recipes" data-spy="recipes">Recipes</a>
-          <a href="#api" data-spy="api">API</a>
+          <a href="#size" data-spy="size">Size</a>
+          <a href="#docs" data-spy="docs">Docs</a>
           <a class="site-nav-extra" href="https://rico.codes">rico.codes</a>
           <a
             class="site-icon-link site-icon-link-npm"
@@ -287,6 +287,7 @@ function template({
               value="${escapeHtml(studioColor)}"
               aria-label="Any color string color2k can parse"
               aria-describedby="studio-error"
+              maxlength="64"
               autocomplete="off"
               autocapitalize="off"
               spellcheck="false"
@@ -368,7 +369,7 @@ function template({
         </div>
       </div>
     </section>
-    <div class="page-shell">
+    <div class="page-shell" id="docs">
       <nav class="toc" aria-label="On this page">
         <ul>
           ${renderToc(toc)}

@@ -13,11 +13,10 @@ function assert(condition, message) {
 const read = (file) =>
   fs.readFileSync(path.resolve(buildDir, file), { encoding: 'utf8' });
 const pkg = require('../package.json');
-const exportNames = Array.from(
-  fs
-    .readFileSync(path.resolve(__dirname, '../src/index.ts'), 'utf8')
-    .matchAll(/export \{ default as (\w+) \}/g),
-  ([, name]) => name
+// What the package really exports, from the build itself. Reading names out
+// of src/index.ts would miss an export written in a different shape.
+const exportNames = Object.keys(
+  require('../dist/index.exports.require.cjs.js')
 );
 
 const ricoNavIndex = html.indexOf('href="https://rico.codes">rico.codes</a>');
@@ -171,7 +170,7 @@ assert(
   'The function index needs its search box'
 );
 // The header links are the page's sections, by the same names.
-for (const section of ['themes', 'functions', 'recipes', 'api']) {
+for (const section of ['themes', 'functions', 'size', 'docs']) {
   assert(
     html.includes(`data-spy="${section}"`) && html.includes(`id="${section}"`),
     `The header and the page disagree about the "${section}" section`

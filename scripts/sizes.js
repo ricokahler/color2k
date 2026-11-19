@@ -40,11 +40,9 @@ async function measure(names) {
 }
 
 async function main() {
-  const names = Array.from(
-    fs
-      .readFileSync(path.resolve(root, 'src/index.ts'), 'utf8')
-      .matchAll(/export \{ default as (\w+) \}/g),
-    ([, name]) => name
+  // The names come from the build, so nothing exported can go unmeasured.
+  const names = Object.keys(
+    require(path.resolve(root, 'dist/index.exports.require.cjs.js'))
   ).sort((a, b) => a.localeCompare(b));
 
   const sizes = { all: await measure(), exports: {} };
