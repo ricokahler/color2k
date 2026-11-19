@@ -110,11 +110,11 @@ const rgbaRegex = new RegExp(
   `^rgba?\\(\\s*(\\d+)\\s*${r(
     ',\\s*(\\d+)\\s*',
     2
-  )}(?:,\\s*(\\d*\\.?\\d+))?\\s*\\)$`,
+  )}(?:,\\s*(\\d+\\.?\\d*|\\.\\d+))?\\s*\\)$`,
   'i'
 );
 const hslaRegex =
-  /^hsla?\(\s*(\d*\.?\d+)\s*,\s*(\d*\.?\d+)%\s*,\s*(\d*\.?\d+)%(?:\s*,\s*(\d*\.?\d+))?\s*\)$/i;
+  /^hsla?\(\s*(\d+\.?\d*|\.\d+)\s*,\s*(\d+\.?\d*|\.\d+)%\s*,\s*(\d+\.?\d*|\.\d+)%(?:\s*,\s*(\d+\.?\d*|\.\d+))?\s*\)$/i;
 const namedColorRegex = /^[a-z]+$/i;
 
 const roundColor = (color: number): number => {

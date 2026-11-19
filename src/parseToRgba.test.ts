@@ -419,7 +419,6 @@ describe('parseToRgb', () => {
 describe('malformed numbers', () => {
   it.each([
     'rgba(1, 2, 3, .)',
-    'rgba(1, 2, 3, 1.)',
     'rgba(1, 2, 3, 0.5.5)',
     'rgba(1, 2, 3, ..5)',
     'rgba(1, 2, 3, )',
@@ -431,10 +430,13 @@ describe('malformed numbers', () => {
     expect(() => parseToRgba(color)).toThrow(ColorError);
   });
 
-  it('still parses decimals with and without a leading zero', () => {
+  it('still parses decimals with or without a leading zero or trailing digits', () => {
     expect(parseToRgba('rgba(1, 2, 3, .5)')).toEqual([1, 2, 3, 0.5]);
     expect(parseToRgba('rgba(1, 2, 3, 0.25)')).toEqual([1, 2, 3, 0.25]);
     expect(parseToRgba('rgba(1, 2, 3, 1)')).toEqual([1, 2, 3, 1]);
+    expect(parseToRgba('rgba(1, 2, 3, 1.)')).toEqual([1, 2, 3, 1]);
+    expect(parseToRgba('rgba(1, 2, 3, 0.)')).toEqual([1, 2, 3, 0]);
+    expect(parseToRgba('hsla(120., 100.%, 50.%, 1.)')).toEqual([0, 255, 0, 1]);
     expect(parseToRgba('hsla(120.5, 100%, 50.5%, .5)')).toEqual(
       parseToRgba('hsla(120.5, 100.0%, 50.5%, 0.5)')
     );

@@ -21,7 +21,7 @@ import guard from './guard';
  * @returns The inverted color as an `rgba` string.
  */
 function invert(color: string, weight: number = 1): string {
-  if (!isFinite(weight)) throw new RangeError(`Invalid weight: ${weight}`);
+  if (!isFinite(weight)) throw new RangeError('weight');
   const [red, green, blue, alpha] = parseToRgba(color);
   const amount = guard(0, 1, weight);
   // Same as `mix(color, inverse, weight)`: both colors share the same alpha.
