@@ -7,7 +7,8 @@ for it.
 ## How a release happens
 
 1. A PR merges to `main` (squash merge; the PR title becomes the commit).
-2. The `Release` workflow checks the commits since the last tag:
+2. The `Release` workflow runs a semantic-release dry run over the commits since
+   the last release:
    - `feat:` → minor, `fix:`/`perf:`/`docs:` → patch, `BREAKING CHANGE` → major.
    - `chore:`, `ci:`, `test:` and similar → nothing to release; the workflow
      stops there without requesting approval.
@@ -18,7 +19,7 @@ for it.
    and creates the GitHub release.
 
 Only one release runs at a time. `Release` can also be run by hand from the
-Actions tab (branch `main`); manual runs skip the commit check.
+Actions tab (branch `main`); manual runs skip the dry run.
 
 ## Before merging
 

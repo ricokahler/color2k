@@ -9,17 +9,22 @@ on:
 permissions:
   contents: read
 
-# Never run two releases at once; a newer run waits for the current one.
+# Never run two releases at once and never cancel one in progress; a newer run
+# waits for the current one.
 concurrency:
   group: release
   cancel-in-progress: false
 
 jobs:
   pending:
-    name: Check for releasable commits
+    name: Check for a pending release
+    # Manual runs skip this gate and go straight to the release job.
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
-      release: ${{ steps.check.outputs.release }}
+      release: ${{ steps.dry-run.outputs.release }}
     steps:
       - name: Checkout
         # actions/checkout v7.0.0
@@ -38,15 +43,43 @@ jobs:
       - name: Install dependencies
         run: npm ci --ignore-scripts
 
-      - name: Check
-        id: check
-        run: echo "release=$(node scripts/release-pending.mjs)" >> "$GITHUB_OUTPUT"
+      # semantic-release dry run with only the commit analyzer (and the
+      # .releaserc.json release rules). Before analyzing, semantic-release runs
+      # `git push --dry-run` to check push access, which this read-only job
+      # can't pass, so it is pointed at a local bare mirror of this
+      # full-history checkout. Any semantic-release error fails the job.
+      - name: Dry-run semantic-release
+        id: dry-run
+        run: |
+          git clone --quiet --bare . "$RUNNER_TEMP/mirror.git"
+          RELEASE_MIRROR="file://$RUNNER_TEMP/mirror.git" node --input-type=module <<'EOF'
+          import { appendFileSync, readFileSync } from 'node:fs';
+          import semanticRelease from 'semantic-release';
+
+          const { plugins } = JSON.parse(readFileSync('.releaserc.json', 'utf8'));
+          const result = await semanticRelease({
+            dryRun: true,
+            ci: false,
+            repositoryUrl: process.env.RELEASE_MIRROR,
+            plugins: plugins.filter(
+              (p) => [p].flat()[0] === '@semantic-release/commit-analyzer',
+            ),
+          });
+          const version = result ? result.nextRelease.version : '';
+          console.log(`verdict: ${version ? `release ${version}` : 'no release'}`);
+          appendFileSync(process.env.GITHUB_OUTPUT, `release=${Boolean(version)}\n`);
+          EOF
 
   release:
     name: Release
     needs: pending
-    # Manual runs always go ahead; pushes only when there is something to release.
-    if: github.event_name == 'workflow_dispatch' || needs.pending.outputs.release == 'true'
+    # Pushes release only when the dry run found a next version; manual runs
+    # (where the gate is skipped) always go ahead.
+    if: >-
+      !cancelled() && (
+        (github.event_name == 'workflow_dispatch' && needs.pending.result == 'skipped') ||
+        (needs.pending.result == 'success' && needs.pending.outputs.release == 'true')
+      )
     runs-on: ubuntu-latest
     environment: npm-publish
     permissions:
