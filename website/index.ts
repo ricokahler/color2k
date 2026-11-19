@@ -320,7 +320,14 @@ function getSiteBody(readme: string) {
   const start = body.indexOf('## Why color2k');
   const end = body.indexOf('## Quickstart');
   if (start === -1 || end === -1) throw new Error('README.md lost a section');
-  return body.slice(0, start) + body.slice(end);
+  // The README's API section opens with a table of every export. On the site
+  // the function list is that table, so the entries follow a pointer to it.
+  const pruned = (body.slice(0, start) + body.slice(end)).replace(
+    /(\n## API\n\n)[\s\S]*?(?=\n### )/,
+    '$1Every export has an entry here, in alphabetical order. The [function list](#functions) has them by job, on your color.\n'
+  );
+  if (pruned.includes('| Group | Function |')) throw new Error('README.md API index moved');
+  return pruned;
 }
 
 /** The page's script: the themes, the demos, and one call to start them. */

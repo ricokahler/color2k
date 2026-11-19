@@ -115,7 +115,7 @@ Every example here runs against the built package in CI. The picture under each 
 
 Pick a color and let color2k work out the rest. These are the three themes on [color2k.com](https://color2k.com), where you can paint with them and watch all three recolor together. Each one takes a color and returns the same fourteen tokens, for light or dark.
 
-They don't just compute colors. Each one looks at what you gave it and makes a few decisions, and it returns those too, as `why`.
+Each one also looks at what you gave it and makes a few decisions. It returns those too, as `why`.
 
 **Soft** is a pastel wash. It tames a loud color with `desaturate` and lifts a nearly gray one with `saturate`. Once it is calmed, your color becomes the button, unless the label would not read on it or the button would melt into the page. Then the button gets a pastel of the same hue.
 
