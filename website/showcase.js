@@ -432,12 +432,15 @@ var showcase = (function () {
         element: element,
         demo: DEMOS[element.getAttribute('data-demo')],
         slider: element.querySelector('input'),
+        stage: element.querySelector('.st'),
+        parts: element.querySelectorAll('.st i'),
         slots: {},
+        last: {},
         auto: true,
         phase: (index * 0.37) % 1,
       };
       element.querySelectorAll('[data-slot]').forEach(function (slot) {
-        card.slots[slot.getAttribute('data-slot')] = slot;
+        card.slots[slot.getAttribute('data-slot')] = slot.firstChild;
       });
       card.slider.addEventListener('input', function () {
         card.auto = false;
@@ -447,15 +450,50 @@ var showcase = (function () {
       cards.push(card);
     });
 
+    // Writes one style on one element, and only when it changed. (Updating
+    // the card's custom properties instead would restyle the whole card.)
+    function put(card, key, element, property, value) {
+      if (card.last[key] === value) return;
+      card.last[key] = value;
+      element.style[property] = value;
+    }
+
+    function at(position) {
+      return 'calc(' + position + ' * (100% - 28px) + 6px)';
+    }
+
     function drawCard(card) {
       var view = card.demo.view(c, color, +card.slider.value);
-      var vars = variables(view);
       var texts = slots(view);
+      var parts = card.parts;
       var key;
-      for (key in vars) card.element.style.setProperty(key, vars[key]);
+
+      switch (card.demo.stage) {
+        case 'text':
+          put(card, 'a', card.stage, 'background', view.a);
+          put(card, 'b', card.stage, 'color', view.b);
+          break;
+        case 'meter':
+          put(card, 'g', card.stage, 'backgroundImage', view.g);
+          put(card, 'q', parts[0], 'left', at(view.q));
+          put(card, 'p', parts[1], 'left', at(view.p));
+          put(card, 'b', parts[1], 'background', view.b);
+          break;
+        case 'bars':
+          view.bars.forEach(function (bar, i) {
+            put(card, 'w' + i, parts[i], 'width', +(bar * 100).toFixed(1) + '%');
+            put(card, 'a' + i, parts[i], 'background', view.a);
+          });
+          break;
+        default:
+          put(card, 'a', parts[0], 'background', view.a);
+          put(card, 'b', parts[1], 'background', view.b);
+          if (parts[2]) put(card, 'c', parts[2], 'background', view.c);
+      }
+
       for (key in texts) {
-        if (card.slots[key] && card.slots[key].textContent !== texts[key]) {
-          card.slots[key].textContent = texts[key];
+        if (card.slots[key] && card.slots[key].nodeValue !== texts[key]) {
+          card.slots[key].nodeValue = texts[key];
         }
       }
     }
@@ -503,7 +541,7 @@ var showcase = (function () {
         toggle.setAttribute('aria-pressed', !playing);
         toggle.textContent = playing ? 'Pause motion' : 'Play motion';
       });
-      if (playing && started && !wasPlaying) requestAnimationFrame(frame);
+      if (playing && started && !wasPlaying) run();
     }
     toggles.forEach(function (toggle) {
       toggle.addEventListener('click', function () { setPlaying(!playing); });
@@ -512,43 +550,42 @@ var showcase = (function () {
     // One loop drives everything. It only redraws what is on screen, and about
     // ten times a second rather than on every frame: the colors move so little
     // per step that it reads as continuous, and the page stays mostly idle.
-    var HERO_MS = 100;
-    var CARD_MS = 100;
+    var TICK_MS = 100;
     var started = false;
     var clock = 0;
     var last = 0;
-    var heroAt = 0;
-    var cardsAt = 0;
-    function frame(now) {
-      if (!playing) {
-        last = 0;
-        return;
-      }
-      requestAnimationFrame(frame);
-      if (doc.hidden) {
-        last = 0;
-        return;
-      }
-      clock += Math.min(now - (last || now), 100) / 1000;
+    var loop = 0;
+    function run() {
+      var id = ++loop;
+      last = 0;
+      requestAnimationFrame(function (now) { frame(now, id); });
+    }
+    function frame(now, id) {
+      // Stop when paused, or when a newer loop has taken over.
+      if (!playing || id !== loop) return;
+      clock += Math.min(now - (last || now), 250) / 1000;
       last = now;
-      if (live.onScreen && now - heroAt >= HERO_MS) {
-        heroAt = now;
-        drawHero(clock);
-      }
-      if (now - cardsAt >= CARD_MS) {
-        cardsAt = now;
-        cards.forEach(function (card) {
-          if (!card.auto || !card.element.onScreen || card.element.hidden) return;
-          var slider = card.demo.slider;
-          var wave = 0.5 - 0.5 * Math.cos((clock / 7 + card.phase) * 2 * Math.PI);
-          var value = slider.min + wave * (slider.max - slider.min);
-          value = String(+(Math.round(value / slider.step) * slider.step).toFixed(2));
-          if (value !== card.slider.value) {
-            card.slider.value = value;
-            drawCard(card);
-          }
-        });
-      }
+      if (live.onScreen) drawHero(clock);
+      cards.forEach(function (card) {
+        if (!card.auto || !card.element.onScreen || card.element.hidden) return;
+        // Cards take turns: each sweeps its slider up, down and back to where
+        // it started, then rests while its neighbors go.
+        var turn = (clock / 6 + card.phase * 3) % 3;
+        if (turn >= 1) return;
+        var slider = card.demo.slider;
+        var wave = Math.sin(turn * 2 * Math.PI);
+        var value = slider.value + wave * (wave > 0 ? slider.max - slider.value : slider.value - slider.min);
+        value = String(+(Math.round(value / slider.step) * slider.step).toFixed(2));
+        if (value !== card.slider.value) {
+          card.slider.value = value;
+          drawCard(card);
+        }
+      });
+      // A timer between frames, so the browser is not asked for 60 frames a
+      // second when 10 will do. (It also stops by itself in a hidden tab.)
+      setTimeout(function () {
+        requestAnimationFrame(function (next) { frame(next, id); });
+      }, TICK_MS);
     }
 
     // The controls work right away. Motion waits until the page has loaded.
@@ -556,7 +593,7 @@ var showcase = (function () {
     setPlaying(playing);
     function begin() {
       started = true;
-      if (playing) requestAnimationFrame(frame);
+      if (playing) run();
     }
     var idle = window.requestIdleCallback || function (callback) { setTimeout(callback, 200); };
     if (doc.readyState === 'complete') idle(begin);
