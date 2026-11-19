@@ -434,7 +434,7 @@ This is not a CSS validator. The parser is small and loose on purpose:
 - Channel and alpha values are not range-checked. `rgb(999, 0, 0)` parses as it is written, and a malformed alpha such as `rgba(1, 2, 3, .)` parses to `NaN`.
 - Named colors are stored as hashes to save bytes, so about 3% of made-up words are accepted as if they were a color name.
 
-To validate user input, use `CSS.supports('color', value)` in the browser or your own allow-list, then give the string to color2k.
+If you need real validation, do it with your own rules or an allow-list before calling color2k. `CSS.supports('color', value)` is not a substitute: browsers accept forms color2k rejects, such as `rgb(13 110 253)`, so a string can pass there and still throw here.
 
 ### Invert and complement
 
@@ -513,7 +513,7 @@ Both are generated from the README and the JSDoc comments in `src`, and the same
 - `getScale('red', 'yellow', 'green')` takes colors as separate arguments, not an array, and returns a function, not a color: call it with a number from 0 to 1.
 - `readableColor(background)` returns `'#000'` or `'#fff'`. `hasBadContrast(color, standard = 'aa', background = '#fff')` returns `true` when contrast is too low.
 - A string color2k can't parse throws a `ColorError`. Space-separated `rgb(0 0 0 / 50%)`, percentage alpha, `oklch()`, `lab()` and `color()` are not supported.
-- Parsing is loose and is not validation: `rgb(999, 0, 0)` is accepted as written and not clamped, and about 3% of made-up color names parse as some color. Validate user input before passing it in.
+- Parsing is loose and is not validation: `rgb(999, 0, 0)` is accepted as written and not clamped, and about 3% of made-up color names parse as some color. Validate user input yourself before passing it in (`CSS.supports` is not equivalent: it accepts forms color2k rejects).
 - `getContrast`, `hasBadContrast` and `readableColor` ignore alpha. Flatten a see-through color onto its background before measuring.
 - `adjustHue` does not wrap hues below 0. If the color's hue plus the degrees is negative (`adjustHue('red', -120)`), the result is `hsla(-120, ...)`, which color2k throws on if you pass it back in (a known bug). Add 360 to a negative angle to avoid it.
 - sRGB only. There are no CMYK, LAB or wide-gamut conversions.
