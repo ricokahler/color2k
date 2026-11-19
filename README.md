@@ -11,7 +11,7 @@
 
 <p align="center">
   <a href="https://www.npmjs.com/package/color2k"><img src="https://img.shields.io/npm/v/color2k" alt="npm version" /></a>
-  <a href="https://bundlephobia.com/package/color2k"><img src="https://img.shields.io/bundlephobia/minzip/color2k" alt="minified and gzipped size" /></a>
+  <a href="https://bundlephobia.com/package/color2k"><img src="https://img.shields.io/badge/min%20%2B%20gzip-2.4%20kB-brightgreen" alt="2.4 kB minified and gzipped" /></a>
   <a href="https://github.com/ricokahler/color2k/actions/workflows/test.yml"><img src="https://img.shields.io/github/actions/workflow/status/ricokahler/color2k/test.yml?branch=main" alt="build status" /></a>
   <a href="https://codecov.io/gh/ricokahler/color2k"><img src="https://codecov.io/gh/ricokahler/color2k/branch/main/graph/badge.svg" alt="code coverage" /></a>
   <a href="https://www.npmjs.com/package/color2k"><img src="https://img.shields.io/npm/dw/color2k" alt="weekly downloads" /></a>
