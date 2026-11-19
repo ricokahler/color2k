@@ -1,14 +1,14 @@
 // The live parts of the home page: the hero's color field, the theme studio
-// and the function gallery.
+// and the function index.
 //
 // This one file runs in two places. The website build calls the `...Html`
 // functions with the library to render the page's starting state, so it works
 // without JavaScript. The page then loads this file and calls `start`.
 // Keep it plain browser JavaScript, no imports.
 //
-// The rule for motion here: nothing touches the DOM on every frame. The hero
-// is one small canvas (a pixel per tile, scaled up by the GPU), and everything
-// else that moves is a CSS transform or opacity.
+// The rule for motion here: nothing touches the DOM on every frame unless you
+// are dragging a color. The hero is one small canvas (a pixel per tile, scaled
+// up by the GPU), and everything else that moves is a CSS transform or opacity.
 var showcase = (function () {
   function escapeHtml(value) {
     return String(value)
@@ -99,20 +99,6 @@ var showcase = (function () {
     return FIELD.map(function (row) { return row[0]; });
   }
 
-  // What the chip under the hero says about the current color.
-  function chip(c, base) {
-    var readable = c.readableColor(base);
-    return {
-      base: base,
-      readable: readable,
-      ratio: c.getContrast(base, readable).toFixed(2) + ':1',
-    };
-  }
-
-  function heroChip(c) {
-    var at = drift(0);
-    return chip(c, c.toHex(c.hsla(at.hue, 0.85, at.light, 1)));
-  }
 
   // -------------------------------------------------------------- themes ---
 
@@ -198,8 +184,8 @@ var showcase = (function () {
         line: 'accent',
         pick: function (why) { return why.lost ? 0 : 1; },
         says: [
-          ['The complement would disappear on the card', 'the button falls back to black or white'],
-          ['The complement stands out on the card', 'it becomes the button'],
+          ['The hue next door would disappear on the card', 'the button falls back to black or white'],
+          ['The hue next door stands out on the card', 'it becomes the button'],
         ],
       },
     ],
@@ -223,7 +209,7 @@ var showcase = (function () {
     return c.toHex(c.hsla(Math.round(x * 360) % 360, 0.9, 0.88 - y * 0.5, 1));
   }
 
-  // ------------------------------------------------------------- gallery ---
+  // ----------------------------------------------------------- functions ---
 
   // Demos whose function has no amount to play with move the input color's
   // lightness instead.
@@ -245,8 +231,8 @@ var showcase = (function () {
   var SCALE_ENDS = ['gold', 'midnightblue'];
   var BAD_INPUTS = ['rgb(1 2 3)', '#12345', 'oklch(70% 0.1 200)', 'hsl(0, 200%, 50%)', 'not a color'];
 
-  // Each demo: the stage it draws on, its slider, and a `view` that returns
-  // the code line, the result and the values the stage needs.
+  // One example per export: the argument it is called with (`slider.value`)
+  // and a `view` that returns the line of code and what it gave back.
   var DEMOS = {
     parseToRgba: {
       stage: 'bars', slider: LIGHTNESS,
@@ -429,7 +415,6 @@ var showcase = (function () {
         }
         return {
           code: 'parseToRgba(' + quote(input) + ')', out: out,
-          a: '#10131f', b: '#ff8fa3', big: 'ColorError', chip: 'thrown',
         };
       },
     },
@@ -445,73 +430,55 @@ var showcase = (function () {
     };
   }
 
-  var STAGES = {
-    swatch: '<i class="st-a"></i><i class="st-b"></i>',
-    mix: '<i class="st-a"></i><i class="st-b"></i><i class="st-c"></i>',
-    meter: '<i class="st-ghost"></i><i class="st-mark"></i>',
-    text: '<strong data-slot="big"></strong><span data-slot="chip"></span>',
-    bars: [0, 1, 2, 3]
-      .map(function (i) {
-        return '<span><b data-slot="l' + i + '"></b><i style="width:calc(var(--w' + i + ') * 100%)"></i></span>';
-      })
-      .join(''),
-  };
 
-  // The custom properties and text a view sets on its card.
-  function variables(view) {
-    var vars = {};
-    ['a', 'b', 'c', 'p', 'q', 'g'].forEach(function (key) {
-      if (view[key] !== undefined) vars['--' + key] = view[key];
-    });
-    (view.bars || []).forEach(function (bar, i) { vars['--w' + i] = +bar.toFixed(3); });
-    return vars;
+  // The example for one export, on a color. `swatch` is the color to show
+  // beside it: the result when the result is a color, the input otherwise.
+  function example(c, name, color) {
+    var view = DEMOS[name].view(c, color, DEMOS[name].slider.value);
+    // When the result is not a color, show the color that went in.
+    var swatch = (DEMOS[name].stage === 'text' ? view.b : view.a) || color;
+    if (view.out.charAt(0) === "'") {
+      try {
+        c.parseToRgba(view.out.slice(1, -1));
+        swatch = view.out.slice(1, -1);
+      } catch (e) {
+        // Not a color. Keep the input.
+      }
+    }
+    return { code: view.code, out: view.out, swatch: swatch };
   }
 
-  function slots(view) {
-    var texts = { code: view.code, out: view.out, big: view.big, chip: view.chip };
-    (view.labels || []).forEach(function (label, i) { texts['l' + i] = label; });
-    return texts;
-  }
-
-  function cardHtml(c, name, group, color, link, size) {
-    var demo = DEMOS[name];
-    var view = demo.view(c, color, demo.slider.value);
-    var vars = variables(view);
-    var texts = slots(view);
-    var style = Object.keys(vars)
-      .map(function (key) { return key + ':' + vars[key]; })
-      .join(';');
-    var stage = STAGES[demo.stage].replace(/data-slot="(\w+)">/g, function (match, slot) {
-      return match + escapeHtml(texts[slot]);
-    });
-
-    return (
-      '<li class="demo" data-demo="' + name + '" data-group="' + escapeHtml(group) + '" style="' + escapeHtml(style) + '">' +
-      '<h3><a href="' + link + '">' + name + '</a><span>' + escapeHtml(size) + '</span></h3>' +
-      '<div class="st st-' + demo.stage + '" aria-hidden="true">' + stage + '</div>' +
-      '<input type="range" class="needs-js" aria-label="' + escapeHtml(demo.slider.label) +
-      '" min="' + demo.slider.min + '" max="' + demo.slider.max + '" step="' + demo.slider.step +
-      '" value="' + demo.slider.value + '" />' +
-      '<code class="demo-code" data-slot="code">' + escapeHtml(texts.code) + '</code>' +
-      '<code class="demo-out" data-slot="out">' + escapeHtml(texts.out) + '</code>' +
-      '</li>'
-    );
-  }
-
-  // `groups` is `[{ title, items: [{ name, link, size }] }]`, from the API docs.
-  function galleryHtml(c, groups, color) {
+  // The index of every export. `groups` is
+  // `[{ title, items: [{ name, display, summary, link, size }] }]`, from the
+  // API docs, so nothing can be exported without showing up here.
+  function functionsHtml(c, groups, color) {
     return groups
       .map(function (group) {
-        return group.items
-          .map(function (item) {
-            if (!DEMOS[item.name]) throw new Error('Add a demo for ' + item.name + ' to website/showcase.js');
-            return cardHtml(c, item.name, group.title, color, item.link, item.size);
-          })
-          .join('');
+        return (
+          '<section class="fn-group" data-group="' + escapeHtml(group.title) + '">' +
+          '<h3>' + escapeHtml(group.title) + '</h3><ul>' +
+          group.items
+            .map(function (item) {
+              if (!DEMOS[item.name]) throw new Error('Add an example for ' + item.name + ' to website/showcase.js');
+              var shown = example(c, item.name, color);
+              return (
+                '<li class="fn" data-fn="' + item.name + '" data-search="' +
+                escapeHtml((item.display + ' ' + item.summary + ' ' + group.title).toLowerCase()) + '">' +
+                '<p class="fn-head"><a href="' + item.link + '"><code>' + escapeHtml(item.display) + '</code></a>' +
+                '<span class="fn-size">' + escapeHtml(item.size) + '</span></p>' +
+                '<p class="fn-what">' + escapeHtml(item.summary) + '</p>' +
+                '<p class="fn-try"><i style="--c:' + escapeHtml(shown.swatch) + '"></i>' +
+                '<span><code data-slot="code">' + escapeHtml(shown.code) + '</code>' +
+                '<code class="fn-out" data-slot="out">' + escapeHtml(shown.out) + '</code></span></p>' +
+                '</li>'
+              );
+            })
+            .join('') +
+          '</ul></section>'
+        );
       })
       .join('');
   }
-
 
   // ------------------------------------------------------------- browser ---
 
@@ -534,68 +501,31 @@ var showcase = (function () {
       if (node && node.nodeValue !== value) node.nodeValue = value;
     }
 
-    // Counts every color2k call the hero makes, so the scoreboard is honest.
-    var calls = 0;
-    var counted = {};
-    Object.keys(c).forEach(function (name) {
-      counted[name] = function (a, b, d, e) {
-        calls++;
-        return c[name](a, b, d, e);
-      };
-    });
-    // getScale takes any number of colors and hands back a function.
-    counted.getScale = function (a, b, d) {
-      calls++;
-      var scale = c.getScale(a, b, d);
-      return function (n) {
-        calls++;
-        return scale(n);
-      };
-    };
-
     // ---- hero: one canvas, one pixel per tile -----------------------------
     var hero = doc.getElementById('hero');
     var canvas = doc.getElementById('field');
-    var swatch = doc.getElementById('chip-swatch');
-    var chipBox = doc.getElementById('chip');
     var toggle = doc.getElementById('motion');
-    var slot = {};
-    hero.querySelectorAll('[data-live]').forEach(function (element) {
-      slot[element.getAttribute('data-live')] = element.firstChild;
-    });
-
     var context = canvas.getContext('2d');
-    var swatchContext = swatch.getContext('2d');
     var columns = 0;
     var image = null;
     var playing = false;
     var running = false;
     var seconds = 0;
     var last = 0;
-    var at = drift(0);
-    var pointer = null;
-    var base = '';
-    var ink = '';
-    var flipped = -1000;
-    var sampled = -1000;
     // Only the newest loop is allowed to draw, so pausing and resuming
     // quickly can never leave two of them running.
     var loop = 0;
-    // Rolling numbers for the scoreboard, refreshed twice a second.
-    var frames = 0;
-    var spent = 0;
-    var since = 0;
 
     function measure() {
       // About one tile per 52 pixels, so a phone computes fewer than a desktop.
-      var next = Math.max(10, Math.min(40, Math.round(hero.clientWidth / 52)));
+      var next = Math.max(8, Math.min(40, Math.round(canvas.clientWidth / 52)));
       if (next === columns) return;
       columns = next;
       // The grid of gaps drawn over the canvas has to match it.
       hero.style.setProperty('--columns', columns);
       canvas.width = columns;
-      canvas.height = FIELD.length;
-      image = context.createImageData(columns, FIELD.length);
+      canvas.height = fieldRows().length;
+      image = context.createImageData(columns, canvas.height);
     }
 
     function put(row, column, r, g, b, a) {
@@ -606,67 +536,9 @@ var showcase = (function () {
       image.data[i + 3] = a * 255;
     }
 
-    function draw(time) {
-      calls = 0;
-      var began = performance.now();
-      base = paintField(counted, seconds, columns, at, put);
+    function draw() {
+      paintField(c, seconds, columns, drift(seconds), put);
       context.putImageData(image, 0, 0);
-
-      // The chip samples the color four times a second. Its swatch, its text
-      // color and the numbers in it all change in the same step, so what it
-      // says is always what it shows. The text only switches between black
-      // and white twice a second at most (anything quicker would be a flash),
-      // so a sample that needs a switch too soon is skipped.
-      if (time - sampled >= 250) {
-        var now = chip(counted, base);
-        if (now.readable === ink || time - flipped >= 500) {
-          sampled = time;
-          if (now.readable !== ink) {
-            ink = now.readable;
-            flipped = time;
-            chipBox.style.color = ink;
-          }
-          swatchContext.fillStyle = base;
-          swatchContext.fillRect(0, 0, 1, 1);
-          setText(slot.base, quote(now.base));
-          setText(slot.readable, quote(now.readable));
-          setText(slot.ratio, now.ratio);
-        }
-      }
-      // The whole frame is on the clock: the color math and both canvas writes.
-      spent += performance.now() - began;
-      frames++;
-    }
-
-    function report(time, still) {
-      var fps = still ? 0 : (frames * 1000) / (time - since);
-      setText(slot.calls, String(calls));
-      setText(slot.ms, (spent / frames).toFixed(2));
-      setText(slot.rate, (Math.round((calls * fps) / 100) * 100).toLocaleString('en-US'));
-      setText(slot.fps, String(Math.round(fps)));
-      frames = 0;
-      spent = 0;
-      since = time;
-    }
-
-    function frame(time) {
-      var delta = Math.min(time - (last || time), 100) / 1000;
-      last = time;
-      seconds += delta;
-
-      if (pointer) {
-        // Ease toward the pointer the short way around the wheel.
-        var turn = ((pointer.hue - at.hue + 540) % 360) - 180;
-        var pull = 1 - Math.exp(-delta * 6);
-        at.hue = (at.hue + turn * pull + 360) % 360;
-        at.light += (pointer.light - at.light) * pull;
-      } else {
-        at.hue = (at.hue + delta * 10) % 360;
-        at.light += (0.6 + 0.06 * Math.sin(seconds * 0.3) - at.light) * (1 - Math.exp(-delta * 2));
-      }
-
-      draw(time);
-      if (time - since >= 500) report(time);
     }
 
     function sync() {
@@ -675,12 +547,11 @@ var showcase = (function () {
         var id = ++loop;
         running = true;
         last = 0;
-        since = performance.now();
-        frames = 0;
-        spent = 0;
         requestAnimationFrame(function step(time) {
           if (!running || id !== loop) return;
-          frame(time);
+          seconds += Math.min(time - (last || time), 100) / 1000;
+          last = time;
+          draw();
           requestAnimationFrame(step);
         });
       } else if (!should && running) {
@@ -700,17 +571,8 @@ var showcase = (function () {
     watch(hero, sync);
     window.addEventListener('resize', function () {
       measure();
-      if (!running) draw(performance.now());
+      if (!running) draw();
     });
-    hero.addEventListener('pointermove', function (event) {
-      if (event.pointerType === 'touch') return;
-      var box = hero.getBoundingClientRect();
-      pointer = {
-        hue: ((event.clientX - box.left) / box.width) * 360,
-        light: 0.72 - ((event.clientY - box.top) / box.height) * 0.28,
-      };
-    });
-    hero.addEventListener('pointerleave', function () { pointer = null; });
     toggle.addEventListener('click', function () { setPlaying(!playing); });
     reduced.addEventListener('change', function () { setPlaying(!reduced.matches); });
 
@@ -735,12 +597,13 @@ var showcase = (function () {
     var spins = 0;
     var spot = { x: 0, y: 0, width: 1, height: 1 };
     var looks = [];
-    studio.querySelectorAll('[data-theme]').forEach(function (element) {
+    studio.querySelectorAll('.look').forEach(function (element) {
       var key = element.getAttribute('data-theme');
       var look = {
         key: key,
         build: themes[key],
         card: element.querySelector('.tcard'),
+        tile: doc.querySelector('[data-tile="' + key + '"]'),
         ratios: {},
         rows: [],
         tokens: null,
@@ -804,6 +667,9 @@ var showcase = (function () {
       pending = false;
       looks.forEach(function (look, index) {
         look.tokens = look.build(color, dark);
+        // The small tile in the bar always follows, so all three are in view
+        // together even on a phone.
+        look.tile.style.cssText = tokenStyle(look.tokens);
         explain(look);
         // A card that is off screen (swiped away on a phone, say) waits.
         if (look.card.onScreen) paintLook(look);
@@ -813,9 +679,9 @@ var showcase = (function () {
       });
       if (performance.now() - labelled >= 120) label();
       else if (!labelTimer) labelTimer = setTimeout(label, 130);
-      cards.forEach(function (card) {
-        card.stale = true;
-        if (card.element.onScreen) drawCard(card);
+      rows.forEach(function (row) {
+        row.stale = true;
+        if (row.element.onScreen) drawRow(row);
       });
     }
 
@@ -948,9 +814,6 @@ var showcase = (function () {
       var preset = event.target.getAttribute && event.target.getAttribute('data-color');
       if (preset) setColor(preset, null, true);
     });
-    doc.getElementById('use-color').addEventListener('click', function () {
-      setColor(base, null, true);
-    });
 
     function setDark(next) {
       dark = next;
@@ -988,88 +851,84 @@ var showcase = (function () {
       });
     });
 
-    // ---- gallery: every function on your color -----------------------------
-    var gallery = doc.getElementById('gallery');
-    var filters = doc.getElementById('gallery-filters');
-    var cards = [];
-    gallery.querySelectorAll('.demo').forEach(function (element) {
-      var card = {
+    // ---- functions: every export, on your color ---------------------------
+    var index = doc.getElementById('functions');
+    var search = doc.getElementById('fn-search');
+    var none = doc.getElementById('fn-none');
+    var rows = [];
+    index.querySelectorAll('.fn').forEach(function (element) {
+      var row = {
         element: element,
-        demo: DEMOS[element.getAttribute('data-demo')],
-        slider: element.querySelector('input'),
-        stage: element.querySelector('.st'),
-        parts: element.querySelectorAll('.st i'),
-        slots: {},
-        last: {},
+        name: element.getAttribute('data-fn'),
+        words: element.getAttribute('data-search'),
+        group: element.parentNode.parentNode,
+        swatch: element.querySelector('.fn-try i'),
+        code: element.querySelector('[data-slot="code"]').firstChild,
+        out: element.querySelector('[data-slot="out"]').firstChild,
+        shown: '',
         stale: false,
       };
-      element.querySelectorAll('[data-slot]').forEach(function (node) {
-        card.slots[node.getAttribute('data-slot')] = node.firstChild;
-      });
-      card.slider.addEventListener('input', function () { drawCard(card); });
       watch(element, function (onScreen) {
-        if (onScreen && card.stale) drawCard(card);
+        if (onScreen && row.stale) drawRow(row);
       });
-      cards.push(card);
+      rows.push(row);
     });
 
-    // Writes one style on one element, and only when it changed. (Updating
-    // the card's custom properties instead would restyle the whole card.)
-    function place(card, key, element, property, value) {
-      if (card.last[key] === value) return;
-      card.last[key] = value;
-      element.style[property] = value;
-    }
-
-    function along(position) {
-      return 'calc(' + position + ' * (100% - 28px) + 6px)';
-    }
-
-    function drawCard(card) {
-      var view = card.demo.view(c, color, +card.slider.value);
-      var texts = slots(view);
-      var parts = card.parts;
-      var key;
-      card.stale = false;
-
-      switch (card.demo.stage) {
-        case 'text':
-          place(card, 'a', card.stage, 'background', view.a);
-          place(card, 'b', card.stage, 'color', view.b);
-          break;
-        case 'meter':
-          place(card, 'g', card.stage, 'backgroundImage', view.g);
-          place(card, 'q', parts[0], 'left', along(view.q));
-          place(card, 'p', parts[1], 'left', along(view.p));
-          place(card, 'b', parts[1], 'background', view.b);
-          break;
-        case 'bars':
-          view.bars.forEach(function (bar, i) {
-            place(card, 'w' + i, parts[i], 'width', +(bar * 100).toFixed(1) + '%');
-            place(card, 'a' + i, parts[i], 'background', view.a);
-          });
-          break;
-        default:
-          place(card, 'a', parts[0], 'background', view.a);
-          place(card, 'b', parts[1], 'background', view.b);
-          if (parts[2]) place(card, 'c', parts[2], 'background', view.c);
+    function drawRow(row) {
+      var shown = example(c, row.name, color);
+      row.stale = false;
+      setText(row.code, shown.code);
+      setText(row.out, shown.out);
+      if (shown.swatch !== row.shown) {
+        row.shown = shown.swatch;
+        row.swatch.style.setProperty('--c', shown.swatch);
       }
-
-      for (key in texts) setText(card.slots[key], texts[key]);
     }
 
-    filters.addEventListener('click', function (event) {
-      var group = event.target.getAttribute('data-filter');
-      if (group === null) return;
-      filters.querySelectorAll('[data-filter]').forEach(function (button) {
-        button.setAttribute('aria-pressed', String(button === event.target));
+    // Type to find a function by its name or by what it does.
+    search.addEventListener('input', function () {
+      var words = search.value.toLowerCase().trim().split(/\s+/);
+      var found = 0;
+      var groups = [];
+      rows.forEach(function (row) {
+        var match = words.every(function (word) { return row.words.indexOf(word) !== -1; });
+        row.element.hidden = !match;
+        if (match) {
+          found++;
+          if (groups.indexOf(row.group) === -1) groups.push(row.group);
+        }
       });
-      cards.forEach(function (card) {
-        card.element.hidden = group !== '' && card.element.getAttribute('data-group') !== group;
+      index.querySelectorAll('.fn-group').forEach(function (group) {
+        group.hidden = groups.indexOf(group) === -1;
       });
+      none.hidden = found > 0;
     });
 
     // ---- the rest ----------------------------------------------------------
+    // The header marks the section you are in.
+    if (hasObserver) {
+      var links = {};
+      doc.querySelectorAll('.site-nav [data-spy]').forEach(function (link) {
+        links[link.getAttribute('data-spy')] = link;
+      });
+      var spy = new IntersectionObserver(
+        function (entries) {
+          entries.forEach(function (entry) {
+            if (!entry.isIntersecting) return;
+            Object.keys(links).forEach(function (id) {
+              if (id === entry.target.id) links[id].setAttribute('aria-current', 'true');
+              else links[id].removeAttribute('aria-current');
+            });
+          });
+        },
+        { rootMargin: '-45% 0px -50% 0px' }
+      );
+      Object.keys(links).forEach(function (id) {
+        var section = doc.getElementById(id);
+        if (section) spy.observe(section);
+      });
+    }
+
     // Sections slide in with CSS scroll-driven animations where the browser has
     // them. Elsewhere, an observer adds a class and a transition does the same.
     if (!(window.CSS && CSS.supports('animation-timeline: view()')) && hasObserver && !reduced.matches) {
@@ -1104,15 +963,8 @@ var showcase = (function () {
     function begin() {
       drawPad();
       if (window.matchMedia('(prefers-color-scheme: dark)').matches) setDark(true);
-      // A few frames first, so a paused page still shows real numbers (the
-      // first ones only warm the engine up).
-      draw(0);
-      draw(0);
-      frames = 0;
-      spent = 0;
-      draw(performance.now());
-      report(performance.now(), true);
-      canvas.setAttribute('data-ready', '');
+      draw();
+      hero.setAttribute('data-ready', '');
       setPlaying(!reduced.matches);
     }
     var idle = window.requestIdleCallback || function (callback) { setTimeout(callback, 200); };
@@ -1121,12 +973,11 @@ var showcase = (function () {
   }
 
   return {
+    adjusted: adjusted,
     fieldRows: fieldRows,
     fieldSvg: fieldSvg,
-    galleryHtml: galleryHtml,
-    heroChip: heroChip,
+    functionsHtml: functionsHtml,
     padColor: padColor,
-    adjusted: adjusted,
     themeRatios: themeRatios,
     tokenStyle: tokenStyle,
     whyRows: whyRows,

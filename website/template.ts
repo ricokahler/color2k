@@ -19,7 +19,6 @@ interface Theme {
 
 interface Params {
   bodyHtml: string;
-  chip: { base: string; readable: string; ratio: string };
   comparison: Array<{ name: string; size: number }>;
   css: string;
   description: string;
@@ -27,14 +26,8 @@ interface Params {
   fieldColumns: number;
   fieldRows: string[];
   fieldSvg: string;
-  galleryGroups: string[];
-  galleryHtml: string;
-  sizes: {
-    all: string;
-    bytes: string;
-    rounded: string;
-    exports: Array<{ name: string; size: string }>;
-  };
+  functionsHtml: string;
+  sizes: { all: string; bytes: string; rounded: string };
   structuredData: object;
   studioColor: string;
   studioPresets: Array<{ name: string; color: string }>;
@@ -79,24 +72,36 @@ function renderToc(toc: TocItem[]) {
     .join('\n          ');
 }
 
-const check =
-  '<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="currentColor"/><path d="M5.5 10.4l3 3 6-6.6" fill="none" stroke="var(--surface)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const bars = [0.42, 0.58, 0.5, 0.72, 0.64, 0.86, 1]
+  .map((height) => `<i style="--h:${height}"></i>`)
+  .join('');
 
-// One theme: a card painted entirely with its tokens, then what the builder
-// decided about the color, then the builder itself.
+// One theme: a small made-up product screen painted entirely with its
+// tokens, then what the builder decided about the color, then the builder.
 function renderLook(theme: Theme, index: number) {
-  return `<div class="look reveal" data-theme="${theme.key}">
+  return `<div class="look" data-theme="${theme.key}" id="look-${theme.key}">
           <article class="tcard" data-adjusted="${theme.adjusted}" style="${escapeHtml(theme.style)}">
             <p class="t-top"><i class="t-mark"></i><span class="t-kicker">Theme 0${index + 1}</span><span class="t-chip">${theme.kicker}</span></p>
             <h3 class="t-title">${theme.name}</h3>
             <p class="t-body">${escapeHtml(theme.how)}</p>
             <p class="t-actions"><span class="t-btn">Get started</span><span class="t-link">Learn more</span><span class="t-note">Adjusted</span></p>
-            <div class="t-panel">
-              <p class="t-row">${check}<span><b>Text on the page</b><small data-ratio="text">${theme.ratios.text}</small></span></p>
-              <p class="t-row">${check}<span><b>Button label</b><small data-ratio="button">${theme.ratios.button}</small></span></p>
-              <p class="t-row">${check}<span><b>Chip</b><small data-ratio="chip">${theme.ratios.chip}</small></span></p>
-              <div class="t-meter"><i></i></div>
+            <div class="t-ui" aria-hidden="true">
+              <p class="t-tabs"><span class="is-on">Overview</span><span>Activity</span><span>Settings</span></p>
+              <div class="t-stats">
+                <p class="t-stat t-stat-accent"><small>Revenue</small><b>$48.2k</b></p>
+                <p class="t-stat t-stat-soft"><small>Orders</small><b>1,204</b></p>
+                <p class="t-stat"><small>Refunds</small><b>12</b></p>
+              </div>
+              <div class="t-chart">${bars}</div>
+              <p class="t-field"><span class="t-input">you@studio.com</span><span class="t-switch"><i></i></span></p>
+              <p class="t-person"><i class="t-avatar"></i><span><b>Mina Okafor</b><small>Approved the invoice</small></span><span class="t-tag">Paid</span></p>
+              <p class="t-person"><i class="t-avatar t-avatar-2"></i><span><b>Jo Lindqvist</b><small>Left a comment</small></span><span class="t-tag">Draft</span></p>
             </div>
+            <p class="t-ratios">
+              <span>Text <b data-ratio="text">${theme.ratios.text}</b></span>
+              <span>Button <b data-ratio="button">${theme.ratios.button}</b></span>
+              <span>Chip <b data-ratio="chip">${theme.ratios.chip}</b></span>
+            </p>
           </article>
           <ul class="why">
             ${theme.why
@@ -115,7 +120,6 @@ function renderLook(theme: Theme, index: number) {
 
 function template({
   bodyHtml,
-  chip,
   comparison,
   css,
   description,
@@ -123,8 +127,7 @@ function template({
   fieldColumns,
   fieldRows,
   fieldSvg,
-  galleryGroups,
-  galleryHtml,
+  functionsHtml,
   sizes,
   structuredData,
   studioColor,
@@ -135,9 +138,6 @@ function template({
 }: Params) {
   const safeDescription = escapeHtml(description);
   const largest = Math.max(...comparison.map(({ size }) => size));
-  const ticker = Array(4)
-    .fill('parse · convert · lighten · darken · saturate · mix · scale · contrast · ')
-    .join('');
 
   return `<!doctype html>
 <html lang="en">
@@ -182,18 +182,17 @@ function template({
   </head>
   <body>
     <a class="skip-link" href="#content">Skip to content</a>
-    <div class="progress" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
     <header class="site-header">
       <div class="site-header-inner">
-        <a class="site-brand" href="/" aria-label="color2k home">
+        <a class="site-brand" href="#top" aria-label="color2k, back to the top">
           <img src="/logo.svg" alt="color2k" width="131" height="34" />
         </a>
-        <nav class="site-nav" aria-label="Primary">
-          <a class="site-nav-text" href="#themes">Themes</a>
-          <a class="site-nav-text" href="#functions">Functions</a>
-          <a class="site-nav-text" href="#quickstart">Docs</a>
-          <a class="site-nav-text site-nav-extra" href="/llms.txt">llms.txt</a>
-          <a class="site-nav-text site-nav-extra" href="https://rico.codes">rico.codes</a>
+        <nav class="site-nav" aria-label="Sections">
+          <a href="#themes" data-spy="themes">Themes</a>
+          <a href="#functions" data-spy="functions">Functions</a>
+          <a href="#recipes" data-spy="recipes">Recipes</a>
+          <a href="#api" data-spy="api">API</a>
+          <a class="site-nav-extra" href="https://rico.codes">rico.codes</a>
           <a
             class="site-icon-link site-icon-link-npm"
             href="https://www.npmjs.com/package/color2k"
@@ -217,8 +216,8 @@ function template({
         </nav>
       </div>
     </header>
-    <section class="hero" id="hero" style="--columns:${fieldColumns}">
-      <div class="field">
+    <section class="hero" id="top">
+      <div class="field" id="hero" style="--columns:${fieldColumns}">
         ${fieldSvg}
         <canvas
           id="field"
@@ -231,54 +230,34 @@ function template({
         <ul class="field-rows" aria-hidden="true">
           ${fieldRows.map((name) => `<li><code>${name}</code></li>`).join('')}
         </ul>
+        <button type="button" class="field-pause needs-js" id="motion" aria-pressed="false">Pause</button>
       </div>
-      <div class="hero-scrim" aria-hidden="true"></div>
-      <div class="hero-inner">
-        <div class="hero-copy">
-          <img class="hero-logo" src="/logo.svg" alt="" width="459" height="119" />
-          <h1>Every color job your UI needs, in&nbsp;2.4&nbsp;kB.</h1>
-          <p class="hero-lead">
-            Darken a brand color for its hover state. Find out whether the
-            text on top should be black or white. color2k is ${exportCount - 1}
-            small functions for work like that, and it has no dependencies.
-          </p>
-          <div class="hero-actions">
-            <div class="hero-install">
-              <code>npm i color2k</code>
-              <button type="button" id="copy-install" class="needs-js">Copy</button>
-            </div>
-            <a class="hero-button" href="#themes">Build a theme</a>
-            <a class="hero-link" href="#quickstart">Read the docs</a>
+      <div class="hero-copy">
+        <img class="hero-logo" src="/logo.svg" alt="" width="459" height="119" />
+        <h1>Every color job your UI needs, in&nbsp;${sizes.rounded}&nbsp;kB.</h1>
+        <p class="hero-lead">
+          Give color2k one color and get back its hover state, the text color
+          that reads on it, a full palette or a whole theme. It is
+          ${exportCount - 1} small functions with no dependencies.
+        </p>
+        <div class="hero-actions">
+          <div class="hero-install">
+            <code>npm i color2k</code>
+            <button type="button" id="copy-install" class="needs-js">Copy</button>
           </div>
-        </div>
-        <div class="board">
-          <div class="board-chip" id="chip" style="color:${chip.readable}">
-            <canvas id="chip-swatch" width="1" height="1" style="background:${chip.base}" aria-hidden="true"></canvas>
-            <code>readableColor(<span data-live="base">'${chip.base}'</span>) is <span data-live="readable">'${chip.readable}'</span></code>
-            <b><span data-live="ratio">${chip.ratio}</span></b>
-          </div>
-          <dl class="board-stats needs-js">
-            <div><dd data-live="calls">0</dd><dt>color2k calls a frame</dt></div>
-            <div><dd><span data-live="ms">0.00</span><small> ms</small></dd><dt>to make all of them</dt></div>
-            <div><dd data-live="rate">0</dd><dt>calls a second, at <span data-live="fps">60</span> fps</dt></div>
-            <div><dd>${sizes.all.replace(' kB', '')}<small> kB</small></dd><dt>of library doing it</dt></div>
-          </dl>
-          <p class="board-note needs-js">
-            <span>Every tile is a color2k call. Move your mouse to steer.</span>
-            <button type="button" id="motion" aria-pressed="false">Pause</button>
-            <a class="board-use" id="use-color" href="#themes">Theme this color</a>
-          </p>
+          <a class="hero-button" href="#themes">See what it makes</a>
+          <a class="hero-link" href="#functions">Find a function</a>
         </div>
       </div>
     </section>
-    <div class="ticker" aria-hidden="true"><div class="ticker-track">${ticker}</div></div>
     <section class="studio" id="themes" aria-labelledby="themes-title" data-mode="light">
       <div class="studio-wash" id="studio-wash" style="background:${escapeHtml(studioWash)}" aria-hidden="true"></div>
-      <div class="studio-head reveal">
+      <div class="studio-head">
+        <p class="eyebrow">Themes</p>
         <h2 id="themes-title">One color in. Three looks out.</h2>
         <p>
-          Paint on the strip. All three themes rebuild from your color as you
-          go, and each one makes its own calls about it. Their text holds
+          Drag across the strip. All three themes rebuild from your color as
+          you go, and each one makes its own calls about it. Their text holds
           WCAG AA whatever you pick.
         </p>
       </div>
@@ -323,6 +302,16 @@ function template({
             <button type="button" class="studio-tool" id="studio-spin">Spin the wheel</button>
             <button type="button" class="studio-tool" id="studio-mode" aria-pressed="false">Dark</button>
           </div>
+          <p class="studio-tiles">
+            ${themes
+              .map(
+                (theme) =>
+                  `<a href="#look-${theme.key}" data-tile="${theme.key}" data-theme="${theme.key}" style="${escapeHtml(
+                    theme.style
+                  )}"><i></i>${theme.name}</a>`
+              )
+              .join('\n            ')}
+          </p>
           <p class="studio-error" id="studio-error" role="status"></p>
         </div>
       </div>
@@ -330,70 +319,53 @@ function template({
         ${themes.map(renderLook).join('\n        ')}
       </div>
     </section>
+    <section class="functions" id="functions" aria-labelledby="functions-title">
+      <div class="functions-inner">
+        <div class="section-head">
+          <p class="eyebrow">Functions</p>
+          <h2 id="functions-title">All ${exportCount} exports, on your color.</h2>
+          <p>
+            Each one is shown with the color you picked above, what it returns
+            and what it weighs on its own. Tap a name for its full entry.
+          </p>
+        </div>
+        <p class="fn-find needs-js">
+          <label for="fn-search">Find a function</label>
+          <input type="search" id="fn-search" placeholder="darken, contrast, hex" autocomplete="off" spellcheck="false" />
+        </p>
+        <div class="fn-groups">${functionsHtml}</div>
+        <p class="fn-none" id="fn-none" hidden>Nothing matches that. Try "mix" or "contrast".</p>
+      </div>
+    </section>
     <section class="size" id="size" aria-labelledby="size-title">
       <div class="size-inner">
-        <div class="size-head reveal">
+        <p class="eyebrow">Size</p>
+        <div class="size-head">
           <p class="size-big" aria-hidden="true">${sizes.rounded}<small>kB</small></p>
           <div>
             <h2 id="size-title">${sizes.rounded} kB is the whole thing.</h2>
             <p>
               That is all ${exportCount} exports, minified and gzipped:
-              ${sizes.bytes} bytes. The hero, the themes and the function
-              demos on this page are all computed by it, live, in your
-              browser. Import a single function and you ship about 1.6 kB,
-              because nearly all of them share one parser.
+              ${sizes.bytes} bytes. Import a single function and you ship
+              about 1.6 kB, because nearly all of them share one parser.
             </p>
           </div>
         </div>
-        <div class="size-grid">
-          <div class="size-bars reveal">
-            <h3>Next to the others</h3>
-            <ul>
-              ${comparison
-                .map(
-                  ({ name, size }) =>
-                    `<li${name === 'color2k' ? ' class="size-us"' : ''}><span>${escapeHtml(
-                      name
-                    )}</span><b>${size.toFixed(1)} kB</b><i style="--w:${(
-                      size / largest
-                    ).toFixed(3)}"></i></li>`
-                )
-                .join('\n              ')}
-            </ul>
-          </div>
-          <div class="size-each reveal">
-            <h3>One import, on its own</h3>
-            <ul>
-              ${sizes.exports
-                .map(({ name, size }) => `<li><code>${name}</code><span>${size}</span></li>`)
-                .join('\n              ')}
-            </ul>
-          </div>
+        <div class="size-bars">
+          <h3>Next to the others</h3>
+          <ul>
+            ${comparison
+              .map(
+                ({ name, size }) =>
+                  `<li${name === 'color2k' ? ' class="size-us"' : ''}><span>${escapeHtml(
+                    name
+                  )}</span><b>${size.toFixed(1)} kB</b><i style="--w:${(
+                    size / largest
+                  ).toFixed(3)}"></i></li>`
+              )
+              .join('\n            ')}
+          </ul>
         </div>
-      </div>
-    </section>
-    <section class="gallery" id="functions" aria-labelledby="gallery-title">
-      <div class="gallery-inner">
-        <div class="gallery-head reveal">
-          <h2 id="gallery-title">All ${exportCount}, on your color.</h2>
-          <p>
-            These run on the color you picked above. Drag a slider to see what
-            each one returns. The library is in your console too, as
-            <code>color2k</code>.
-          </p>
-        </div>
-        <div class="gallery-filters needs-js" id="gallery-filters" role="group" aria-label="Show functions">
-          <button type="button" data-filter="" aria-pressed="true">All</button>
-          ${galleryGroups
-            .map(
-              (group) =>
-                `<button type="button" data-filter="${escapeHtml(
-                  group
-                )}" aria-pressed="false">${escapeHtml(group)}</button>`
-            )
-            .join('\n          ')}
-        </div>
-        <ul class="demos" id="gallery">${galleryHtml}</ul>
       </div>
     </section>
     <div class="page-shell">
@@ -403,17 +375,31 @@ function template({
         </ul>
       </nav>
       <main id="content">
+        <details class="toc-phone">
+          <summary>On this page</summary>
+          <ul>
+            ${renderToc(toc)}
+          </ul>
+        </details>
         <article class="markdown-body">${bodyHtml}</article>
       </main>
     </div>
     <footer class="site-footer">
-      <nav aria-label="Rico Kahler links">
+      <nav aria-label="More">
         <ul class="site-footer-links">
+          <li><a href="#top">Back to the top</a></li>
+          <li><a href="/llms.txt">llms.txt</a></li>
+          <li><a href="/llms-full.txt">llms-full.txt</a></li>
+          <li><a href="https://github.com/ricokahler/color2k">Source</a></li>
+          <li><a href="https://www.npmjs.com/package/color2k">npm</a></li>
+          <li><a href="/fonts-license.txt">Font licenses</a></li>
+        </ul>
+      </nav>
+      <nav aria-label="Rico Kahler links">
+        <ul class="site-footer-links site-footer-rico">
           <li><a href="mailto:hello@rico.codes">hello@rico.codes</a></li>
           <li><a href="https://rico.codes">blog</a></li>
           <li><a href="https://github.com/ricokahler">GitHub</a></li>
-          <li><a href="/llms.txt">llms.txt</a></li>
-          <li><a href="/llms-full.txt">llms-full.txt</a></li>
         </ul>
       </nav>
     </footer>

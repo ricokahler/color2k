@@ -10,6 +10,7 @@ import {
   getDisplayName,
   getGroupedDocs,
   getReadmeBody,
+  getSummary,
   RESULT_PATTERN,
   slugify,
 } from './docs';
@@ -58,7 +59,7 @@ const THEMES = [
     name: 'Bold',
     builder: 'boldTheme',
     kicker: 'Loud',
-    how: 'Your color is the page. Everything else is black, white, or from the far side of the wheel.',
+    how: 'Your color is the page. Everything else is black, white, or the hue next door.',
   },
 ];
 const FIELD_COLUMNS = 24;
@@ -310,6 +311,18 @@ async function minifyScript(code: string) {
   return `${result.code}\n`;
 }
 
+/**
+ * The docs on the page start at the quickstart. "Why color2k" is the README's
+ * pitch, and on the site the hero and the size section already make it.
+ */
+function getSiteBody(readme: string) {
+  const body = getReadmeBody(readme);
+  const start = body.indexOf('## Why color2k');
+  const end = body.indexOf('## Quickstart');
+  if (start === -1 || end === -1) throw new Error('README.md lost a section');
+  return body.slice(0, start) + body.slice(end);
+}
+
 /** The page's script: the themes, the demos, and one call to start them. */
 function getSiteScript(themes: Array<{ key: string; builder: string; source: string }>) {
   const showcaseSource = fs
@@ -407,7 +420,7 @@ async function render() {
   );
   // The README's logo and badges are for GitHub and npm; the site has a hero.
   const { html: bodyHtml, headings, highlight } = await renderMarkdown(
-    inlineResults(getReadmeBody(readme))
+    inlineResults(getSiteBody(readme))
   );
   const groups = getGroupedDocs();
   const sizes = JSON.parse(
@@ -427,7 +440,6 @@ async function render() {
     'index.html',
     template({
       bodyHtml,
-      chip: showcase.heroChip(color2k),
       comparison: getComparison(readme),
       css,
       description: pkg.description,
@@ -435,13 +447,14 @@ async function render() {
       fieldColumns: FIELD_COLUMNS,
       fieldRows: showcase.fieldRows(),
       fieldSvg: showcase.fieldSvg(color2k, FIELD_COLUMNS),
-      galleryGroups: groups.map(({ title }) => title),
-      galleryHtml: showcase.galleryHtml(
+      functionsHtml: showcase.functionsHtml(
         color2k,
         groups.map(({ title, docs }) => ({
           title,
           items: docs.map((doc) => ({
             name: doc.functionName,
+            display: getDisplayName(doc),
+            summary: getSummary(doc).replace(/`/g, ''),
             link: `#${slugify(getDisplayName(doc))}`,
             size: formatBytes(sizes.exports[doc.functionName]),
           })),
@@ -452,9 +465,6 @@ async function render() {
         all: formatBytes(sizes.all),
         bytes: sizes.all.toLocaleString('en-US'),
         rounded: (sizes.all / 1000).toFixed(1),
-        exports: Object.entries(sizes.exports as { [name: string]: number })
-          .sort((one, other) => other[1] - one[1])
-          .map(([name, bytes]) => ({ name, size: formatBytes(bytes) })),
       },
       structuredData: getStructuredData(),
       studioColor: STUDIO_COLOR,

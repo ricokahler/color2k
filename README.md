@@ -246,7 +246,7 @@ light.why; // { weak: true, darkLabel: false }
 <p><img src="./docs/readme/a-whole-theme-from-one-color-2.svg" width="840" alt="light bg: #faf9fa; light surface: #ffffff; light border: #e3dee0; light text: #241e20; light muted: #6e5e64; light onSurface: #241e20; light accent: #e00052; light accentHover: #be0046; light onAccent: #fff; light soft: #f6d6e2; light onSoft: #241e20; light ring: rgba(224, 0, 82, 0.4); light extra: #d0c8cb; light shadow: rgba(36, 30, 32, 0.08); light decision weak: true; light decision darkLabel: false; dark bg: #1c1719; dark surface: #272123; dark border: #42383c; dark text: #efeced; dark muted: #b4a7ac; dark onSurface: #efeced; dark accent: #ff8fb8; dark accentHover: #ffa0c3; dark onAccent: #000; dark soft: #3c282f; dark onSoft: #efeced; dark ring: rgba(255, 143, 184, 0.4); dark extra: #53464b; dark shadow: rgba(239, 236, 237, 0.08); dark decision weak: false; dark decision darkLabel: true" /></p>
 <!-- RESULT-END -->
 
-**Bold** uses your color as the page, after turning a muted one up with `saturate`. A light page gets black text, black cards and hard black shadows. A dark page gets white text and cards tinted from the page with `lighten`. The button is the color on the far side of the wheel, unless it would disappear on the card. Then it falls back to black or white.
+**Bold** uses your color as the page, after turning a muted one up with `saturate`. A light page gets black text, black cards and hard black shadows. A dark page gets white text and cards tinted from the page with `lighten`. The button is the hue next door, 40 degrees along the wheel, unless it would disappear on the card. Then it falls back to black or white.
 
 ```js
 import {
@@ -276,10 +276,10 @@ function boldTheme(color, dark = false) {
   // A light page gets black cards. A dark page gets cards tinted from it.
   const tinted = !light;
   const surface = tinted ? toHex(lighten(bg, 0.14)) : '#000';
-  const complement = toHex(adjustHue(brand, 180));
-  // The button is the complement, unless it would disappear on the card.
-  const lost = hasBadContrast(complement, 'readable', surface);
-  const accent = lost ? readableColor(surface) : complement;
+  const neighbor = toHex(adjustHue(brand, 40));
+  // The button is the hue next door, unless it would disappear on the card.
+  const lost = hasBadContrast(neighbor, 'readable', surface);
+  const accent = lost ? readableColor(surface) : neighbor;
   const onAccent = readableColor(accent);
 
   return {
@@ -295,7 +295,7 @@ function boldTheme(color, dark = false) {
     soft: text,
     onSoft: bg,
     ring: transparentize(accent, 0.4),
-    extra: toHex(adjustHue(brand, 90)),
+    extra: toHex(adjustHue(brand, 340)),
     shadow: light ? '#000' : accent,
     why: { dull, light, tinted, lost },
   };
@@ -304,12 +304,12 @@ function boldTheme(color, dark = false) {
 const light = boldTheme('#ff8fb8');
 const dark = boldTheme('#ff8fb8', true);
 
-light.accent; // '#8fffd6'
+light.accent; // '#ffb08f'
 light.why; // { dull: false, light: true, tinted: false, lost: false }
 ```
 
 <!-- RESULT: theme { light, dark, build: boldTheme } -->
-<p><img src="./docs/readme/a-whole-theme-from-one-color-3.svg" width="840" alt="light bg: #ff8fb8; light surface: #000; light border: #000; light text: #000; light muted: #000; light onSurface: #fff; light accent: #8fffd6; light accentHover: #a0ffdc; light onAccent: #000; light soft: #000; light onSoft: #ff8fb8; light ring: rgba(143, 255, 214, 0.6); light extra: #f0ff8f; light shadow: #000; light decision dull: false; light decision light: true; light decision tinted: false; light decision lost: false; dark bg: #2e1a21; dark surface: #5b3341; dark border: #fff; dark text: #fff; dark muted: #fff; dark onSurface: #fff; dark accent: #8fffd6; dark accentHover: #a0ffdc; dark onAccent: #000; dark soft: #fff; dark onSoft: #2e1a21; dark ring: rgba(143, 255, 214, 0.6); dark extra: #f0ff8f; dark shadow: #8fffd6; dark decision dull: false; dark decision light: false; dark decision tinted: true; dark decision lost: false" /></p>
+<p><img src="./docs/readme/a-whole-theme-from-one-color-3.svg" width="840" alt="light bg: #ff8fb8; light surface: #000; light border: #000; light text: #000; light muted: #000; light onSurface: #fff; light accent: #ffb08f; light accentHover: #ffbca0; light onAccent: #000; light soft: #000; light onSoft: #ff8fb8; light ring: rgba(255, 176, 143, 0.6); light extra: #ff8fdd; light shadow: #000; light decision dull: false; light decision light: true; light decision tinted: false; light decision lost: false; dark bg: #2e1a21; dark surface: #5b3341; dark border: #fff; dark text: #fff; dark muted: #fff; dark onSurface: #fff; dark accent: #ffb08f; dark accentHover: #ffbca0; dark onAccent: #000; dark soft: #fff; dark onSoft: #2e1a21; dark ring: rgba(255, 176, 143, 0.6); dark extra: #ff8fdd; dark shadow: #ffb08f; dark decision dull: false; dark decision light: false; dark decision tinted: true; dark decision lost: false" /></p>
 <!-- RESULT-END -->
 
 The text pairs in all three (text on the page, text on a card, the button label, the chip, and the Serious link) hold WCAG AA for any color you pass, see-through ones included. The build sweeps about 1,300 colors through each one to check.

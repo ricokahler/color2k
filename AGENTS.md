@@ -24,8 +24,8 @@ npm run website     # build the site and llms files into ./build
 - `website/docs.ts`: turns the JSDoc in `src` into the README API section,
   `llms.txt` and `llms-full.txt`.
 - `website/`: the static generator for color2k.com (`index.ts`, `template.ts`,
-  `App.css`, `showcase.js` for the hero, theme studio and gallery, and
-  `static/` for the logo and icons).
+  `App.css`, `showcase.js` for the hero, the theme studio and the function
+  index, and `static/` for the logo and icons).
 - `scripts/sizes.js` measures the bundle (everything, and each export alone)
   into `docs/sizes.json`. The README table and the website read that file.
 - `scripts/`: build and check scripts. `scripts/color-map.ts` generates the
@@ -71,8 +71,14 @@ npm run website     # build the site and llms files into ./build
   something else, the docs build fails until the copy is updated.
 - The list between `<!-- AGENT-NOTES-START -->` and `<!-- AGENT-NOTES-END -->`
   in README.md is copied into `llms.txt`. Keep it short and true.
-- New exports must be added to `API_GROUPS` in `website/docs.ts` and need a
-  demo in `website/showcase.js`.
+- New exports must be added to `API_GROUPS` in `website/docs.ts` and need an
+  example in `DEMOS` in `website/showcase.js`. The function index on the site
+  is built from those two, and `npm run website:check` fails unless it lists
+  exactly the exports in `src/index.ts`.
+- The site is designed for a phone first (390px), then widened. Its header
+  links are its sections, by the same names as the labels over them. Keep one
+  home for each thing: an export's home is its API entry, and the function
+  index and the recipes link there.
 - Nothing on the website may touch the DOM on every frame. The hero is one
   small canvas (a pixel per tile, scaled up by the compositor), scroll effects
   are CSS transforms and opacity, and DOM text updates are throttled into

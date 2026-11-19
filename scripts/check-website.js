@@ -160,10 +160,21 @@ assert(
     html.includes(`${sizes.all.toLocaleString('en-US')} bytes`),
   'The size on the page does not match docs/sizes.json'
 );
-for (const name of exportNames) {
+// Every export has a row in the function index, and nothing else does.
+const listed = Array.from(html.matchAll(/class="fn" data-fn="(\w+)"/g), ([, name]) => name);
+assert(
+  listed.slice().sort().join() === exportNames.slice().sort().join(),
+  `The function index does not match src/index.ts: ${listed.join(', ')}`
+);
+assert(
+  getTags('input').some(({ id, type }) => id === 'fn-search' && type === 'search'),
+  'The function index needs its search box'
+);
+// The header links are the page's sections, by the same names.
+for (const section of ['themes', 'functions', 'recipes', 'api']) {
   assert(
-    html.includes(`data-demo="${name}"`),
-    `The gallery is missing a demo for ${name}`
+    html.includes(`data-spy="${section}"`) && html.includes(`id="${section}"`),
+    `The header and the page disagree about the "${section}" section`
   );
 }
 assert(
