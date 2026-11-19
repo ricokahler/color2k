@@ -68,6 +68,11 @@ export function slugify(title: string) {
   );
 }
 
+/** Where a function lives on the website: its group's page, at its name. */
+export function getFunctionUrl(group: string, name: string, base = 'https://color2k.com') {
+  return `${base}/${group.toLowerCase()}/#${name}`;
+}
+
 /** The first sentence of a doc comment, on one line. */
 export function getSummary(doc: DocInfo) {
   const firstParagraph = doc.description.split(/\n\s*\n/)[0].replace(/\s+/g, ' ');
@@ -315,7 +320,7 @@ export function generateLlmsTxt(
     '## Docs',
     '',
     `- [Full documentation](${SITE_URL}/llms-full.txt): install, recipes and the complete API in one Markdown file`,
-    `- [Website](${SITE_URL}/): the same documentation as HTML, with a live demo of every function`,
+    `- [Website](${SITE_URL}/): the same documentation as HTML, with a live demo of every function on its own anchor`,
     `- [README](${REPO_URL}/blob/main/README.md): the source of all of the above`,
     '',
     ...getGroupedDocs(docs).flatMap(({ title, docs: groupDocs }) => [
@@ -323,7 +328,7 @@ export function generateLlmsTxt(
       '',
       ...groupDocs.map((doc) => {
         const name = getDisplayName(doc);
-        return `- [${name}](${SITE_URL}/#${slugify(name)}): \`${
+        return `- [${name}](${getFunctionUrl(title, doc.functionName)}): \`${
           doc.signature
         }\`. ${getSummary(doc)}`;
       }),

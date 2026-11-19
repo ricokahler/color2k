@@ -24,5 +24,60 @@
     "toHsla": 1635,
     "toRgba": 1512,
     "transparentize": 1521
+  },
+  "files": {
+    "guard": 66,
+    "ColorError": 61,
+    "parseToRgba": 742,
+    "named colors": 561,
+    "parseToHsla": 121,
+    "hsla": 58,
+    "adjustHue": 21,
+    "darken": 9,
+    "desaturate": 7,
+    "getLuminance": 86,
+    "getContrast": 29,
+    "rgba": 27,
+    "mix": 106,
+    "getScale": 63,
+    "hasBadContrast": 62,
+    "lighten": 11,
+    "transparentize": 16,
+    "opacify": 6,
+    "readableColorIsBlack": 13,
+    "readableColor": 14,
+    "saturate": 7,
+    "toHex": 67,
+    "toRgba": 10,
+    "toHsla": 9,
+    "exports": 184
+  },
+  "typical": {
+    "imports": [
+      "darken",
+      "lighten",
+      "mix",
+      "readableColor",
+      "toHex",
+      "transparentize"
+    ],
+    "size": 2024,
+    "files": [
+      "guard",
+      "ColorError",
+      "parseToRgba",
+      "named colors",
+      "parseToHsla",
+      "hsla",
+      "darken",
+      "getLuminance",
+      "rgba",
+      "mix",
+      "lighten",
+      "transparentize",
+      "readableColorIsBlack",
+      "readableColor",
+      "toHex"
+    ]
   }
 }

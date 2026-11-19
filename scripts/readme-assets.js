@@ -625,7 +625,7 @@ function generateBanner() {
     .replace(/<title[^>]*>.*?<\/title>/, '')
     .replace(/<\/svg>\s*$/, '');
   const label =
-    'color2k. Every color job your UI needs, in 2.4 kB. A palette computed by color2k drifts around the color wheel.';
+    'color2k. Fully dynamic colors in 2.4 kB. A palette computed by color2k drifts around the color wheel.';
   const [, logoWidth, logoHeight] = /viewBox="0 0 (\d+) (\d+)"/.exec(
     fs.readFileSync(path.resolve(root, 'website/static/logo.svg'), 'utf8')
   );
@@ -652,8 +652,8 @@ function generateBanner() {
     `<svg x="46" y="48" width="430" height="${Math.round(
       (430 * logoHeight) / logoWidth
     )}" viewBox="0 0 ${logoWidth} ${logoHeight}">${logo}</svg>`,
-    '<text x="60" y="228" font-size="35" font-weight="800" letter-spacing="-0.6" fill="#fff">Every color job your UI</text>',
-    '<text x="60" y="272" font-size="35" font-weight="800" letter-spacing="-0.6" fill="#fff">needs, in 2.4 kB.</text>',
+    '<text x="60" y="228" font-size="35" font-weight="800" letter-spacing="-0.6" fill="#fff">Fully dynamic colors</text>',
+    '<text x="60" y="272" font-size="35" font-weight="800" letter-spacing="-0.6" fill="#fff">in 2.4 kB.</text>',
     '<rect x="60" y="312" width="212" height="50" rx="11" fill="#fff" fill-opacity="0.08" stroke="#fff" stroke-opacity="0.2"/>',
     `<text x="80" y="343" font-family="${MONO}" font-size="18" fill="#fff"><tspan fill="#8d94aa">$ </tspan>npm i color2k</text>`,
     '<text x="296" y="343" font-size="17" fill="#a2a9bd">No dependencies</text>',

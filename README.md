@@ -1,11 +1,11 @@
 <p align="center">
   <a href="https://color2k.com">
-    <img src="./docs/readme/banner.svg" alt="color2k. Every color job your UI needs, in 2.4 kB. A palette computed by color2k drifts around the color wheel." width="100%" />
+    <img src="./docs/readme/banner.svg" alt="color2k. Fully dynamic colors in 2.4 kB. A palette computed by color2k drifts around the color wheel." width="100%" />
   </a>
 </p>
 
 <p align="center">
-  <strong>Every color job your UI needs, in 2.4 kB.</strong><br />
+  <strong>Fully dynamic colors in 2.4 kB.</strong><br />
   No dependencies. Types included.
 </p>
 
@@ -113,7 +113,7 @@ Every example here runs against the built package in CI. The picture under each 
 
 ### A whole theme from one color
 
-Pick a color and let color2k work out the rest. These are the three themes on [color2k.com](https://color2k.com), where you can paint with them and watch all three recolor together. Each one takes a color and returns the same fourteen tokens, for light or dark.
+Pick a color and let color2k work out the rest. These are the three themes on [color2k.com/themes](https://color2k.com/themes/), where they run live on any color you pick. Each one takes a color and returns the same fourteen tokens, for light or dark.
 
 Each one also looks at what you gave it and makes a few decisions. It returns those too, as `why`.
 

@@ -1,7 +1,7 @@
 {
   "name": "color2k",
   "version": "2.0.0",
-  "description": "Every color job your UI needs, in 2.4 kB. Parse, convert, adjust and mix colors and check contrast. No dependencies.",
+  "description": "Fully dynamic colors in 2.4 kB. Parse, convert, adjust and mix CSS colors at runtime and check their contrast. Full sRGB coverage, no dependencies.",
   "homepage": "https://color2k.com",
   "repository": {
     "type": "git",
