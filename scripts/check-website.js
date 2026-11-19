@@ -86,6 +86,10 @@ const directives = Object.fromEntries(
 );
 assert(/^\/\*\n/m.test(headers), '_headers must apply the policy to every path');
 assert(directives['default-src'] === "'none'", "CSP default-src must be 'none'");
+assert(
+  !('frame-src' in directives) || process.env.CONTEXT === 'deploy-preview',
+  'Only deploy previews may allow a frame (for the Netlify toolbar)'
+);
 assert(directives['script-src'] === "'self'", "CSP script-src must be 'self' only");
 assert(
   directives['base-uri'] === "'none'" && directives['frame-ancestors'] === "'none'",

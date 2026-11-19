@@ -165,7 +165,7 @@ const text = readableColorIsBlack('gold') ? '#1a1a1a' : '#fafafa'; // '#1a1a1a'
 
 ### Contrast checks
 
-`getContrast` returns the WCAG contrast ratio, from 1 to 21. `hasBadContrast` compares it to a standard: `'decorative'` (1.5), `'readable'` (3), `'aa'` (4.5, the default) or `'aaa'` (7).
+`getContrast` returns the WCAG contrast ratio, which runs from 1 to 21 for opaque, in-range colors. `hasBadContrast` compares it to a standard: `'decorative'` (1.5), `'readable'` (3), `'aa'` (4.5, the default) or `'aaa'` (7).
 
 ```js
 import { getContrast, hasBadContrast } from 'color2k';
@@ -188,21 +188,34 @@ hasBadContrast('gold', 'aa', 'midnightblue'); // false
 <p><img src="./docs/readme/contrast-checks.svg" width="624" alt="Aa Text: #767676 on white, contrast 4.54:1 (AA); Aa Text: #999 on white, contrast 2.85:1 (fails AA); Aa Text: gold on midnightblue, contrast 10.59:1 (AAA)" /></p>
 <!-- RESULT-END -->
 
-Nudge a color until it passes AA on its background:
+Both functions ignore alpha and do not clamp, so give them opaque, in-range colors. A see-through color has no contrast ratio of its own (it depends on what is behind it), and `getContrast('rgb(999, 0, 0)', 'black')` is a meaningless 103.
+
+Nudge a color until it passes AA on its background. The color is flattened onto the (opaque) background first, so a see-through color is measured as it will be seen:
 
 ```js
 import {
   darken,
   hasBadContrast,
   lighten,
+  parseToRgba,
   readableColorIsBlack,
+  rgba,
   toHex,
 } from 'color2k';
+
+// What `color` looks like on top of an opaque `background`.
+function flatten(color, background) {
+  const [red, green, blue, alpha] = parseToRgba(color);
+  const under = parseToRgba(background);
+  const over = (top, bottom) => top * alpha + bottom * (1 - alpha);
+
+  return rgba(over(red, under[0]), over(green, under[1]), over(blue, under[2]), 1);
+}
 
 function accessible(color, background = '#fff') {
   // Move away from the background: darker on light, lighter on dark.
   const adjust = readableColorIsBlack(background) ? darken : lighten;
-  let result = color;
+  let result = flatten(color, background);
 
   for (let i = 0; i < 50 && hasBadContrast(result, 'aa', background); i++) {
     result = adjust(result, 0.02);
@@ -213,10 +226,12 @@ function accessible(color, background = '#fff') {
 
 const onLight = accessible('#4dabf7'); // '#0a75cd'
 const onDark = accessible('#555', '#000'); // '#787878'
+const fromClear = accessible('transparent'); // '#757575'
+const fromGlass = accessible('rgba(77, 171, 247, 0.5)'); // '#0b75cb'
 ```
 
-<!-- RESULT: samples [{ color: '#4dabf7', background: '#fff', label: 'Before' }, { color: onLight, background: '#fff', label: 'After', passes: 'aa' }, { color: '#555', background: '#000', label: 'Before' }, { color: onDark, background: '#000', label: 'After', passes: 'aa' }] -->
-<p><img src="./docs/readme/contrast-checks-2.svg" width="832" alt="Before: #4dabf7 on #fff, contrast 2.48:1 (fails AA); After: #0a75cd on #fff, contrast 4.73:1 (AA); Before: #555 on #000, contrast 2.82:1 (fails AA); After: #787878 on #000, contrast 4.76:1 (AA)" /></p>
+<!-- RESULT: samples [{ color: '#4dabf7', background: '#fff', label: 'Before' }, { color: onLight, background: '#fff', label: 'After', passes: 'aa' }, { color: '#555', background: '#000', label: 'Before' }, { color: onDark, background: '#000', label: 'After', passes: 'aa' }, { color: fromClear, background: '#fff', label: 'Transparent', passes: 'aa' }, { color: fromGlass, background: '#fff', label: 'Half clear', passes: 'aa' }] -->
+<p><img src="./docs/readme/contrast-checks-2.svg" width="832" alt="Before: #4dabf7 on #fff, contrast 2.48:1 (fails AA); After: #0a75cd on #fff, contrast 4.73:1 (AA); Before: #555 on #000, contrast 2.82:1 (fails AA); After: #787878 on #000, contrast 4.76:1 (AA); Transparent: #757575 on #fff, contrast 4.61:1 (AA); Half clear: #0b75cb on #fff, contrast 4.75:1 (AA)" /></p>
 <!-- RESULT-END -->
 
 ### Color scales
@@ -296,7 +311,7 @@ const variables = Object.entries(brand)
 
 ### CSS-in-JS
 
-color2k was built for this. The output is always a string the browser understands.
+color2k was built for this. Every function returns a plain CSS color string, so results drop straight into a template.
 
 ```jsx
 import styled from 'styled-components';
@@ -411,7 +426,7 @@ canParse('rgb(999, 0, 0)'); // true
 ```
 
 <!-- RESULT: checks results -->
-<p><img src="./docs/readme/check-what-color2k-accepts.svg" width="772" alt="#0d6efd: valid; rgb(13, 110, 253): valid; rgb(13 110 253): not valid; #12345: not valid" /></p>
+<p><img src="./docs/readme/check-what-color2k-accepts.svg" width="772" alt="#0d6efd: parses; rgb(13, 110, 253): parses; rgb(13 110 253): throws; #12345: throws" /></p>
 <!-- RESULT-END -->
 
 This is not a CSS validator. The parser is small and loose on purpose:
@@ -454,7 +469,7 @@ color2k works in sRGB and parses the color syntax that every browser has support
 | Named colors, in any letter case | `red`, `rebeccapurple`, `PapayaWhip` |
 | `transparent` | `transparent` |
 
-Whitespace around a color is ignored. A string in none of these forms throws a `ColorError`, but the numbers inside are not range-checked. See [Check what color2k accepts](#check-what-color2k-accepts).
+Whitespace around a color is ignored. A string in none of these forms throws a `ColorError`, with two caveats: about 3% of made-up names are read as some color, and the numbers inside `rgb()` are not range-checked or clamped. See [Check what color2k accepts](#check-what-color2k-accepts).
 
 | Output | Returned by |
 | --- | --- |
@@ -463,7 +478,7 @@ Whitespace around a color is ignored. A string in none of these forms throws a `
 | Hex string | `toHex` |
 | `'#000'` or `'#fff'` | `readableColor` |
 
-Every output is valid input, so wrap any result in `toHex`, `toRgba` or `toHsla` to get the format you want.
+Results can be passed back in, so wrap one in `toHex`, `toRgba` or `toHsla` to get the format you want. The exception is `adjustHue` with negative degrees; see [Known edges](#known-edges).
 
 Not supported yet:
 
@@ -471,10 +486,12 @@ Not supported yet:
 - Percentages for alpha or for `rgb()` channels, such as `rgba(255, 0, 0, 50%)`.
 - `hwb()`, `lab()`, `lch()`, `oklab()`, `oklch()` and `color()`.
 
-Good to know:
+### Known edges
 
 - `hsla()` output is rounded to whole degrees and percents, so converting to HSL and back can move a channel by a step or two. `toHex(lighten('#ffb537', 0))` is `#ffb638`. Keep the original string when you need the exact color back.
-- `adjustHue` with negative degrees returns a negative hue, such as `hsla(-120, 100%, 50%, 1)`. Browsers accept that, but color2k can't parse it back in. Use the positive angle instead: `adjustHue(color, 240)`.
+- `adjustHue` with negative degrees returns a negative hue, such as `hsla(-120, 100%, 50%, 1)`. Browsers accept that, but color2k throws a `ColorError` if you pass it back in, so the result does not round-trip. This is a known bug. Until it is fixed, use the positive angle: `adjustHue(color, 240)`.
+- Out-of-range numbers are not clamped on the way in. `rgb(999, 0, 0)` parses as written, and `getContrast` or `getLuminance` on it return numbers outside their normal range.
+- Contrast functions ignore alpha. Flatten a see-through color onto its background first, as the `accessible` recipe does.
 - `mix` always returns an `rgba()` string, even at the ends. `mix('red', 'blue', 0)` is `'rgba(255, 0, 0, 1)'`, not `'red'`.
 - `getScale` returns a function, not a list of colors. Call it with numbers from 0 to 1 to get your steps.
 
@@ -496,8 +513,9 @@ Both are generated from the README and the JSDoc comments in `src`, and the same
 - `getScale('red', 'yellow', 'green')` takes colors as separate arguments, not an array, and returns a function of a number from 0 to 1.
 - `readableColor(background)` returns `'#000'` or `'#fff'`. `hasBadContrast(color, standard = 'aa', background = '#fff')` returns `true` when contrast is too low.
 - A string color2k can't parse throws a `ColorError`. Space-separated `rgb(0 0 0 / 50%)`, percentage alpha, `oklch()`, `lab()` and `color()` are not supported.
-- Parsing is loose and is not validation: `rgb(999, 0, 0)` is accepted as written. Validate user input before passing it in.
-- Pass positive degrees to `adjustHue` (240, not -120). A negative result hue cannot be parsed by color2k again.
+- Parsing is loose and is not validation: `rgb(999, 0, 0)` is accepted as written and not clamped, and about 3% of made-up color names parse as some color. Validate user input before passing it in.
+- `getContrast`, `hasBadContrast` and `readableColor` ignore alpha. Flatten a see-through color onto its background before measuring.
+- Pass positive degrees to `adjustHue` (240, not -120). With negative degrees the result has a negative hue, which color2k throws on if you pass it back in (a known bug).
 - sRGB only. There are no CMYK, LAB or wide-gamut conversions.
 <!-- AGENT-NOTES-END -->
 
@@ -576,7 +594,11 @@ function adjustHue(color: string, degrees: number): string
 ```
 
 Rotates a color's hue by the given number of degrees and returns the result
-as an `hsla` string. Hue values wrap around the 0 to 360 degree color wheel.
+as an `hsla` string.
+
+A hue past 360 wraps around the color wheel. A hue below 0 is not wrapped:
+`adjustHue('red', -120)` returns `hsla(-120, 100%, 50%, 1)`, which browsers
+understand but color2k cannot parse again, so prefer positive degrees.
 
 ```js
 adjustHue('red', 180); // 'hsla(180, 100%, 50%, 1)'
@@ -673,6 +695,10 @@ function getContrast(color1: string, color2: string): number
 
 Returns the contrast ratio between two colors based on the WCAG contrast
 ratio formula.
+
+The ratio is between 1 and 21 for opaque, in-range colors. Alpha is ignored,
+and out-of-range channels such as `rgb(999, 0, 0)` are not clamped, so they
+give ratios that mean nothing.
 
 ```js
 getContrast('#444', '#fff'); // 9.739769120526205
@@ -955,11 +981,14 @@ function parseToRgba(color: string): [number, number, number, number]
 
 Parses a color into red, green, blue, and alpha channel values.
 
-Supports hex (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`), comma-separated
+Reads hex (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`), comma-separated
 `rgb()`, `rgba()`, `hsl()` and `hsla()`, CSS named colors, and
-`transparent`. Throws a `ColorError` when the string is in none of these
-forms. Parsing is lenient and is not validation: the numbers inside `rgb()`
-and the alpha value are not range-checked.
+`transparent`. A string in none of these forms throws a `ColorError`.
+
+This is a lenient parser, not a validator. Color names are matched by hash,
+so about 3% of made-up names are read as some color instead of throwing.
+The numbers in `rgb()` and the alpha value are returned as written, without
+clamping: `rgb(999, 0, 0)` gives `[999, 0, 0, 1]`.
 
 ```js
 parseToRgba('rgba(255, 0, 0, 0.5)'); // [255, 0, 0, 0.5]

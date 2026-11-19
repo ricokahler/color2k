@@ -207,6 +207,39 @@ function inlineResults(markdown: string) {
   });
 }
 
+/**
+ * Netlify's `_headers` file. Scripts may only come from this site and nothing
+ * loads from anywhere else. Deploy previews also allow the toolbar Netlify
+ * adds to them; production frames nothing.
+ */
+function getHeaders() {
+  const isPreview = process.env.CONTEXT === 'deploy-preview';
+  const policy = [
+    "default-src 'none'",
+    "script-src 'self'",
+    "style-src 'unsafe-inline'",
+    "img-src 'self' data:",
+    "manifest-src 'self'",
+    ...(isPreview ? ['frame-src https://app.netlify.com'] : []),
+    "base-uri 'none'",
+    "form-action 'none'",
+    "frame-ancestors 'none'",
+  ].join('; ');
+
+  return [
+    '/*',
+    `  Content-Security-Policy: ${policy}`,
+    '  X-Content-Type-Options: nosniff',
+    '  Referrer-Policy: strict-origin-when-cross-origin',
+    ...['/llms.txt', '/llms-full.txt'].flatMap((file) => [
+      file,
+      '  Content-Type: text/plain; charset=utf-8',
+      '  Access-Control-Allow-Origin: *',
+    ]),
+    '',
+  ].join('\n');
+}
+
 /** The page's script: the demos, started with the library's global. */
 function getSiteScript() {
   return fs
@@ -310,6 +343,7 @@ async function render() {
       toc: getToc(headings),
     })
   );
+  await write('_headers', getHeaders());
   await write('color2k.js', getBrowserBundle());
   await write('site.js', getSiteScript());
   await write('llms.txt', generateLlmsTxt(readme, pkg));

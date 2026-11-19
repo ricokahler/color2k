@@ -272,9 +272,10 @@ code {
   border-radius: 999px;
 }
 
+/* A failing standard is dashed and struck through, not dimmed: the label
+   still has to be readable on the changing background. */
 .live-badges span[data-pass="false"] {
   border-style: dashed;
-  opacity: 0.5;
   text-decoration: line-through;
 }
 

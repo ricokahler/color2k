@@ -250,7 +250,7 @@ const renderers = {
     );
     const layout = grid(value.length, cellWidth, cellHeight);
     const alt = value
-      .map(([input, ok]) => `${input}: ${ok ? 'valid' : 'not valid'}`)
+      .map(([input, ok]) => `${input}: ${ok ? 'parses' : 'throws'}`)
       .join('; ');
 
     const body = value
@@ -411,10 +411,45 @@ function generateBanner() {
   });
 
   // Text that flips between black and white, and a contrast ratio that keeps
-  // up. Both are sampled once a second and switch without fading.
+  // up. The browser fades the swatch in a straight line between keyframes, so
+  // work out the color it really shows at any moment, then switch the text at
+  // the moments that keep it at 4.5:1 or better all the way around the loop.
+  const channels = bases.map((base) => c.parseToRgba(base));
+  const shown = (position) => {
+    const at = Math.min(position, 1) * BANNER_STEPS;
+    const step = Math.min(Math.floor(at), BANNER_STEPS - 1);
+    const blend = (channel) =>
+      channels[step][channel] +
+      (channels[step + 1][channel] - channels[step][channel]) * (at - step);
+    return c.rgba(blend(0), blend(1), blend(2), 1);
+  };
+  const SLICES = BANNER_SECONDS * 50;
+  const inks = Array.from({ length: SLICES }, (_, slice) => {
+    const ends = [shown(slice / SLICES), shown((slice + 1) / SLICES)];
+    const [contrast, ink] = ['#000', '#fff']
+      .map((candidate) => [
+        Math.min(...ends.map((end) => c.getContrast(end, candidate))),
+        candidate,
+      ])
+      .sort((one, other) => other[0] - one[0])[0];
+
+    if (contrast < 4.5) {
+      throw new Error(
+        `Banner text drops to ${contrast.toFixed(2)}:1 at ${((slice / SLICES) * BANNER_SECONDS).toFixed(2)}s`
+      );
+    }
+
+    return ink;
+  });
+  const inkAt = (position) => inks[Math.min(Math.floor(position * SLICES), SLICES - 1)];
+  const flips = inks
+    .map((ink, slice) => ({ ink, slice }))
+    .filter(({ ink, slice }) => slice === 0 || ink !== inks[slice - 1]);
+
   const samples = Array.from({ length: BANNER_SECONDS }, (_, second) => {
-    const base = bannerColor((second + 0.5) / BANNER_SECONDS);
-    const readable = c.readableColor(base);
+    const position = (second + 0.5) / BANNER_SECONDS;
+    const base = shown(position);
+    const readable = inkAt(position);
     const level = contrastLevel(readable, base);
     return {
       readable,
@@ -423,10 +458,10 @@ function generateBanner() {
   });
 
   keyframes.push(
-    `@keyframes ink{${samples
+    `@keyframes ink{${flips
       .map(
-        ({ readable }, second) =>
-          `${percent(second / BANNER_SECONDS)}{fill:${readable}}`
+        ({ ink, slice }) =>
+          `${Math.round((slice / SLICES) * 1e5) / 1e3}%{fill:${ink}}`
       )
       .join('')}}`,
     `@keyframes show{0%{opacity:1}${percent(1 / BANNER_SECONDS)}{opacity:0}100%{opacity:0}}`
@@ -472,11 +507,11 @@ function generateBanner() {
     `<text x="80" y="343" font-family="${MONO}" font-size="18" fill="#fff"><tspan fill="#8d94aa">$ </tspan>npm i color2k</text>`,
     '<text x="296" y="343" font-size="17" fill="#a2a9bd">Zero dependencies</text>',
     `<rect class="base" x="632" y="52" width="522" height="92" rx="14" fill="${bases[0]}"/>`,
-    `<text class="ink" x="656" y="96" font-size="26" font-weight="800" font-style="italic" fill="${samples[0].readable}">Always readable</text>`,
-    `<text class="ink" x="656" y="123" font-family="${MONO}" font-size="14" fill="${samples[0].readable}">readableColor(background)</text>`,
+    `<text class="ink" x="656" y="96" font-size="26" font-weight="800" font-style="italic" fill="${inks[0]}">Always readable</text>`,
+    `<text class="ink" x="656" y="123" font-family="${MONO}" font-size="14" fill="${inks[0]}">readableColor(background)</text>`,
     ...samples.map(
       ({ text }, second) =>
-        `<text class="ink ratio r${second}" x="1132" y="106" text-anchor="end" font-family="${MONO}" font-size="17" font-weight="700" fill="${samples[0].readable}">${text}</text>`
+        `<text class="ink ratio r${second}" x="1132" y="106" text-anchor="end" font-family="${MONO}" font-size="17" font-weight="700" fill="${inks[0]}">${text}</text>`
     ),
     ...cells,
     '</svg>',

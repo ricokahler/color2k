@@ -59,7 +59,7 @@ npm run website     # build the site and llms files into ./build
 - New exports must be added to `API_GROUPS` in `website/docs.ts` and need a
   demo in `website/showcase.js`.
 - The website stays static: no frameworks, no external requests, no inline
-  scripts (the Content-Security-Policy in `website/static/_headers` only allows
+  scripts (the Content-Security-Policy written by `website/index.ts` only allows
   the site's own two script files), and it must work with JavaScript turned
   off and respect `prefers-reduced-motion`. `npm run website:check` enforces
   most of this.

@@ -4,11 +4,14 @@ import ColorError from './ColorError';
 /**
  * Parses a color into red, green, blue, and alpha channel values.
  *
- * Supports hex (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`), comma-separated
+ * Reads hex (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`), comma-separated
  * `rgb()`, `rgba()`, `hsl()` and `hsla()`, CSS named colors, and
- * `transparent`. Throws a `ColorError` when the string is in none of these
- * forms. Parsing is lenient and is not validation: the numbers inside `rgb()`
- * and the alpha value are not range-checked.
+ * `transparent`. A string in none of these forms throws a `ColorError`.
+ *
+ * This is a lenient parser, not a validator. Color names are matched by hash,
+ * so about 3% of made-up names are read as some color instead of throwing.
+ * The numbers in `rgb()` and the alpha value are returned as written, without
+ * clamping: `rgb(999, 0, 0)` gives `[999, 0, 0, 1]`.
  *
  * ```js
  * parseToRgba('rgba(255, 0, 0, 0.5)'); // [255, 0, 0, 0.5]
