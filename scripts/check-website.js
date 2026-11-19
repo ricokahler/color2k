@@ -20,22 +20,76 @@ const exportNames = Array.from(
   ([, name]) => name
 );
 
-const scriptTags = html.match(/<script\b/gi) || [];
 const ricoNavIndex = html.indexOf('href="https://rico.codes">rico.codes</a>');
 const npmNavIndex = html.indexOf('aria-label="npm package"');
 const githubNavIndex = html.indexOf('aria-label="GitHub repository"');
 
-// The page is static. Its only scripts are the structured data, the library
-// itself (for the playground) and one inline script that drives the playground.
+/** Every `<tag ...>` in the page, with its attributes parsed. */
+function getTags(name) {
+  const tags = [];
+  const tagPattern = new RegExp(`<${name}\\b([^>]*)>`, 'gi');
+
+  for (const [, source] of html.matchAll(tagPattern)) {
+    const attributes = {};
+    const attributePattern = /([^\s"'=<>/]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?/g;
+
+    for (const [, key, double, single, bare] of source.matchAll(attributePattern)) {
+      attributes[key.toLowerCase()] = double ?? single ?? bare ?? '';
+    }
+
+    tags.push(attributes);
+  }
+
+  return tags;
+}
+
+// The page is static. It may run exactly two scripts, both from this site:
+// the library itself and the demos. The third tag is JSON-LD data.
+const scripts = getTags('script');
+const scriptSources = scripts
+  .filter((attributes) => 'src' in attributes)
+  .map(({ src }) => src);
+const inlineScripts = scripts.filter((attributes) => !('src' in attributes));
+
 assert(
-  scriptTags.length === 3 &&
-    html.includes('<script type="application/ld+json">') &&
-    html.includes('<script src="/color2k.js"></script>'),
-  'Expected only the JSON-LD, color2k.js and playground script tags'
+  JSON.stringify(scriptSources) === JSON.stringify(['/color2k.js', '/site.js']),
+  `Unexpected script sources: ${scriptSources.join(', ')}`
 );
 assert(
-  (html.match(/<script src=/g) || []).length === 1,
-  'Unexpected external script'
+  inlineScripts.length === 1 && inlineScripts[0].type === 'application/ld+json',
+  'The only inline script allowed is the JSON-LD data block'
+);
+assert(
+  !/\son\w+\s*=/i.test(html.replace(/<pre[\s\S]*?<\/pre>/g, '')),
+  'Unexpected inline event handler'
+);
+
+// Nothing on the page loads from another origin.
+for (const tag of ['img', 'link', 'script', 'source', 'iframe', 'video', 'audio']) {
+  for (const { src, href, rel = '' } of getTags(tag)) {
+    const url = src ?? (tag === 'link' && !/canonical/.test(rel) ? href : undefined);
+    assert(
+      url === undefined || /^\/(?!\/)/.test(url),
+      `<${tag}> loads from another origin: ${url}`
+    );
+  }
+}
+
+// Netlify sends the Content-Security-Policy that enforces all of the above.
+const headers = read('_headers');
+const csp = (/Content-Security-Policy: (.+)/.exec(headers) || [])[1] || '';
+const directives = Object.fromEntries(
+  csp.split(';').map((directive) => {
+    const [name, ...values] = directive.trim().split(/\s+/);
+    return [name, values.join(' ')];
+  })
+);
+assert(/^\/\*\n/.test(headers), '_headers must apply the policy to every path');
+assert(directives['default-src'] === "'none'", "CSP default-src must be 'none'");
+assert(directives['script-src'] === "'self'", "CSP script-src must be 'self' only");
+assert(
+  directives['base-uri'] === "'none'" && directives['frame-ancestors'] === "'none'",
+  'CSP must lock down base-uri and frame-ancestors'
 );
 assert(!html.includes('Preact'), 'Unexpected Preact runtime');
 assert(!html.includes('hydrate('), 'Unexpected hydration code');
@@ -53,8 +107,18 @@ assert(
 );
 assert(html.includes('class="hero"'), 'Missing hero');
 assert(
-  html.includes('id="play-out"') && html.includes('class="play-tile"'),
-  'Missing server-rendered playground'
+  html.includes('id="live"') && html.includes('class="live-cells"'),
+  'Missing server-rendered hero palette'
+);
+for (const name of exportNames) {
+  assert(
+    html.includes(`data-demo="${name}"`),
+    `The gallery is missing a demo for ${name}`
+  );
+}
+assert(
+  (html.match(/<figure class="result"><svg/g) || []).length >= 10,
+  'Missing recipe results'
 );
 assert(
   html.includes(`content="${pkg.description}"`),
@@ -103,12 +167,19 @@ assert(
 );
 
 
-// The playground loads the real library.
+// The demos load the real library, and their script parses.
 const browserGlobal = {};
 vm.runInNewContext(read('color2k.js'), browserGlobal);
 assert(
   browserGlobal.color2k.toHex('red') === '#ff0000',
   'color2k.js does not define a working color2k global'
+);
+const site = read('site.js');
+new vm.Script(site);
+assert(
+  site.trimEnd().endsWith('showcase.start(color2k);') &&
+    !/\b(eval|fetch|XMLHttpRequest|import)\s*\(|new Function|innerHTML/.test(site),
+  'site.js should only start the demos'
 );
 
 // llms.txt (https://llmstxt.org): an H1, a blockquote summary, then H2
@@ -147,8 +218,13 @@ for (const [heading] of readme.matchAll(/^#{2,3} .+$/gm)) {
   assert(llmsFull.includes(heading), `llms-full.txt is missing "${heading}"`);
 }
 assert(
-  !/<!--|<p align/.test(llms + llmsFull),
-  'llms files should not contain HTML comments or the README header'
+  !/<!--|<p align|<img/.test(llms + llmsFull),
+  'llms files should not contain HTML comments, images or the README header'
+);
+assert(
+  (llmsFull.match(/^Result:$/gm) || []).length ===
+    (readme.match(/^<!-- RESULT: /gm) || []).length,
+  'llms-full.txt should give every recipe result as text'
 );
 assert(
   html.includes('href="/llms.txt"') && html.includes('href="/llms-full.txt"'),
@@ -164,5 +240,5 @@ for (const page of ['', 'llms.txt', 'llms-full.txt']) {
 }
 
 console.log(
-  'Website check passed: static HTML, playground, llms files, structured data, and sitemap are present.'
+  'Website check passed: static HTML, demos, CSP, llms files, structured data, and sitemap are present.'
 );

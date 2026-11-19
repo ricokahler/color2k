@@ -6,7 +6,9 @@ import ColorError from './ColorError';
  *
  * Supports hex (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`), comma-separated
  * `rgb()`, `rgba()`, `hsl()` and `hsla()`, CSS named colors, and
- * `transparent`. Throws a `ColorError` for anything else.
+ * `transparent`. Throws a `ColorError` when the string is in none of these
+ * forms. Parsing is lenient and is not validation: the numbers inside `rgb()`
+ * and the alpha value are not range-checked.
  *
  * ```js
  * parseToRgba('rgba(255, 0, 0, 0.5)'); // [255, 0, 0, 0.5]

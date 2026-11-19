@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://color2k.com">
-    <img src="./website/static/logo.svg" alt="color2k" width="440" />
+    <img src="./docs/readme/banner.svg" alt="color2k: color parsing and manipulation in 2.4 kB. An animated palette, computed by color2k, drifts around the color wheel." width="100%" />
   </a>
 </p>
 
@@ -29,7 +29,7 @@
 
 Most apps need a handful of color jobs: darken a brand color for a hover state, fade it for a focus ring, pick black or white text, check contrast. color2k does those jobs and nothing else, so it costs almost nothing to ship.
 
-- **Tiny.** 2.4 kB for everything, about 1.7 kB if you only import `darken`.
+- **Tiny.** 2.4 kB for everything, about 1.6 kB if you only import `darken`.
 - **Plain functions.** CSS color strings go in, CSS color strings come out. No classes, no chaining, no plugins.
 - **Everything you reach for.** Parse, convert, lighten, darken, saturate, fade, mix, build scales and check WCAG contrast.
 - **Safe to depend on.** Zero dependencies, a thorough test suite, TypeScript types and npm provenance.
@@ -43,7 +43,7 @@ Most apps need a handful of color jobs: darken a brand color for a hover state, 
 | [colord](https://github.com/omgovich/colord) with the names, mix and a11y plugins | 4.9 kB |
 | **color2k** | [**2.4 kB**](https://bundlephobia.com/package/color2k) |
 
-Sizes are from Bundlephobia in November 2026. colord's 2.1 kB core has no named colors, mixing or contrast checks, so it is measured (with esbuild) with the plugins that match what color2k does.
+Sizes are from Bundlephobia in November 2026. colord's 2.3 kB core has no named colors, mixing or contrast checks, so it is measured (with esbuild) with the plugins that match what color2k does.
 
 ## Quickstart
 
@@ -88,7 +88,7 @@ Or as a global named `color2k`:
 
 ## Recipes
 
-Every example here runs against the built package in CI, so what you copy is what works.
+Every example here runs against the built package in CI, and the picture under each one is drawn from the values that code produced. What you copy is what works.
 
 ### Theme from one brand color
 
@@ -115,33 +115,53 @@ theme.brandSubtle; // 'rgba(102, 51, 153, 0.12)'
 theme.onBrand; // '#fff'
 ```
 
-Turn it into CSS custom properties:
+<!-- RESULT: swatches theme -->
+<p><img src="./docs/readme/theme-from-one-brand-color.svg" width="748" alt="brand: rebeccapurple; brandHover: hsla(270, 50%, 34%, 1); brandActive: hsla(270, 50%, 28%, 1); brandSubtle: rgba(102, 51, 153, 0.12); focusRing: rgba(102, 51, 153, 0.4); onBrand: #fff" /></p>
+<!-- RESULT-END -->
+
+Turn a theme into CSS custom properties:
 
 ```js
 import { darken, transparentize } from 'color2k';
 
-const theme = {
-  brand: 'rebeccapurple',
-  'brand-hover': darken('rebeccapurple', 0.06),
-  'focus-ring': transparentize('rebeccapurple', 0.6),
+const variables = {
+  '--brand': 'tomato',
+  '--brand-hover': darken('tomato', 0.06),
+  '--focus-ring': transparentize('tomato', 0.6),
 };
 
-for (const [name, value] of Object.entries(theme)) {
-  globalThis.document?.documentElement.style.setProperty(`--${name}`, value);
+for (const [name, value] of Object.entries(variables)) {
+  globalThis.document?.documentElement.style.setProperty(name, value);
 }
 ```
+
+<!-- RESULT: swatches variables -->
+<p><img src="./docs/readme/theme-from-one-brand-color-2.svg" width="520" alt="--brand: tomato; --brand-hover: hsla(9, 100%, 58%, 1); --focus-ring: rgba(255, 99, 71, 0.4)" /></p>
+<!-- RESULT-END -->
 
 ### Readable text on any background
 
 ```js
 import { readableColor, readableColorIsBlack } from 'color2k';
 
-readableColor('gold'); // '#000'
-readableColor('midnightblue'); // '#fff'
+const backgrounds = ['gold', 'tomato', 'rebeccapurple', 'midnightblue'];
+
+const labels = backgrounds.map((background) => ({
+  background,
+  color: readableColor(background),
+  label: background,
+}));
+
+labels[0].color; // '#000'
+labels[3].color; // '#fff'
 
 // Use your own ink and paper colors instead of pure black and white.
 const text = readableColorIsBlack('gold') ? '#1a1a1a' : '#fafafa'; // '#1a1a1a'
 ```
+
+<!-- RESULT: samples labels.map((label) => ({ ...label, passes: 'aa' })) -->
+<p><img src="./docs/readme/readable-text-on-any-background.svg" width="832" alt="gold: #000 on gold, contrast 14.97:1 (AAA); tomato: #000 on tomato, contrast 7.13:1 (AAA); rebeccapurple: #fff on rebeccapurple, contrast 8.41:1 (AAA); midnightblue: #fff on midnightblue, contrast 14.85:1 (AAA)" /></p>
+<!-- RESULT-END -->
 
 ### Contrast checks
 
@@ -150,30 +170,54 @@ const text = readableColorIsBlack('gold') ? '#1a1a1a' : '#fafafa'; // '#1a1a1a'
 ```js
 import { getContrast, hasBadContrast } from 'color2k';
 
+const pairs = [
+  { color: '#767676', background: 'white' },
+  { color: '#999', background: 'white' },
+  { color: 'gold', background: 'midnightblue' },
+];
+
 getContrast('#767676', 'white').toFixed(2); // '4.54'
 
 hasBadContrast('#767676'); // false
 hasBadContrast('#767676', 'aaa'); // true
+hasBadContrast('#999'); // true
 hasBadContrast('gold', 'aa', 'midnightblue'); // false
 ```
 
-Darken a color until it passes AA on its background:
+<!-- RESULT: samples pairs -->
+<p><img src="./docs/readme/contrast-checks.svg" width="624" alt="Aa Text: #767676 on white, contrast 4.54:1 (AA); Aa Text: #999 on white, contrast 2.85:1 (fails AA); Aa Text: gold on midnightblue, contrast 10.59:1 (AAA)" /></p>
+<!-- RESULT-END -->
+
+Nudge a color until it passes AA on its background:
 
 ```js
-import { darken, hasBadContrast, toHex } from 'color2k';
+import {
+  darken,
+  hasBadContrast,
+  lighten,
+  readableColorIsBlack,
+  toHex,
+} from 'color2k';
 
 function accessible(color, background = '#fff') {
+  // Move away from the background: darker on light, lighter on dark.
+  const adjust = readableColorIsBlack(background) ? darken : lighten;
   let result = color;
 
   for (let i = 0; i < 50 && hasBadContrast(result, 'aa', background); i++) {
-    result = darken(result, 0.02);
+    result = adjust(result, 0.02);
   }
 
   return toHex(result);
 }
 
-accessible('#4dabf7'); // '#0a75cd'
+const onLight = accessible('#4dabf7'); // '#0a75cd'
+const onDark = accessible('#555', '#000'); // '#787878'
 ```
+
+<!-- RESULT: samples [{ color: '#4dabf7', background: '#fff', label: 'Before' }, { color: onLight, background: '#fff', label: 'After', passes: 'aa' }, { color: '#555', background: '#000', label: 'Before' }, { color: onDark, background: '#000', label: 'After', passes: 'aa' }] -->
+<p><img src="./docs/readme/contrast-checks-2.svg" width="832" alt="Before: #4dabf7 on #fff, contrast 2.48:1 (fails AA); After: #0a75cd on #fff, contrast 4.73:1 (AA); Before: #555 on #000, contrast 2.82:1 (fails AA); After: #787878 on #000, contrast 4.76:1 (AA)" /></p>
+<!-- RESULT-END -->
 
 ### Color scales
 
@@ -188,10 +232,16 @@ heat(0); // 'rgba(46, 196, 182, 1)'
 heat(0.5); // 'rgba(255, 214, 10, 1)'
 heat(0.75); // 'rgba(255, 137, 51, 1)'
 
-const steps = [0, 0.25, 0.5, 0.75, 1].map((n) => toHex(heat(n)));
+const steps = [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1].map((n) =>
+  toHex(heat(n))
+);
 
-steps; // ['#2ec4b6', '#97cd60', '#ffd60a', '#ff8933', '#ff3b5c']
+steps[2]; // '#97cd60'
 ```
+
+<!-- RESULT: swatches steps -->
+<p><img src="./docs/readme/color-scales.svg" width="667" alt="#2ec4b6; #62c98b; #97cd60; #cbd235; #ffd60a; #ffaf1e; #ff8933; #ff6248; #ff3b5c" /></p>
+<!-- RESULT-END -->
 
 ### Tints and shades
 
@@ -200,9 +250,14 @@ steps; // ['#2ec4b6', '#97cd60', '#ffd60a', '#ff8933', '#ff3b5c']
 ```js
 import { mix, toHex } from 'color2k';
 
-const tint = toHex(mix('rebeccapurple', 'white', 0.8)); // '#e0d6eb'
-const shade = toHex(mix('rebeccapurple', 'black', 0.4)); // '#3d1f5c'
+const base = 'rebeccapurple';
+const tint = toHex(mix(base, 'white', 0.8)); // '#e0d6eb'
+const shade = toHex(mix(base, 'black', 0.4)); // '#3d1f5c'
 ```
+
+<!-- RESULT: swatches { tint, base, shade } -->
+<p><img src="./docs/readme/tints-and-shades.svg" width="340" alt="tint: #e0d6eb; base: rebeccapurple; shade: #3d1f5c" /></p>
+<!-- RESULT-END -->
 
 ### Tailwind palette
 
@@ -235,6 +290,10 @@ const variables = Object.entries(brand)
   .join('\n');
 ```
 
+<!-- RESULT: swatches brand -->
+<p><img src="./docs/readme/tailwind-palette.svg" width="817" alt="50: #f0eafb; 100: #e2d4f7; 200: #c5a9f0; 300: #a77ee8; 400: #8a53e1; 500: #6d28d9; 600: #5720ae; 700: #411882; 800: #2c1057; 900: #16082b; 950: #0b0416" /></p>
+<!-- RESULT-END -->
+
 ### CSS-in-JS
 
 color2k was built for this. The output is always a string the browser understands.
@@ -256,8 +315,12 @@ const Button = styled.button`
   }
 `;
 
-<Button $color="#0d6efd">Save</Button>;
+const save = <Button $color="#b3261e">Save</Button>;
 ```
+
+<!-- RESULT: css save -->
+<p><img src="./docs/readme/css-in-js.svg" width="624" alt="Save (default): #fff on #b3261e, contrast 6.54:1 (AA); Save (hover): #fff on hsla(3, 71%, 33%, 1), contrast 8.81:1 (AAA); Save (focus): #fff on #b3261e, contrast 6.54:1 (AA), ring rgba(179, 38, 30, 0.4)" /></p>
+<!-- RESULT-END -->
 
 ### React
 
@@ -278,40 +341,56 @@ function Tag({ color, children }) {
   return <span style={style}>{children}</span>;
 }
 
-<Tag color="tomato">New</Tag>;
+const tags = [
+  <Tag color="tomato">New</Tag>,
+  <Tag color="gold">Sale</Tag>,
+  <Tag color="midnightblue">Pro</Tag>,
+];
 ```
+
+<!-- RESULT: elements tags -->
+<p><img src="./docs/readme/react.svg" width="624" alt="New: #000 on tomato, contrast 7.13:1 (AAA), ring rgba(255, 99, 71, 0.2); Sale: #000 on gold, contrast 14.97:1 (AAA), ring rgba(255, 215, 0, 0.2); Pro: #fff on midnightblue, contrast 14.85:1 (AAA), ring rgba(25, 25, 112, 0.2)" /></p>
+<!-- RESULT-END -->
 
 ### Convert between formats
 
 ```js
 import { parseToHsla, parseToRgba, toHex, toHsla, toRgba } from 'color2k';
 
-toHex('hsl(210, 100%, 50%)'); // '#0080ff'
-toRgba('#0080ff'); // 'rgba(0, 128, 255, 1)'
-toHsla('#0080ff'); // 'hsla(210, 100%, 50%, 1)'
+const hex = toHex('hsl(210, 100%, 50%)'); // '#0080ff'
+const rgb = toRgba(hex); // 'rgba(0, 128, 255, 1)'
+const hsl = toHsla(hex); // 'hsla(210, 100%, 50%, 1)'
 
 // Need the numbers? Parse to a tuple.
 parseToRgba('#0080ff80'); // [0, 128, 255, 0.5019607843137255]
 parseToHsla('tomato'); // [9.130434782608695, 1, 0.6392156862745098, 1]
 ```
 
+<!-- RESULT: swatches { hex, rgb, hsl } -->
+<p><img src="./docs/readme/convert-between-formats.svg" width="541" alt="hex: #0080ff; rgb: rgba(0, 128, 255, 1); hsl: hsla(210, 100%, 50%, 1)" /></p>
+<!-- RESULT-END -->
+
 Build a color string from numbers with `rgba` and `hsla`:
 
 ```js
 import { hsla, rgba } from 'color2k';
 
-rgba(0, 128, 255, 0.5); // 'rgba(0, 128, 255, 0.5)'
-hsla(210, 1, 0.5, 1); // 'hsla(210, 100%, 50%, 1)'
+const glass = rgba(0, 128, 255, 0.5); // 'rgba(0, 128, 255, 0.5)'
+const sky = hsla(210, 1, 0.5, 1); // 'hsla(210, 100%, 50%, 1)'
 ```
 
-### Validate a color string
+<!-- RESULT: swatches { glass, sky } -->
+<p><img src="./docs/readme/convert-between-formats-2.svg" width="358" alt="glass: rgba(0, 128, 255, 0.5); sky: hsla(210, 100%, 50%, 1)" /></p>
+<!-- RESULT-END -->
 
-color2k throws a `ColorError` when it can't parse a color, so validation is a `try`:
+### Check what color2k accepts
+
+color2k throws a `ColorError` when it can't parse a string, so a `try` tells you whether color2k will take it:
 
 ```js
 import { ColorError, parseToRgba } from 'color2k';
 
-function isColor(value) {
+function canParse(value) {
   try {
     parseToRgba(value);
     return true;
@@ -321,13 +400,26 @@ function isColor(value) {
   }
 }
 
-isColor('#0d6efd'); // true
-isColor('rgb(13, 110, 253)'); // true
-isColor('rgb(13 110 253)'); // false
-isColor('#12345'); // false
+const inputs = ['#0d6efd', 'rgb(13, 110, 253)', 'rgb(13 110 253)', '#12345'];
+const results = inputs.map((input) => [input, canParse(input)]);
+
+canParse('#0d6efd'); // true
+canParse('rgb(13 110 253)'); // false
+
+// Loose: the shape is checked, the numbers are not.
+canParse('rgb(999, 0, 0)'); // true
 ```
 
-Named colors are stored as hashes to save bytes, so about 3% of made-up words are accepted as if they were a color name. Hex, `rgb()` and `hsl()` strings are always checked exactly. If you validate free-form user input, also check it against your own list or `CSS.supports('color', value)` in the browser.
+<!-- RESULT: checks results -->
+<p><img src="./docs/readme/check-what-color2k-accepts.svg" width="772" alt="#0d6efd: valid; rgb(13, 110, 253): valid; rgb(13 110 253): not valid; #12345: not valid" /></p>
+<!-- RESULT-END -->
+
+This is not a CSS validator. The parser is small and loose on purpose:
+
+- Channel and alpha values are not range-checked. `rgb(999, 0, 0)` parses as it is written, and a malformed alpha such as `rgba(1, 2, 3, .)` parses to `NaN`.
+- Named colors are stored as hashes to save bytes, so about 3% of made-up words are accepted as if they were a color name.
+
+To validate user input, use `CSS.supports('color', value)` in the browser or your own allow-list, then give the string to color2k.
 
 ### Invert and complement
 
@@ -339,12 +431,16 @@ function invert(color) {
   return rgba(255 - red, 255 - green, 255 - blue, alpha);
 }
 
-invert('white'); // 'rgba(0, 0, 0, 1)'
-invert('#0d6efd'); // 'rgba(242, 145, 2, 1)'
+const original = '#0d6efd';
+const inverted = invert(original); // 'rgba(242, 145, 2, 1)'
 
 // The opposite side of the color wheel.
-adjustHue('#0d6efd', 180); // 'hsla(36, 98%, 52%, 1)'
+const complement = adjustHue(original, 180); // 'hsla(36, 98%, 52%, 1)'
 ```
+
+<!-- RESULT: swatches { original, inverted, complement } -->
+<p><img src="./docs/readme/invert-and-complement.svg" width="499" alt="original: #0d6efd; inverted: rgba(242, 145, 2, 1); complement: hsla(36, 98%, 52%, 1)" /></p>
+<!-- RESULT-END -->
 
 ## Supported colors
 
@@ -358,7 +454,7 @@ color2k works in sRGB and parses the color syntax that every browser has support
 | Named colors, in any letter case | `red`, `rebeccapurple`, `PapayaWhip` |
 | `transparent` | `transparent` |
 
-Whitespace around a color is ignored. Anything else throws a `ColorError`.
+Whitespace around a color is ignored. A string in none of these forms throws a `ColorError`, but the numbers inside are not range-checked. See [Check what color2k accepts](#check-what-color2k-accepts).
 
 | Output | Returned by |
 | --- | --- |
@@ -375,7 +471,12 @@ Not supported yet:
 - Percentages for alpha or for `rgb()` channels, such as `rgba(255, 0, 0, 50%)`.
 - `hwb()`, `lab()`, `lch()`, `oklab()`, `oklch()` and `color()`.
 
-Good to know: `hsla()` output is rounded to whole degrees and percents, so converting to HSL and back can move a channel by a step or two. `toHex(lighten('#ffb537', 0))` is `#ffb638`. Keep the original string when you need the exact color back.
+Good to know:
+
+- `hsla()` output is rounded to whole degrees and percents, so converting to HSL and back can move a channel by a step or two. `toHex(lighten('#ffb537', 0))` is `#ffb638`. Keep the original string when you need the exact color back.
+- `adjustHue` with negative degrees returns a negative hue, such as `hsla(-120, 100%, 50%, 1)`. Browsers accept that, but color2k can't parse it back in. Use the positive angle instead: `adjustHue(color, 240)`.
+- `mix` always returns an `rgba()` string, even at the ends. `mix('red', 'blue', 0)` is `'rgba(255, 0, 0, 1)'`, not `'red'`.
+- `getScale` returns a function, not a list of colors. Call it with numbers from 0 to 1 to get your steps.
 
 ## For AI agents
 
@@ -391,10 +492,12 @@ Both are generated from the README and the JSDoc comments in `src`, and the same
 - Colors are CSS strings, in and out. Inputs can be hex (3, 4, 6 or 8 digits), comma-separated `rgb()`, `rgba()`, `hsl()` or `hsla()`, a named color, or `transparent`.
 - Amounts are decimals from 0 to 1 and are absolute. `darken(color, 0.1)` lowers lightness by 10 percentage points. It is not a 10% relative change.
 - `darken`, `lighten`, `saturate`, `desaturate` and `adjustHue` return `hsla()` strings. `transparentize`, `opacify`, `mix` and `getScale` return `rgba()` strings. Wrap a result in `toHex` when you need hex.
-- `mix(color1, color2, weight)`: weight 0 returns `color1` and weight 1 returns `color2`.
+- `mix(color1, color2, weight)`: weight 0 gives `color1` and weight 1 gives `color2`, always as an `rgba()` string.
 - `getScale('red', 'yellow', 'green')` takes colors as separate arguments, not an array, and returns a function of a number from 0 to 1.
 - `readableColor(background)` returns `'#000'` or `'#fff'`. `hasBadContrast(color, standard = 'aa', background = '#fff')` returns `true` when contrast is too low.
-- Invalid input throws a `ColorError`. Space-separated `rgb(0 0 0 / 50%)`, percentage alpha, `oklch()`, `lab()` and `color()` are not supported.
+- A string color2k can't parse throws a `ColorError`. Space-separated `rgb(0 0 0 / 50%)`, percentage alpha, `oklch()`, `lab()` and `color()` are not supported.
+- Parsing is loose and is not validation: `rgb(999, 0, 0)` is accepted as written. Validate user input before passing it in.
+- Pass positive degrees to `adjustHue` (240, not -120). A negative result hue cannot be parsed by color2k again.
 - sRGB only. There are no CMYK, LAB or wide-gamut conversions.
 <!-- AGENT-NOTES-END -->
 
@@ -423,7 +526,17 @@ Issues and pull requests are welcome. [CONTRIBUTING.md](https://github.com/ricok
 
 Heavy credit goes to [polished](https://github.com/styled-components/polished) and [Sass](https://sass-lang.com). Much of the implementation of this lib is copied from polished.
 
-Thanks to everyone who has contributed fixes, including [@dajiaohuang](https://github.com/dajiaohuang) and [@Ismayil77](https://github.com/Ismayil77) for whitespace handling in color strings ([#561](https://github.com/ricokahler/color2k/pull/561), [#567](https://github.com/ricokahler/color2k/pull/567)), and [@feritcemkahraman](https://github.com/feritcemkahraman) for the Sass alpha weighting in `mix` ([#564](https://github.com/ricokahler/color2k/pull/564)). See all [contributors](https://github.com/ricokahler/color2k/graphs/contributors).
+Thanks to everyone who has contributed:
+
+- [@delucis](https://github.com/delucis) (Chris Swithinbank) made `mix` return valid colors when one side is transparent at the ends of the weight range ([#409](https://github.com/ricokahler/color2k/pull/409)).
+- [@Myndex](https://github.com/Myndex) corrected the luminance threshold that `readableColor` uses to pick black or white ([#472](https://github.com/ricokahler/color2k/pull/472)).
+- [@feritcemkahraman](https://github.com/feritcemkahraman) brought the full Sass alpha weighting to `mix` ([#564](https://github.com/ricokahler/color2k/pull/564), shipped in [#572](https://github.com/ricokahler/color2k/pull/572)).
+- [@dajiaohuang](https://github.com/dajiaohuang) and [@Ismayil77](https://github.com/Ismayil77) made the parser ignore whitespace around color strings ([#561](https://github.com/ricokahler/color2k/pull/561), [#567](https://github.com/ricokahler/color2k/pull/567), shipped in [#571](https://github.com/ricokahler/color2k/pull/571)).
+- [@ljharb](https://github.com/ljharb) (Jordan Harband) restored Node 6 compatibility ([#355](https://github.com/ricokahler/color2k/pull/355)).
+- [@diondiondion](https://github.com/diondiondion) improved the documentation ([#245](https://github.com/ricokahler/color2k/pull/245)).
+- [@okikio](https://github.com/okikio) (Okiki Ojo) updated the bundlejs.com links ([#429](https://github.com/ricokahler/color2k/pull/429)).
+
+See everyone on the [contributors graph](https://github.com/ricokahler/color2k/graphs/contributors).
 
 <!-- API-DOCS-START -->
 ## API
@@ -844,7 +957,9 @@ Parses a color into red, green, blue, and alpha channel values.
 
 Supports hex (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`), comma-separated
 `rgb()`, `rgba()`, `hsl()` and `hsla()`, CSS named colors, and
-`transparent`. Throws a `ColorError` for anything else.
+`transparent`. Throws a `ColorError` when the string is in none of these
+forms. Parsing is lenient and is not validation: the numbers inside `rgb()`
+and the alpha value are not range-checked.
 
 ```js
 parseToRgba('rgba(255, 0, 0, 0.5)'); // [255, 0, 0, 0.5]

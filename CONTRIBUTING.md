@@ -22,7 +22,7 @@ example, builds and checks the website, and inspects the npm package contents.
 | --- | --- |
 | `npm test` | Runs the Jest tests. Add `-- --watch` while you work. |
 | `npm run build` | Builds `dist` with Rollup and emits type declarations. |
-| `npm run docs:generate` | Rewrites the API section of the README from JSDoc. |
+| `npm run docs:generate` | Rewrites the README's API section from JSDoc, and its banner and recipe pictures (needs a build). |
 | `npm run examples:check` | Runs the README code blocks against `dist`. |
 | `npm run website` | Builds color2k.com, `llms.txt` and `llms-full.txt` into `build`. |
 | `npm run check` | All of the above, plus lint and package checks. |
@@ -41,6 +41,11 @@ example, builds and checks the website, and inspects the npm package contents.
 features need to earn their bytes, so please open an issue before writing a
 large one. No runtime dependencies.
 
+**`dist` must run on Node 6.** color2k is used in old toolchains. CI runs the
+CommonJS build on a real Node 6 and checks that the `module` and UMD builds
+parse as ES2015. `npm run compat:check` runs the same checks locally (on your
+Node version), so avoid newer syntax and built-ins in `src`.
+
 **Document as you go.** Every export needs a JSDoc comment with a description,
 a `js` example, `@param` tags and `@returns`. Run `npm run docs:generate` and
 commit the README change. Do not edit the README between the `API-DOCS`
@@ -55,6 +60,12 @@ toHex('red'); // '#ff0000'
 ```
 
 Put explanatory comments on their own line.
+
+**Pictures come from the code.** The banner and the picture under each recipe
+live in `docs/readme` and are drawn by `scripts/readme-assets.js` using
+color2k. A `<!-- RESULT: kind expression -->` marker under a code block draws
+that block's result, with the expression evaluated in the block's scope. Run
+`npm run docs:generate` after changing a recipe, and commit the SVGs.
 
 **Test behavior.** Add or update tests next to the code you change.
 

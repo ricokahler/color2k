@@ -271,6 +271,26 @@ export function getReadmeBody(readme: string) {
   return readme.slice(firstSection);
 }
 
+/**
+ * A recipe result as `scripts/readme-assets.js` writes it into the README.
+ * The first group is the SVG file and the second is its text description.
+ */
+export const RESULT_PATTERN =
+  /<!-- RESULT: .+ -->\n<p><img src="\.\/docs\/readme\/([\w-]+\.svg)"[^>]* alt="([^"]*)" \/><\/p>\n<!-- RESULT-END -->/g;
+
+/** Replaces each result picture with the values it shows, as a list. */
+function resultsAsText(markdown: string) {
+  return markdown.replace(RESULT_PATTERN, (match, file: string, alt: string) => {
+    const values = alt
+      .replace(/&quot;/g, '"')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&amp;/g, '&')
+      .split('; ');
+    return ['Result:', '', ...values.map((value) => `- ${value}`)].join('\n');
+  });
+}
+
 /** Removes the generator markers, which sit on lines of their own. */
 function stripComments(markdown: string) {
   return markdown.replace(/^<!--.*-->\n/gm, '');
@@ -295,7 +315,7 @@ export function generateLlmsTxt(
     '## Docs',
     '',
     `- [Full documentation](${SITE_URL}/llms-full.txt): install, recipes and the complete API in one Markdown file`,
-    `- [Website](${SITE_URL}/): the same documentation as HTML, with a playground`,
+    `- [Website](${SITE_URL}/): the same documentation as HTML, with a live demo of every function`,
     `- [README](${REPO_URL}/blob/main/README.md): the source of all of the above`,
     '',
     ...getGroupedDocs(docs).flatMap(({ title, docs: groupDocs }) => [
@@ -328,7 +348,7 @@ export function generateLlmsFullTxt(readme: string, pkg: Package) {
     '',
     `Website: ${SITE_URL}/ | Source: ${REPO_URL} | npm: https://www.npmjs.com/package/color2k`,
     '',
-    stripComments(getReadmeBody(readme)).trim(),
+    stripComments(resultsAsText(getReadmeBody(readme))).trim(),
     '',
   ].join('\n');
 }

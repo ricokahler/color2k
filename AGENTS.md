@@ -13,7 +13,7 @@ every byte in `dist` as expensive.
 npm ci              # install (also builds dist)
 npm test            # jest
 npm run check       # everything CI runs; must pass before you open a PR
-npm run docs:generate   # rewrite the API section of README.md from JSDoc
+npm run docs:generate   # rewrite the README's API section and pictures
 npm run website     # build the site and llms files into ./build
 ```
 
@@ -24,15 +24,22 @@ npm run website     # build the site and llms files into ./build
 - `website/docs.ts`: turns the JSDoc in `src` into the README API section,
   `llms.txt` and `llms-full.txt`.
 - `website/`: the static generator for color2k.com (`index.ts`, `template.ts`,
-  `App.css`, `playground.js`, and `static/` for the logo and icons).
+  `App.css`, `showcase.js` for the live demos, and `static/` for the logo and
+  icons).
 - `scripts/`: build and check scripts. `scripts/color-map.ts` generates the
   compressed named-color table in `src/parseToRgba.ts`.
+  `scripts/readme-assets.js` draws `docs/readme/*.svg` (the animated banner and
+  each recipe's result) with color2k itself.
 
 ## Rules
 
 - Do not add runtime dependencies, and do not grow the bundle for
   documentation or tooling changes. If a change adds bytes to `dist`, say how
   many in the PR.
+- `dist` must run on Node 6. The CommonJS build is run on a real Node 6 in CI
+  (`scripts/check-node6.js`, which is itself ES5), and the `module` and UMD
+  builds must parse as ES2015 (`npm run compat:check`). Do not use newer
+  syntax or built-ins in `src` without checking the build output.
 - Every export needs a JSDoc comment with a description, a `js` example,
   `@param` for each parameter and `@returns`. The docs build fails without them.
 - Never edit README.md between `<!-- API-DOCS-START -->` and
@@ -42,11 +49,20 @@ npm run website     # build the site and llms files into ./build
   `scripts/check-examples.js`. A trailing comment on a one-line statement is an
   assertion (`toHex('red'); // '#ff0000'`), so put explanations on their own
   line and make sure each example imports what it uses.
+- A `<!-- RESULT: kind expression -->` marker under a README code block draws
+  that block's result. The expression runs in the block's scope, so name a
+  variable from the recipe instead of repeating its math. Never edit
+  `docs/readme/*.svg` or the lines between the `RESULT` markers by hand; run
+  `npm run docs:generate` (after `npm run build`).
 - The list between `<!-- AGENT-NOTES-START -->` and `<!-- AGENT-NOTES-END -->`
   in README.md is copied into `llms.txt`. Keep it short and true.
-- New exports must be added to `API_GROUPS` in `website/docs.ts`.
-- The website stays static: no frameworks, no external requests, and it must
-  work with JavaScript turned off. `npm run website:check` enforces this.
+- New exports must be added to `API_GROUPS` in `website/docs.ts` and need a
+  demo in `website/showcase.js`.
+- The website stays static: no frameworks, no external requests, no inline
+  scripts (the Content-Security-Policy in `website/static/_headers` only allows
+  the site's own two script files), and it must work with JavaScript turned
+  off and respect `prefers-reduced-motion`. `npm run website:check` enforces
+  most of this.
 - Do not reformat files you are not otherwise changing.
 
 ## Pull requests and releases

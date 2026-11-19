@@ -7,12 +7,15 @@ import {
   generateLlmsTxt,
   generateReadme,
   getAllDocs,
+  getDisplayName,
+  getGroupedDocs,
   getReadmeBody,
+  RESULT_PATTERN,
   slugify,
 } from './docs';
 import * as color2k from '../src';
 
-const playground = require('./playground');
+const showcase = require('./showcase');
 
 const MarkdownIt = require('markdown-it');
 
@@ -22,8 +25,8 @@ interface Heading {
   level: number;
 }
 
-const PLAYGROUND_COLOR = '#5e60ce';
-const PLAYGROUND_PRESETS = [
+const GALLERY_COLOR = '#5e60ce';
+const GALLERY_PRESETS = [
   'tomato',
   'gold',
   '#2ec4b6',
@@ -164,16 +167,7 @@ async function renderMarkdown(markdown: string) {
   md.renderer.rules.table_open = () => '<div class="table-scroll"><table>\n';
   md.renderer.rules.table_close = () => '</table></div>\n';
 
-  // The hero is dark in both themes, so its snippet only needs the dark theme.
-  const quickstart = /```js\n([\s\S]*?)```/.exec(markdown);
-  if (!quickstart) throw new Error('README.md has no quickstart example');
-  const heroCodeHtml = highlighter.codeToHtml(quickstart[1].trimEnd(), {
-    lang: 'javascript',
-    theme: 'github-dark',
-    colorReplacements,
-  });
-
-  return { html: md.render(markdown) as string, headings, heroCodeHtml };
+  return { html: md.render(markdown) as string, headings };
 }
 
 /** Sections, with the recipes and API entries nested under theirs. */
@@ -195,7 +189,32 @@ function getToc(headings: Heading[]) {
   return toc;
 }
 
-/** The UMD build, served as `/color2k.js` for the playground. */
+/**
+ * Each recipe's result, drawn by `scripts/readme-assets.js` from the recipe's
+ * own code. The README links to the SVG; the site inlines it under the code.
+ */
+function inlineResults(markdown: string) {
+  return markdown.replace(RESULT_PATTERN, (match, file: string) => {
+    const svg = fs
+      .readFileSync(repoPath('docs/readme', file), { encoding: 'utf8' })
+      .trim();
+    return `<figure class="result">${svg}</figure>`;
+  });
+}
+
+/** The page's script: the demos, started with the library's global. */
+function getSiteScript() {
+  return fs
+    .readFileSync(path.resolve(__dirname, './showcase.js'), {
+      encoding: 'utf8',
+    })
+    .replace(
+      /\nif \(typeof module[^\n]*\n?$/,
+      '\nshowcase.start(color2k);\n'
+    );
+}
+
+/** The UMD build, served as `/color2k.js` for the demos. */
 function getBrowserBundle() {
   const bundle = repoPath('dist/index.unpkg.umd.js');
   if (!fs.existsSync(bundle)) {
@@ -248,9 +267,10 @@ async function render() {
     fs.readFileSync(repoPath('package.json'), { encoding: 'utf8' })
   );
   // The README's logo and badges are for GitHub and npm; the site has a hero.
-  const { html: bodyHtml, headings, heroCodeHtml } = await renderMarkdown(
-    getReadmeBody(readme)
+  const { html: bodyHtml, headings } = await renderMarkdown(
+    inlineResults(getReadmeBody(readme))
   );
+  const groups = getGroupedDocs();
   const buildFolder = repoPath('build');
 
   await fs.promises.rm(buildFolder, { recursive: true, force: true });
@@ -265,20 +285,28 @@ async function render() {
       bodyHtml,
       css,
       description: pkg.description,
-      heroCodeHtml,
       exportCount: getAllDocs().filter(({ kind }) => kind === 'function').length,
-      playgroundColor: PLAYGROUND_COLOR,
-      playgroundHtml: playground(color2k, PLAYGROUND_COLOR),
-      playgroundPresets: PLAYGROUND_PRESETS,
-      playgroundSource: fs.readFileSync(
-        path.resolve(__dirname, './playground.js'),
-        { encoding: 'utf8' }
+      galleryColor: GALLERY_COLOR,
+      galleryGroups: groups.map(({ title }) => title),
+      galleryHtml: showcase.galleryHtml(
+        color2k,
+        groups.map(({ title, docs }) => ({
+          title,
+          items: docs.map((doc) => ({
+            name: doc.functionName,
+            link: `#${slugify(getDisplayName(doc))}`,
+          })),
+        })),
+        GALLERY_COLOR
       ),
+      galleryPresets: GALLERY_PRESETS,
+      heroHtml: showcase.heroHtml(color2k),
       structuredData: getStructuredData(),
       toc: getToc(headings),
     })
   );
   await write('color2k.js', getBrowserBundle());
+  await write('site.js', getSiteScript());
   await write('llms.txt', generateLlmsTxt(readme, pkg));
   await write('llms-full.txt', generateLlmsFullTxt(readme, pkg));
 

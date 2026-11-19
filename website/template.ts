@@ -9,11 +9,11 @@ interface Params {
   css: string;
   description: string;
   exportCount: number;
-  heroCodeHtml: string;
-  playgroundColor: string;
-  playgroundHtml: string;
-  playgroundPresets: string[];
-  playgroundSource: string;
+  galleryColor: string;
+  galleryGroups: string[];
+  galleryHtml: string;
+  galleryPresets: string[];
+  heroHtml: string;
   structuredData: object;
   toc: TocItem[];
 }
@@ -54,62 +54,16 @@ function renderToc(toc: TocItem[]) {
     .join('\n          ');
 }
 
-// The only JavaScript on the page. Everything is rendered at build time; this
-// re-renders the playground when the color changes and wires the copy button.
-function clientScript(playgroundSource: string) {
-  return `${playgroundSource.replace(/\nif \(typeof module[^\n]*\n?$/, '\n')}
-(function () {
-  var out = document.getElementById('play-out');
-  var text = document.getElementById('play-text');
-  var picker = document.getElementById('play-picker');
-  var error = document.getElementById('play-error');
-  var controls = document.getElementById('play-controls');
-  if (!out || !window.color2k) return;
-
-  function update(value, from) {
-    try {
-      out.innerHTML = playground(color2k, value);
-      error.textContent = '';
-      text.removeAttribute('aria-invalid');
-      if (from !== text) text.value = value;
-      if (from !== picker) picker.value = color2k.toHex(value).slice(0, 7);
-    } catch (e) {
-      error.textContent = e.message;
-      text.setAttribute('aria-invalid', 'true');
-    }
-  }
-
-  controls.hidden = false;
-  text.addEventListener('input', function () { update(text.value, text); });
-  picker.addEventListener('input', function () { update(picker.value, picker); });
-  controls.addEventListener('click', function (event) {
-    var color = event.target.getAttribute && event.target.getAttribute('data-color');
-    if (color) update(color);
-  });
-
-  var copy = document.getElementById('copy-install');
-  if (copy && navigator.clipboard) {
-    copy.hidden = false;
-    copy.addEventListener('click', function () {
-      navigator.clipboard.writeText('npm i color2k').then(function () {
-        copy.textContent = 'Copied';
-        setTimeout(function () { copy.textContent = 'Copy'; }, 1500);
-      });
-    });
-  }
-})();`;
-}
-
 function template({
   bodyHtml,
   css,
   description,
   exportCount,
-  heroCodeHtml,
-  playgroundColor,
-  playgroundHtml,
-  playgroundPresets,
-  playgroundSource,
+  galleryColor,
+  galleryGroups,
+  galleryHtml,
+  galleryPresets,
+  heroHtml,
   structuredData,
   toc,
 }: Params) {
@@ -149,6 +103,8 @@ function template({
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt" />
     <link rel="alternate" type="text/plain" href="/llms-full.txt" title="llms-full.txt" />
+    <script src="/color2k.js" defer></script>
+    <script src="/site.js" defer></script>
     <style>${css}</style>
     <script type="application/ld+json">${escapeJsonForHtml(
       structuredData
@@ -213,41 +169,64 @@ function template({
           <div><dt>types</dt><dd>built in</dd></div>
         </dl>
         </div>
-        <div class="hero-code">${heroCodeHtml}</div>
+        <div class="hero-live">
+          ${heroHtml}
+          <p class="hero-live-note">
+            <span>Every color here is computed by color2k as you watch.</span>
+            <button type="button" class="motion-toggle" data-motion hidden>Pause motion</button>
+          </p>
+        </div>
       </div>
       <div class="hero-stripes" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
     </div>
-    <section class="play" id="playground" aria-labelledby="playground-title">
-      <div class="play-inner">
-        <div class="play-head">
-          <h2 id="playground-title">Try it</h2>
-          <p>This page loads the real 2.4 kB library. It is also in your console as <code>color2k</code>.</p>
+    <section class="gallery" aria-labelledby="gallery-title">
+      <div class="gallery-inner">
+        <div class="gallery-head">
+          <h2 id="gallery-title">Every function, live</h2>
+          <p>
+            The real 2.4 kB library is running on this page. Drag a slider,
+            pick a color, or open your console and call <code>color2k</code>.
+          </p>
         </div>
-        <div class="play-controls" id="play-controls" hidden>
-          <input type="color" id="play-picker" value="${escapeHtml(
-            playgroundColor
-          )}" aria-label="Pick a color" />
-          <input
-            type="text"
-            id="play-text"
-            value="${escapeHtml(playgroundColor)}"
-            aria-label="Any CSS color string"
-            aria-describedby="play-error"
-            autocomplete="off"
-            autocapitalize="off"
-            spellcheck="false"
-          />
-          ${playgroundPresets
-            .map(
-              (preset) =>
-                `<button type="button" data-color="${escapeHtml(
-                  preset
-                )}">${escapeHtml(preset)}</button>`
-            )
-            .join('\n          ')}
+        <div class="gallery-controls" id="gallery-controls" hidden>
+          <div class="gallery-color">
+            <input type="color" id="gallery-picker" value="${escapeHtml(
+              galleryColor
+            )}" aria-label="Pick a color" />
+            <input
+              type="text"
+              id="gallery-text"
+              value="${escapeHtml(galleryColor)}"
+              aria-label="Any color string color2k can parse"
+              aria-describedby="gallery-error"
+              autocomplete="off"
+              autocapitalize="off"
+              spellcheck="false"
+            />
+            ${galleryPresets
+              .map(
+                (preset) =>
+                  `<button type="button" data-color="${escapeHtml(
+                    preset
+                  )}">${escapeHtml(preset)}</button>`
+              )
+              .join('\n            ')}
+          </div>
+          <div class="gallery-filters" role="group" aria-label="Show functions">
+            <button type="button" data-filter="" aria-pressed="true">All</button>
+            ${galleryGroups
+              .map(
+                (group) =>
+                  `<button type="button" data-filter="${escapeHtml(
+                    group
+                  )}" aria-pressed="false">${escapeHtml(group)}</button>`
+              )
+              .join('\n            ')}
+            <button type="button" class="motion-toggle" data-motion hidden>Pause motion</button>
+          </div>
         </div>
-        <p class="play-error" id="play-error" role="status"></p>
-        <div id="play-out">${playgroundHtml}</div>
+        <p class="gallery-error" id="gallery-error" role="status"></p>
+        <ul class="demos" id="gallery">${galleryHtml}</ul>
       </div>
     </section>
     <div class="page-shell">
@@ -271,8 +250,6 @@ function template({
         </ul>
       </nav>
     </footer>
-    <script src="/color2k.js"></script>
-    <script>${clientScript(playgroundSource)}</script>
   </body>
 </html>`;
 }
