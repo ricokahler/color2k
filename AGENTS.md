@@ -4,7 +4,7 @@ Instructions for coding agents working in this repository. Humans should read
 [CONTRIBUTING.md](./CONTRIBUTING.md), which says the same things at more length.
 
 color2k is a color parsing and manipulation library whose main feature is its
-size: about 2.4 kB minified and gzipped, with zero runtime dependencies. Treat
+size: about 2.5 kB minified and gzipped, with zero runtime dependencies. Treat
 every byte in `dist` as expensive.
 
 ## Commands
@@ -21,12 +21,13 @@ npm run website     # build the site and llms files into ./build
 
 - `src/<name>.ts`: one public function per file, default-exported, with its
   test in `src/<name>.test.ts`. `src/index.ts` re-exports each one by name.
-- `website/docs.ts`: turns the JSDoc in `src` into the README API section,
+- `website/docs.ts`: turns the JSDoc in `src` into the README API section, one
+  Markdown file per section of the site (`/adjust.md` and so on),
   `llms.txt` and `llms-full.txt`.
-- `website/`: the static generator for color2k.com. `index.ts` cuts the README
-  and the JSDoc into pages, `template.ts` is the shell every page shares (menu,
-  color bar, footer), `pages.ts` and `demos.ts` are the page bodies and the
-  demo markup, and `App.css` is the one stylesheet. `models.js` holds what each
+- `website/`: the static generator for color2k.com, which is one page.
+  `index.ts` cuts the README and the JSDoc into its sections, `template.ts` is
+  the shell (menu, splash, color bar, footer), `pages.ts` and `demos.ts` are
+  the section bodies and the demo markup, and `App.css` is the one stylesheet. `models.js` holds what each
   demo shows as plain data and runs in both Node and the browser. `client.js`
   and `theme.js` are the browser scripts. `static/` has the logo and icons.
 - `scripts/sizes.js` measures the bundle (everything, each export alone, and
@@ -71,23 +72,32 @@ npm run website     # build the site and llms files into ./build
   `website/models.js`, in light and dark. `npm run website:check` sweeps it the
   same way, and checks highlighted code against it too. Add a pair to
   `SITE_PAIRS` when you put text on a new background.
-- The site self-hosts two small font subsets for the theme samples
-  (`website/static/fredoka.woff2` and `anton.woff2`, both OFL, license in
-  `fonts-license.txt`). Do not add more, do not preload them, and keep
-  `font-display: swap`. `npm run website:check` holds them under 30 kB.
-- Every "2.4 kB" is held to `docs/sizes.json`. If the bundle rounds to
+- The site self-hosts one small font subset, for the Bold theme sample
+  (`website/static/anton.woff2`, OFL, license in `fonts-license.txt`). The
+  other samples use system font stacks. Do not add more, do not preload it,
+  and keep `font-display: swap`. `npm run website:check` enforces this.
+- Every "2.5 kB" is held to `docs/sizes.json`. If the bundle rounds to
   something else, the docs build fails until the copy is updated.
 - The list between `<!-- AGENT-NOTES-START -->` and `<!-- AGENT-NOTES-END -->`
   in README.md is copied into `llms.txt`. Keep it short and true.
 - New exports must be added to `API_GROUPS` in `website/docs.ts` and need a
   demo: a model in `demos` in `website/models.js` and its markup in
   `website/demos.ts`. The build fails without one, and `npm run website:check`
-  fails unless the function pages list exactly the package's exports.
-- The site is several small pages, designed for a phone first (390px), then
-  widened. Keep one home for each thing: a function's home is its section on
-  its group's page (`/adjust/#darken`), with its demo and its reference
-  together. Everything else links there. The menu is the map, so a new page
-  goes in `nav` in `website/index.ts`.
+  fails unless the page lists exactly the package's exports.
+- The site is one long page of sections, designed for a phone first (390px),
+  then widened. Keep one home for each thing: a function's home is its entry
+  in its group's section (`/#darken`), with its demo and its reference
+  together. Everything else links there. The menu is the map, so a new
+  section goes in `nav` in `website/index.ts`, and gets a Markdown twin in
+  `getSections` in `website/docs.ts`.
+- The README is the one source for the site's prose, credits included.
+  `npm run website:check` fails if a line of the README's hand-written
+  sections is not on the page word for word, so write prose in the README
+  and let the site pick it up.
+- Old addresses keep working. Anchors from earlier versions of the site are
+  real elements on the page (`LEGACY_ANCHORS` in `website/index.ts`, and one
+  per function), and the paths from when the site was several pages are 301
+  redirects in `_redirects`. Do not remove them.
 - A demo's first paint and its updates come from the same model. Markup holds
   `data-t` slots for text and reads colors from CSS variables, and the browser
   only fills those in. Do not build demo markup in `client.js`.

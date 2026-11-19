@@ -37,7 +37,7 @@ example, builds and checks the website, and inspects the npm package contents.
 
 ## Guidelines
 
-**Size is the feature.** color2k is about 2.4 kB minified and gzipped. New
+**Size is the feature.** color2k is about 2.5 kB minified and gzipped. New
 features need to earn their bytes, so please open an issue before writing a
 large one. No runtime dependencies.
 
@@ -71,7 +71,7 @@ that block's result, with the expression evaluated in the block's scope. Run
 minifies it with Terser and gzips it, and writes `docs/sizes.json`. It also
 measures what each source file adds to the whole bundle, for the treemap on
 the website. The README table and the website read that file, and the docs build fails if the total no
-longer rounds to the 2.4 kB the copy claims.
+longer rounds to the 2.5 kB the copy claims.
 
 **Write like a person.** Docs and site copy should sound like a sharp
 colleague explaining something: plain words, real numbers, short sentences.
@@ -93,10 +93,10 @@ are automatic after a maintainer approves them. See
 
 ## Fonts
 
-The theme samples on the website use two fonts, cut down to basic Latin and
-served from the site itself: Fredoka (weight 600) and Anton. Both are under
-the SIL Open Font License, which ships next to them as
-`website/static/fonts-license.txt`. Everything else uses system fonts.
+The Bold theme sample on the website uses one font, Anton, cut down to basic
+Latin and served from the site itself. It is under the SIL Open Font License,
+which ships next to it as `website/static/fonts-license.txt`. Everything else
+uses system fonts.
 
 ## Logo and icons
 

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { execFileSync } from 'child_process';
-import { NavGroup, Page, renderHero, shell } from './template';
+import { NavGroup, notFound, renderHero, Section, shell } from './template';
 import { escapeHtml, styleOf } from './demos';
 import {
   FunctionEntry,
@@ -9,7 +9,6 @@ import {
   renderOverview,
   renderSize,
   renderThemes,
-  renderThemeTeaser,
   renderTreemap,
   Sizes,
   Theme,
@@ -21,9 +20,11 @@ import {
   generateReadme,
   getAllDocs,
   getDisplayName,
-  getFunctionUrl,
   getGroupedDocs,
   getReadmeBody,
+  getSections,
+  groupId,
+  splitAt,
   getSummary,
   RESULT_PATTERN,
   slugify,
@@ -41,32 +42,54 @@ const THEMES = [
 ];
 
 // What each group is for, in a line, on its card and at the top of its page.
-const GROUP_LINES: { [title: string]: [string, string] } = {
+// What each group is for: the line on its card, the phrase people search
+// for, and the line under its heading.
+const GROUP_LINES: { [title: string]: [string, string, string] } = {
   Parse: [
     'Read a color string into numbers.',
+    'Parse CSS colors to RGBA and HSLA numbers',
     'Two functions that read a color string into numbers. Everything else in color2k starts here.',
   ],
   Convert: [
     'Write a color as hex, rgb or hsl.',
+    'Convert hex to RGB and HSL in JavaScript',
     'Write a color in another format, or build one from numbers.',
   ],
   Adjust: [
     'Lighten, darken, fade or turn the hue.',
-    'Each of these moves one channel of your color and leaves the others alone.',
+    'Lighten and darken colors in JavaScript',
+    'Each of these changes your color one way and hands back the new one.',
   ],
   Mix: [
     'Blend two colors, or draw a scale through many.',
+    'Mix CSS colors and build color scales',
     'Blend two colors, or draw a scale through as many as you like.',
   ],
   Contrast: [
     'Measure contrast and pick text that reads.',
+    'Readable text color and WCAG contrast',
     'Measure how well two colors read together, and pick text that works.',
   ],
   Utilities: [
     'A clamp, and the error color2k throws.',
+    'Clamp a number and catch a color that will not parse',
     'The clamp color2k uses inside, and the error it throws when it cannot read a color.',
   ],
 };
+
+// Anchors and paths from earlier versions of the site, and where each lands.
+// The anchors are real elements on the page, so they work without a script.
+// The paths are 301 redirects.
+const LEGACY_ANCHORS: { [section: string]: string[] } = {
+  quickstart: ['installation', 'usage'],
+  themes: ['a-whole-theme-from-one-color'],
+  size: ['how-so-small', 'why-only-rgba-and-hsla-as-outputs'],
+};
+const LEGACY_PATHS: { [path: string]: string } = { colors: 'supported-colors', mix: 'mixing' };
+
+/** `<h2>` becomes `<h3>` and so on, for content that now sits in a section. */
+const nest = (html: string) =>
+  html.replace(/<(\/?)h([2-4])([\s>])/g, (match, slash, level, end) => `<${slash}h${Number(level) + 1}${end}`);
 
 function repoPath(...parts: string[]) {
   return path.resolve(__dirname, '..', ...parts);
@@ -190,53 +213,12 @@ function afterSummary(description: string) {
   return description.slice(end === -1 ? first.length : end + 1).trim();
 }
 
-/** Runs `change` on every line that is not inside a code fence. */
-function outsideFences(markdown: string, change: (line: string) => string) {
-  let fenced = false;
-  return markdown
-    .split('\n')
-    .map((line) => {
-      if (/^```/.test(line)) {
-        fenced = !fenced;
-        return line;
-      }
-      return fenced ? line : change(line);
-    })
-    .join('\n');
-}
-
-/** `### Title` becomes `## Title`, for a README section that is now a page. */
-const promote = (markdown: string) =>
-  outsideFences(markdown, (line) => line.replace(/^#(#+ )/, '$1'));
-
-/** Splits Markdown at headings of one level: `{ title: body }`, in order. */
-function splitAt(markdown: string, level: number) {
-  const sections = new Map<string, string>();
-  const marker = `${'#'.repeat(level)} `;
-  let title = '';
-  let lines: string[] = [];
-  let fenced = false;
-
-  for (const line of markdown.split('\n')) {
-    if (/^```/.test(line)) fenced = !fenced;
-    if (!fenced && line.startsWith(marker)) {
-      sections.set(title, lines.join('\n').trim());
-      title = line.slice(marker.length).trim();
-      lines = [];
-    } else {
-      lines.push(line);
-    }
-  }
-  sections.set(title, lines.join('\n').trim());
-  return sections;
-}
-
 /**
  * Netlify's `_headers` file. Scripts may only come from this site and nothing
  * loads from anywhere else. Deploy previews also allow the toolbar Netlify
  * adds to them; production frames nothing.
  */
-function getHeaders() {
+function getHeaders(markdownFiles: string[]) {
   const isPreview = process.env.CONTEXT === 'deploy-preview';
   const policy = [
     "default-src 'none'",
@@ -256,9 +238,9 @@ function getHeaders() {
     `  Content-Security-Policy: ${policy}`,
     '  X-Content-Type-Options: nosniff',
     '  Referrer-Policy: strict-origin-when-cross-origin',
-    ...['/llms.txt', '/llms-full.txt'].flatMap((file) => [
+    ...['/llms.txt', '/llms-full.txt', ...markdownFiles.map((file) => `/${file}`)].flatMap((file) => [
       file,
-      '  Content-Type: text/plain; charset=utf-8',
+      `  Content-Type: ${file.endsWith('.md') ? 'text/markdown' : 'text/plain'}; charset=utf-8`,
       '  Access-Control-Allow-Origin: *',
     ]),
     '',
@@ -349,6 +331,7 @@ function getStructuredData(pkg: any) {
     '@context': 'https://schema.org',
     '@type': 'SoftwareSourceCode',
     name: pkg.name,
+    version: pkg.version,
     description: pkg.description,
     keywords: pkg.keywords.join(', '),
     author: { '@type': 'Person', name: 'Rico Kahler', url: 'https://rico.codes' },
@@ -357,11 +340,7 @@ function getStructuredData(pkg: any) {
     runtimePlatform: 'JavaScript',
     license: 'https://github.com/ricokahler/color2k/blob/main/LICENSE',
     url: 'https://color2k.com/',
-    sameAs: [
-      'https://www.npmjs.com/package/color2k',
-      'https://github.com/ricokahler/color2k',
-      'https://rico.codes',
-    ],
+    sameAs: ['https://www.npmjs.com/package/color2k'],
   };
 }
 
@@ -373,7 +352,7 @@ function getTokenCss(models: any) {
   const block = (dark: boolean) =>
     `color-scheme:${dark ? 'dark' : 'light'};${styleOf(
       models.tokenVars(models.site(models.DEFAULT, dark))
-    )};--light:${dark ? ' ' : 'initial'};--dark:${dark ? 'initial' : ' '}`;
+    )};--pick:${models.DEFAULT};--light:${dark ? ' ' : 'initial'};--dark:${dark ? 'initial' : ' '}`;
   // The theme samples are painted from CSS too, so a dark page never shows
   // a light sample while the script loads.
   const samples = (dark: boolean, root: string) => models.sampleCss(models.DEFAULT, dark, root);
@@ -401,7 +380,7 @@ async function render() {
   const groups = getGroupedDocs();
   // The docs find exports by reading src/index.ts. Hold that against what the
   // module really exports, so one written in another shape cannot slip past
-  // the function pages and the llms files.
+  // the function sections and the llms files.
   const documented = getAllDocs().map(({ functionName }) => functionName);
   const missing = Object.keys(color2k).filter((name) => !documented.includes(name));
   if (missing.length) {
@@ -410,20 +389,23 @@ async function render() {
     );
   }
 
-  // The README, cut into the pieces each page shows.
+  // The README, cut into the pieces each section shows.
   const body = getReadmeBody(readme);
-  const sections = splitAt(body.slice(0, body.indexOf(API_DOCS_START)), 2);
+  const readmeSections = splitAt(body.slice(0, body.indexOf(API_DOCS_START)), 2);
   const section = (title: string) => {
-    const markdown = sections.get(title);
+    const markdown = readmeSections.get(title);
     if (!markdown) throw new Error(`README.md lost its "${title}" section`);
     return markdown;
   };
   const why = splitAt(section('Why color2k'), 3);
+  const whyPart = (title: string) => {
+    const markdown = why.get(title);
+    if (!markdown) throw new Error(`README.md lost "${title}"`);
+    return `## ${title}\n\n${markdown}`;
+  };
   const recipes = splitAt(section('Recipes'), 3);
   const themeRecipe = recipes.get('A whole theme from one color');
-  if (!themeRecipe || !why.get('What it costs') || !why.get('Next to the others')) {
-    throw new Error('README.md lost a section the site shows');
-  }
+  if (!themeRecipe) throw new Error('README.md lost its theme recipe');
 
   const themeSources = getThemeSources(themeRecipe);
   const models = createModels(
@@ -432,64 +414,59 @@ async function render() {
   );
   const color: string = models.DEFAULT;
   const { highlight, inline, render: renderMarkdown } = await createRenderer();
+  const prose = (markdown: string) => nest(renderMarkdown(inlineResults(markdown)).html);
 
   const css = fs
     .readFileSync(path.resolve(__dirname, './App.css'), { encoding: 'utf8' })
     .replace('/* TOKENS */', getTokenCss(models));
 
-  // ------------------------------------------------------------ pages
+  // --------------------------------------------------------- sections
 
-  // Where every README heading lives on the site, so a link written for the
-  // README (`#known-edges`) can be pointed at the right page.
-  const moved: { [slug: string]: string } = { api: '/#functions' };
-  const pages: Page[] = [];
-
-  const docPage = (
-    page: Pick<Page, 'path' | 'title' | 'parent' | 'lede'> & { heading?: string },
-    markdown: string,
-    extra = ''
-  ) => {
-    const { html, headings } = renderMarkdown(inlineResults(markdown));
-    for (const { slug } of headings) moved[slug] = `${page.path}#${slug}`;
-    pages.push({
-      ...page,
-      body: `<article class="prose">${html}</article>${extra}`,
-      anchors: headings
-        .filter(({ level }) => level === 2)
-        .map(({ slug, title }) => ({ id: slug, title })),
-    });
+  const files = getSections(readme);
+  const fileOf = (id: string) => {
+    const file = files.find((candidate) => candidate.id === id);
+    if (!file) throw new Error(`No Markdown for the "${id}" section`);
+    return file.file;
   };
+  const sections: Section[] = [];
+  const add = (entry: Omit<Section, 'file' | 'legacy'>) =>
+    sections.push({ ...entry, file: fileOf(entry.id), legacy: LEGACY_ANCHORS[entry.id] });
 
-  // Functions, one page per group.
-  const groupPages = groups.map(({ title, docs }) => {
-    const pagePath = `/${title.toLowerCase()}/`;
-    const entries: FunctionEntry[] = docs.map((doc) => {
-      const display = getDisplayName(doc);
-      moved[slugify(display)] = getFunctionUrl(title, doc.functionName, '');
-      return {
-        doc,
-        display,
-        summary: getSummary(doc),
-        descriptionHtml: renderMarkdown(afterSummary(doc.description)).html,
-        signatureHtml: highlight(doc.signature, 'ts'),
-        size: sizes.exports[doc.functionName],
-      };
-    });
+  add({
+    id: 'quickstart',
+    title: 'Quickstart',
+    parent: 'Start',
+    search: 'Install color2k and make your first calls',
+    lede: 'Install it, import a function and pass it a color.',
+    body: `<article class="prose">${renderMarkdown(section('Quickstart')).html}</article>`,
+  });
 
-    return {
-      path: pagePath,
+  for (const { title, docs } of groups) {
+    const entries: FunctionEntry[] = docs.map((doc) => ({
+      doc,
+      display: getDisplayName(doc),
+      summary: getSummary(doc),
+      descriptionHtml: renderMarkdown(afterSummary(doc.description)).html,
+      signatureHtml: highlight(doc.signature, 'ts'),
+      size: sizes.exports[doc.functionName],
+      // The old site named each entry after its heading: `#darkencolor-amount`.
+      legacy: slugify(getDisplayName(doc)),
+    }));
+
+    add({
+      id: groupId(title),
       title,
       parent: 'Functions',
-      lede: GROUP_LINES[title][1],
-      anchors: docs.map(({ functionName }) => ({ id: functionName, title: functionName })),
-      body: `<ul class="jump" aria-label="On this page">
+      search: GROUP_LINES[title][1],
+      lede: GROUP_LINES[title][2],
+      body: `<ul class="jump" aria-label="${title} functions">
           ${entries
             .map(({ doc }) => `<li><a href="#${doc.functionName}">${doc.functionName}</a></li>`)
             .join('\n          ')}
         </ul>
-        ${entries.map((entry) => renderFunction(entry, models, color, inline)).join('\n        ')}`,
-    };
-  });
+        ${entries.map((entry) => nest(renderFunction(entry, models, color, inline))).join('\n        ')}`,
+    });
+  }
 
   // Themes.
   const themes: Theme[] = themeSources.map((theme) => ({
@@ -508,20 +485,105 @@ async function render() {
   const themeIntro = themeRecipe.slice(0, themeRecipe.indexOf('**Soft**'));
   const themeClosing = themeRecipe.slice(themeRecipe.indexOf('The text pairs in all three'));
   if (themeClosing.length < 100) throw new Error('README.md theme recipe lost its closing');
-  moved['a-whole-theme-from-one-color'] = '/themes/';
+  add({
+    id: 'themes',
+    title: 'Themes',
+    parent: 'Guides',
+    search: 'A light and dark theme from one color',
+    lede: `Three builders, each about ${
+      Math.round(themes.reduce((sum, { lines }) => sum + lines, 0) / themes.length / 5) * 5
+    } lines of color2k. Change the color mode by the logo and they rebuild.`,
+    body: nest(
+      renderThemes(
+        themes,
+        models,
+        color,
+        // The line that sends README readers here is dropped.
+        renderMarkdown(themeIntro.replace(/^You can try all three.*\n/m, '')).html,
+        renderMarkdown(inlineResults(themeClosing)).html
+      )
+    ),
+  });
 
   recipes.delete('A whole theme from one color');
-  const recipeMarkdown = Array.from(recipes, ([title, markdown]) =>
-    title ? `## ${title}\n\n${markdown}` : markdown
-  ).join('\n\n');
+  add({
+    id: 'recipes',
+    title: 'Recipes',
+    parent: 'Guides',
+    search: 'Hover states, palettes and contrast fixes',
+    lede: 'Everyday color jobs, each done in a few calls.',
+    body: `<article class="prose">${
+      renderMarkdown(
+        inlineResults(
+          Array.from(recipes, ([title, markdown]) =>
+            title ? `### ${title}\n\n${markdown}` : markdown
+          ).join('\n\n')
+        )
+      ).html
+    }</article>`,
+  });
+  add({
+    id: 'supported-colors',
+    title: 'Supported colors',
+    parent: 'Reference',
+    search: 'Supported CSS color formats',
+    lede: 'What color2k reads and what it hands back.',
+    body: `<article class="prose">${renderMarkdown(section('Supported colors')).html}</article>`,
+  });
+  add({
+    id: 'size',
+    title: 'Size',
+    parent: 'Reference',
+    search: 'Bundle size, next to TinyColor and Polished',
+    lede: `color2k is ${sizes.all.toLocaleString(
+      'en-US'
+    )} bytes, minified and gzipped. That is every function on this page. Import six common ones and you ship ${sizes.typical.size.toLocaleString(
+      'en-US'
+    )} bytes.`,
+    body: nest(
+      renderSize({
+        sizes,
+        comparison: getComparison(why.get('Next to the others') || ''),
+        smallHtml: renderMarkdown(`## How it stays small\n\n${section('How it stays small')}`).html,
+        costsHtml: renderMarkdown(whyPart('What it costs')).html,
+        othersHtml: renderMarkdown(whyPart('Next to the others')).html,
+        alternativeHtml: renderMarkdown(whyPart('An alternative to TinyColor and Polished')).html,
+      })
+    ),
+  });
+  add({
+    id: 'project',
+    title: 'Project',
+    parent: 'Reference',
+    search: 'Credits, contributing and releases',
+    lede: 'The people behind color2k, how to help, and how it ships.',
+    body: `<article class="prose">${prose(
+      ['Credits', 'Contributing', 'Trust and publishing', 'For AI agents']
+        .map((title) => `## ${title}\n\n${section(title)}`)
+        .join('\n\n')
+    )}</article>`,
+  });
 
-  // The overview.
+  const item = (id: string) => {
+    const found = sections.find((candidate) => candidate.id === id);
+    if (!found) throw new Error(`No section "${id}"`);
+    return { id, title: found.title };
+  };
+  const nav: NavGroup[] = [
+    { title: 'Start', items: [{ id: 'top', title: 'Overview' }, item('quickstart')] },
+    { title: 'Functions', items: groups.map(({ title }) => item(groupId(title))) },
+    { title: 'Guides', items: [item('themes'), item('recipes')] },
+    { title: 'Reference', items: [item('supported-colors'), item('size'), item('project')] },
+  ];
+
   const [hue, saturation, lightness, alpha] = color2k.parseToHsla(color);
-  pages.push({
-    path: '/',
-    title: 'Overview',
-    parent: 'Start',
-    lede: pkg.description,
+  const html = shell({
+    css,
+    color,
+    description: pkg.description,
+    nav,
+    presets: models.PRESETS,
+    structuredData: getStructuredData(pkg),
     hero: renderHero({
       size: (sizes.all / 1000).toFixed(1),
       wheel: {
@@ -531,130 +593,32 @@ async function render() {
         hue,
         color,
       },
+      lightness: Math.round(lightness * 100),
+      track: models.lightnessTrack(hue, saturation),
     }),
-    body: renderOverview({
+    overview: renderOverview({
       groups: groups.map(({ title, docs }) => ({
         title,
-        path: `/${title.toLowerCase()}/`,
+        id: groupId(title),
         line: GROUP_LINES[title][0],
         names: docs.map(({ functionName }) => functionName),
       })),
       models,
       color,
-      themeTeaser: renderThemeTeaser(themes, models, color),
-      treemap: renderTreemap(sizes, true),
       whyHtml: renderMarkdown(`## Why color2k\n\n${why.get('')}`).html,
-      sizes,
-      quickstartHtml: renderMarkdown(
-        section('Quickstart').slice(0, section('Quickstart').indexOf('Colors go in as CSS strings'))
-      ).html,
     }),
-  });
+    sections,
+  })
+    // The old site's "Size comparison" lands on the comparison itself.
+    .replace('<h3 id="next-to-the-others"', '<span id="size-comparison"></span><h3 id="next-to-the-others"');
 
-  docPage(
-    {
-      path: '/quickstart/',
-      title: 'Quickstart',
-      parent: 'Start',
-      lede: 'Install it, import a function and pass it a color.',
-    },
-    promote(section('Quickstart'))
-  );
-  pages.push(...groupPages);
-  pages.push({
-    path: '/themes/',
-    title: 'Themes',
-    parent: 'Guides',
-    heading: 'A whole theme from one color',
-    lede: `Three builders, each about ${
-      Math.round(themes.reduce((sum, { lines }) => sum + lines, 0) / themes.length / 5) * 5
-    } lines of color2k. They take your color and return fourteen tokens, for light or for dark. Switch the mode in the menu and they rebuild.`,
-    anchors: themes.map(({ key, name }) => ({ id: key, title: name })),
-    body: renderThemes(
-      themes,
-      models,
-      color,
-      // The line that sends README readers here is dropped.
-      renderMarkdown(themeIntro.replace(/^You can try all three.*\n/m, '')).html,
-      renderMarkdown(themeClosing).html
-    ),
-  });
-  docPage(
-    {
-      path: '/recipes/',
-      title: 'Recipes',
-      parent: 'Guides',
-      lede: 'Everyday color jobs, each done in a few calls.',
-    },
-    recipeMarkdown
-  );
-  docPage(
-    {
-      path: '/colors/',
-      title: 'Supported colors',
-      parent: 'Reference',
-      lede: 'What color2k reads and what it hands back.',
-    },
-    promote(section('Supported colors'))
-  );
-
-  // Size.
-  const sizeParts = {
-    small: renderMarkdown(`## How it stays small\n\n${section('How it stays small')}`),
-    costs: renderMarkdown(`## What it costs\n\n${why.get('What it costs')}`),
-    others: renderMarkdown(`## Next to the others\n\n${why.get('Next to the others')}`),
-  };
-  for (const slug of ['how-it-stays-small', 'what-it-costs', 'next-to-the-others']) {
-    moved[slug] = `/size/#${slug}`;
+  // Every id is used once, and every link on the page lands on one.
+  const ids = Array.from(html.matchAll(/\sid="([^"]+)"/g), ([, id]) => id);
+  const twice = ids.filter((id, index) => ids.indexOf(id) !== index);
+  if (twice.length) throw new Error(`These ids are used more than once: ${twice.join(', ')}`);
+  for (const [, id] of html.matchAll(/href="#([^"]+)"/g)) {
+    if (!ids.includes(id)) throw new Error(`A link points to #${id}, which is not on the page`);
   }
-  pages.push({
-    path: '/size/',
-    title: 'Size',
-    parent: 'Reference',
-    heading: 'Small on purpose',
-    lede: `color2k is ${sizes.all.toLocaleString(
-      'en-US'
-    )} bytes, minified and gzipped. That is every function on this site. Import six common ones and you ship ${sizes.typical.size.toLocaleString(
-      'en-US'
-    )} bytes.`,
-    anchors: [
-      { id: 'treemap', title: 'Where the bytes go' },
-      { id: 'how-it-stays-small', title: 'How it stays small' },
-      { id: 'what-it-costs', title: 'What it costs' },
-      { id: 'next-to-the-others', title: 'Next to the others' },
-    ],
-    body: renderSize({
-      sizes,
-      comparison: getComparison(why.get('Next to the others')!),
-      smallHtml: sizeParts.small.html,
-      costsHtml: sizeParts.costs.html,
-      othersHtml: sizeParts.others.html,
-    }),
-  });
-  docPage(
-    {
-      path: '/project/',
-      title: 'Project',
-      parent: 'Reference',
-      lede: 'The people behind color2k, how to help, and how it ships.',
-    },
-    ['Credits', 'Contributing', 'Trust and publishing', 'For AI agents']
-      .map((title) => `## ${title}\n\n${section(title)}`)
-      .join('\n\n')
-  );
-
-  // The menu, in the order the pages were made.
-  const item = (pagePath: string) => {
-    const page = pages.find((candidate) => candidate.path === pagePath);
-    if (!page) throw new Error(`No page at ${pagePath}`);
-    return { path: page.path, title: page.title, anchors: page.anchors };
-  };
-  const nav: NavGroup[] = [
-    { title: 'Start', items: [item('/'), item('/quickstart/')] },
-    { title: 'Functions', items: groupPages.map(({ path: pagePath }) => item(pagePath)) },
-    { title: 'Guides', items: [item('/themes/'), item('/recipes/')] },
-    { title: 'Reference', items: [item('/colors/'), item('/size/'), item('/project/')] },
-  ];
 
   // ----------------------------------------------------------- output
 
@@ -668,32 +632,25 @@ async function render() {
     await fs.promises.writeFile(target, contents);
   };
 
-  const site = {
-    css,
-    color,
-    description: pkg.description,
-    nav,
-    presets: models.PRESETS,
-    structuredData: getStructuredData(pkg),
-  };
-
-  for (const page of pages) {
-    const html = shell(page, site)
-      // Links written for the README point at headings on one long page.
-      .replace(/href="#([^"]+)"/g, (match, slug: string) => {
-        if (new RegExp(`\\sid="${slug}"`).test(page.body + (page.hero || '')) || slug === 'content' || slug === 'menu') {
-          return match;
-        }
-        if (!moved[slug]) throw new Error(`${page.path} links to #${slug}, which is nowhere on the site`);
-        return `href="${moved[slug]}"`;
+  await write('index.html', html);
+  await write('404.html', notFound(css));
+  for (const { file, markdown } of files) await write(file, markdown);
+  await write('_headers', getHeaders(files.map(({ file }) => file)));
+  // The site was several pages for a while. Each old address goes to its section.
+  await write(
+    '_redirects',
+    sections
+      .map(({ id, file }) => {
+        const name = file.replace(/\.md$/, '');
+        const old = Object.keys(LEGACY_PATHS).find((key) => LEGACY_PATHS[key] === id) || name;
+        return [old, name]
+          .filter((value, index, all) => all.indexOf(value) === index)
+          .map((value) => `/${value}/ /#${id} 301`)
+          .join('\n');
       })
-      // An old link such as `/#darkencolor-amount` is forwarded by `client.js`.
-      .replace('<body class="is-home">', `<body class="is-home" data-moved="${escapeHtml(JSON.stringify(moved))}">`);
-
-    await write(path.join(page.path.slice(1), 'index.html'), html);
-  }
-
-  await write('_headers', getHeaders());
+      .concat('')
+      .join('\n')
+  );
   await write('color2k.js', await getBrowserBundle());
   await write('site.js', await getSiteScript(themeSources));
   await write('theme.js', await minifyScript(readSource('./theme.js')));
@@ -708,10 +665,9 @@ async function render() {
     [
       '<?xml version="1.0" encoding="UTF-8"?>',
       '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-      ...pages
-        .map(({ path: pagePath }) => pagePath.slice(1))
-        .concat(['llms.txt', 'llms-full.txt'])
-        .flatMap((page) => ['  <url>', `    <loc>https://color2k.com/${page}</loc>`, '  </url>']),
+      '  <url>',
+      '    <loc>https://color2k.com/</loc>',
+      '  </url>',
       '</urlset>',
       '',
     ].join('\n')

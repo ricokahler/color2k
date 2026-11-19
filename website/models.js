@@ -394,6 +394,40 @@ var c2kModels = function (c, builders) {
     },
 
     // A solid color has no alpha to add, so the demo fades it first.
+    complement: function (color, p, ctx) {
+      var vars = {};
+      var out = c.complement(color);
+      // The half turn it takes, a twelfth at a time.
+      for (var index = 0; index <= 12; index++) {
+        vars['--c' + index] = c.adjustHue(color, index * 15);
+      }
+      swatch(vars, 'from', color, ctx);
+      swatch(vars, 'res', out, ctx);
+      return {
+        vars: vars,
+        text: { code: 'complement(' + quote(color) + ')', out: quote(out) },
+        flags: { stuck: c.parseToHsla(color)[1] <= 0.02 },
+      };
+    },
+
+    invert: function (color, p, ctx) {
+      var vars = {};
+      var out = c.invert(color, p.weight);
+      var stops = [];
+      for (var index = 0; index <= 10; index++) stops.push(c.invert(color, index / 10));
+      swatch(vars, 'from', color, ctx);
+      swatch(vars, 'res', out, ctx);
+      vars['--blend'] = 'linear-gradient(90deg,' + stops.join(',') + ')';
+      return {
+        vars: vars,
+        text: {
+          code: 'invert(' + quote(color) + (p.weight === 1 ? '' : ', ' + fmt(p.weight)) + ')',
+          out: quote(out),
+          weight: fmt(p.weight),
+        },
+      };
+    },
+
     opacify: alphaRamp(
       'opacify',
       function () {
@@ -602,6 +636,7 @@ var c2kModels = function (c, builders) {
     saturate: { amount: 0.2 },
     desaturate: { amount: 0.3 },
     adjustHue: { degrees: 120 },
+    invert: { weight: 1 },
     opacify: { amount: 0.3 },
     transparentize: { amount: 0.4 },
     mix: { other: '#ff2d6f', weight: 0.5 },
@@ -659,24 +694,36 @@ var c2kModels = function (c, builders) {
   // ---------------------------------------------------------------- wheel
 
   var WEDGES = 24;
-  var RINGS = [0, 0.13, 0.26, 0.39];
+  var RINGS = 4;
 
   /**
-   * The splash wheel. Wedge 0 is the color with its hue set to 0, and each
-   * wedge after it is `adjustHue` 15 degrees further round. Each ring inward
-   * is `lighten` by another step. Turning the wheel only changes the hue, so
-   * the fills depend on saturation, lightness and alpha alone.
+   * The splash wheel, as fills for its four rings. The outside ring is every
+   * hue at full strength and never changes, so there is always a way back to
+   * a vivid color. The next ring is your color's saturation and lightness
+   * taken round the wheel with `adjustHue`. The two inside it are that ring
+   * lightened and darkened, so a tap can go either way.
+   *
+   * Turning the wheel only changes the hue, so the fills depend on
+   * saturation, lightness and alpha alone.
    */
   function wheel(saturation, lightness, alpha) {
     var vars = {};
+    var vivid = c.hsla(0, 1, 0.5, 1);
     var base = c.hsla(0, saturation, lightness, alpha);
     for (var wedge = 0; wedge < WEDGES; wedge++) {
-      var turned = c.adjustHue(base, wedge * (360 / WEDGES));
-      RINGS.forEach(function (amount, ring) {
-        vars['--w' + ring + '-' + wedge] = amount ? c.lighten(turned, amount) : turned;
-      });
+      var degrees = wedge * (360 / WEDGES);
+      var turned = c.adjustHue(base, degrees);
+      vars['--w0-' + wedge] = c.adjustHue(vivid, degrees);
+      vars['--w1-' + wedge] = turned;
+      vars['--w2-' + wedge] = c.lighten(turned, 0.16);
+      vars['--w3-' + wedge] = c.darken(turned, 0.16);
     }
     return vars;
+  }
+
+  /** The gradient under the splash's lightness slider. */
+  function lightnessTrack(hue, saturation) {
+    return 'linear-gradient(90deg,#000,' + c.hsla(hue, saturation, 0.5, 1) + ',#fff)';
   }
 
   // --------------------------------------------------------------- themes
@@ -805,6 +852,7 @@ var c2kModels = function (c, builders) {
       return typeof initial[name] === 'function';
     },
     kebab: kebab,
+    lightnessTrack: lightnessTrack,
     other: other,
     site: site,
     solid: solid,

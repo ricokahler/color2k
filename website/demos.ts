@@ -396,6 +396,39 @@ const bodies: { [name: string]: Body } = {
           )}
           ${call(model.text)}`,
 
+  complement: (model) =>
+    `${stage(
+      `${fromTo('complement')}
+            <div class="strip" aria-hidden="true">${Array.from(
+              { length: 13 },
+              (_, index) => `<i style="background:var(--c${index})"></i>`
+            ).join('')}</div>
+            <p class="note">Half a turn round the wheel, the same as <a href="#adjustHue">adjustHue</a> by 180.</p>`
+    )}
+          ${hint(
+            'stuck',
+            'Your color is gray, and gray has no opposite. <button type="button" class="link" data-pick="#4a35e8">Try indigo</button>'
+          )}
+          ${call(model.text)}`,
+
+  invert: (model, p) =>
+    `${stage(
+      `${fromTo('invert')}
+            ${rail(model.text, {
+              param: 'weight',
+              label: 'weight',
+              min: 0,
+              max: 1,
+              step: 0.01,
+              value: p.weight,
+              track: 'var(--blend)',
+              checker: true,
+              ends: ['0, unchanged', '1, fully inverted'],
+            })}
+            <p class="note">Halfway is always gray.</p>`
+    )}
+          ${call(model.text)}`,
+
   opacify: alphaBody(
     'opacify',
     'Your color is solid, so this starts from it at 40% and builds back up. <button type="button" class="link" data-pick="rgba(74, 53, 232, 0.5)">Pick a see-through indigo</button>',

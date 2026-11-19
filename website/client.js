@@ -249,7 +249,7 @@ function render() {
   });
   if (source !== 'picker') readPicker();
   paintPicker();
-  if (wheel) readWheel(source === 'wheel', source !== 'picker');
+  if (wheel) readWheel(source === 'wheel', source !== 'picker', source === 'light');
   demos.forEach(function (demo) {
     if (models.follows(demo.name) && source !== demo) {
       demo.p = models.start(demo.name, state.color);
@@ -275,7 +275,7 @@ function setColor(color, from) {
   source = from || '';
   // A preset or a typed color is saved at once, so a link followed straight
   // after it carries the color to the next page.
-  if (from !== 'wheel' && from !== 'picker') save();
+  if (from !== 'wheel' && from !== 'picker' && from !== 'light') save();
   if (pickError) pickError.textContent = '';
   if (pickText) pickText.removeAttribute('aria-invalid');
   refresh();
@@ -472,13 +472,26 @@ function turnTo(hue, eased) {
 
 // The wheel's fills, read back from the color. While the wheel itself is
 // turning (`own`), only the hue changes, so there is nothing to repaint.
-function readWheel(own, eased) {
+function readWheel(own, eased, light) {
   if (own) {
     wheel.setAttribute('aria-valuetext', state.color);
+    paintLight();
+    return;
+  }
+  if (light) {
+    // The lightness slider keeps the wheel's hue and saturation, which a
+    // color cannot carry through black or white.
+    turning.vars = models.wheel(turning.s, turning.l, turning.a);
+    for (var key in turning.vars) wheel.style.setProperty(key, turning.vars[key]);
+    wheel.setAttribute('aria-valuetext', state.color);
+    paintLight();
     return;
   }
   var hsla = c.parseToHsla(state.color);
   var fresh = turning.s < 0;
+  // White and black carry no saturation. Keep the wheel's own, so sliding
+  // the lightness back brings the color back with it.
+  if (!fresh && (hsla[2] <= 0.001 || hsla[2] >= 0.999)) hsla[1] = turning.s;
   if (hsla[1] !== turning.s || hsla[2] !== turning.l || hsla[3] !== turning.a) {
     turning.s = hsla[1];
     turning.l = hsla[2];
@@ -488,7 +501,23 @@ function readWheel(own, eased) {
   }
   // Gray has no hue. Leave the wheel where it is.
   if (fresh) turning.turn = -hsla[0];
-  if (hsla[1] > 0 || fresh) turnTo(hsla[0], eased && !fresh);
+  if ((hsla[1] > 0 && hsla[2] > 0.001 && hsla[2] < 0.999) || fresh) turnTo(hsla[0], eased && !fresh);
+  paintLight();
+}
+
+var lightInput = $('#hero-light');
+function paintLight() {
+  if (!lightInput) return;
+  var percent = Math.round(turning.l * 100);
+  if (document.activeElement !== lightInput) lightInput.value = percent;
+  $('#hero-light-value').textContent = percent + '%';
+  $('#hero-light-fill').style.setProperty('--track', models.lightnessTrack(turning.h, turning.s));
+}
+if (lightInput) {
+  lightInput.addEventListener('input', function () {
+    turning.l = Number(lightInput.value) / 100;
+    setColor(wheelColor(), 'light');
+  });
 }
 
 if (wheel) {
@@ -576,6 +605,8 @@ document.addEventListener('click', function (event) {
 
   if (target.hasAttribute('data-pick')) {
     setColor(target.getAttribute('data-pick'));
+  } else if (target.hasAttribute('data-say')) {
+    say(target.getAttribute('data-say'));
   } else if (target.hasAttribute('data-copy-text')) {
     copy(target.getAttribute('data-copy-text'));
   } else if (target.hasAttribute('data-tile')) {
@@ -644,29 +675,38 @@ $$('.prose pre.shiki').forEach(function (pre) {
 
 // ------------------------------------------------------------------- mode
 
-var modeButtons = $$('[data-mode]');
+// One quiet button by the logo. Each press moves to the next mode.
+var modeButton = $('#mode');
+var MODES = ['system', 'light', 'dark'];
+var MODE_NAMES = { system: 'System', light: 'Light', dark: 'Dark' };
 function paintMode() {
   if (state.mode === 'system') root.removeAttribute('data-theme');
   else root.setAttribute('data-theme', state.mode);
-  modeButtons.forEach(function (button) {
-    button.setAttribute('aria-pressed', String(button.getAttribute('data-mode') === state.mode));
-  });
+  if (!modeButton) return;
+  var next = MODES[(MODES.indexOf(state.mode) + 1) % MODES.length];
+  modeButton.setAttribute('data-current', state.mode);
+  modeButton.title = 'Color mode: ' + MODE_NAMES[state.mode];
+  modeButton.setAttribute(
+    'aria-label',
+    'Color mode: ' + MODE_NAMES[state.mode] + '. Switch to ' + MODE_NAMES[next] + '.'
+  );
 }
-modeButtons.forEach(function (button) {
-  button.addEventListener('click', function () {
-    state.mode = button.getAttribute('data-mode');
+if (modeButton) {
+  modeButton.addEventListener('click', function () {
+    state.mode = MODES[(MODES.indexOf(state.mode) + 1) % MODES.length];
     store.set('mode', state.mode === 'system' ? null : state.mode);
     paintMode();
+    say('Color mode: ' + MODE_NAMES[state.mode]);
     refresh();
   });
-});
+}
 darkMedia.addEventListener('change', refresh);
 
 // ------------------------------------------------------------------- menu
 
 var menu = $('#menu');
 var menuOpen = $('[data-menu-open]');
-var behind = $$('.main, .brand, .skip');
+var behind = $$('.main, .top, .skip');
 function toggleMenu(open) {
   root.classList.toggle('menu-open', open);
   // Everything but the sheet is out of reach while it is open.
@@ -715,12 +755,31 @@ document.addEventListener('keydown', function (event) {
 
 // ------------------------------------------------------------------ start
 
-// The site used to be one page. A link to an old anchor goes to its new home.
-var moved = document.body.getAttribute('data-moved');
-var hash = location.hash.slice(1);
-if (moved && hash && !document.getElementById(hash)) {
-  var target = JSON.parse(moved)[hash];
-  if (target) location.replace(target);
+// The menu marks the section you are reading.
+var spies = $$('[data-spy]');
+if ('IntersectionObserver' in window && spies.length) {
+  var inView = {};
+  var spyWatcher = new IntersectionObserver(
+    function (entries) {
+      entries.forEach(function (entry) {
+        inView[entry.target.id] = entry.isIntersecting;
+      });
+      // The last section that reaches the reading line is the current one.
+      var current = '';
+      spies.forEach(function (link) {
+        if (inView[link.getAttribute('data-spy')]) current = link.getAttribute('data-spy');
+      });
+      spies.forEach(function (link) {
+        if (link.getAttribute('data-spy') === current) link.setAttribute('aria-current', 'true');
+        else link.removeAttribute('aria-current');
+      });
+    },
+    { rootMargin: '-30% 0px -60% 0px' }
+  );
+  spies.forEach(function (link) {
+    var section = document.getElementById(link.getAttribute('data-spy'));
+    if (section) spyWatcher.observe(section);
+  });
 }
 
 window.addEventListener('pagehide', function () {

@@ -16,19 +16,46 @@ const pkg = require('../package.json');
 const color2k = require('../dist/index.exports.require.cjs.js');
 const exportNames = Object.keys(color2k);
 
-// Every page of the site: `/`, `/adjust/`, `/size/` and so on.
-const pages = fs
-  .readdirSync(buildDir, { withFileTypes: true })
-  .filter((entry) => entry.isDirectory())
-  .map((entry) => `${entry.name}/index.html`)
-  .concat('index.html')
-  .filter((file) => fs.existsSync(path.resolve(buildDir, file)))
-  .map((file) => ({ file, url: `/${file.replace(/index\.html$/, '')}`, html: read(file) }));
-const home = pages.find(({ url }) => url === '/');
+// The site is one page. `pages` keeps the shape the checks below were
+// written for.
+const SECTIONS = [
+  'quickstart',
+  'parse',
+  'convert',
+  'adjust',
+  'mixing',
+  'contrast',
+  'utilities',
+  'themes',
+  'recipes',
+  'supported-colors',
+  'size',
+  'project',
+];
+const pages = [{ file: 'index.html', url: '/', html: read('index.html') }];
+const home = pages[0];
 const html = home.html;
-const everyPage = pages.map((page) => page.html).join('\n');
+const everyPage = html;
 
-assert(pages.length >= 12, `Expected the site's pages, found ${pages.length}`);
+assert(
+  fs.readdirSync(buildDir).filter((file) => file.endsWith('.html')).join() === '404.html,index.html',
+  'The site should be index.html and 404.html, and no other page'
+);
+// Every section is on the page, in the menu, and has a Markdown twin.
+for (const id of SECTIONS) {
+  assert(html.includes(`<section class="sec" id="${id}"`), `The page is missing its "${id}" section`);
+  assert(
+    html.includes(`<a href="#${id}" data-spy="${id}">`),
+    `The menu does not link to the "${id}" section`
+  );
+}
+assert(
+  (html.match(/data-spy="/g) || []).length === SECTIONS.length + 1 &&
+    html.includes('<a href="#top" data-spy="top">Overview</a>'),
+  'The menu should list the overview and every section, and nothing else'
+);
+const ids = Array.from(html.matchAll(/\sid="([^"]+)"/g), ([, id]) => id);
+assert(new Set(ids).size === ids.length, 'An id is used twice on the page');
 
 /** Every `<tag ...>` in a page, with its attributes parsed. */
 function getTags(name, source = everyPage) {
@@ -97,15 +124,11 @@ for (const page of pages) {
   );
   assert(
     getTags('nav', page.html).some(({ id }) => id === 'menu') &&
-      page.html.includes(`href="${page.url}" aria-current="page"`),
-    `${page.url}: the menu must mark the page you are on`
+      getTags('button', page.html).some(
+        ({ id, 'aria-label': label, title }) => id === 'mode' && label && title
+      ),
+    `${page.url}: the page needs its menu and a labeled color mode button`
   );
-  for (const mode of ['system', 'light', 'dark']) {
-    assert(
-      page.html.includes(`data-mode="${mode}"`),
-      `${page.url}: the menu needs its ${mode} switch`
-    );
-  }
   assert(
     getTags('input', page.html).some(({ id, type }) => id === 'pick-text' && type === 'text') &&
       getTags('input', page.html).some(({ id, type }) => id === 'pick-alpha' && type === 'range') &&
@@ -130,19 +153,17 @@ for (const page of pages) {
     `${page.url}: unexpected footer links`
   );
 
-  // Every link inside the site lands on a page, and on an anchor that exists.
-  for (const { href } of getTags('a', page.html)) {
+  // Every link inside the site lands on an anchor or a file that exists.
+  for (const { href } of getTags('a', page.html).concat(getTags('link', page.html))) {
     if (!href || /^(https?:|mailto:)/.test(href)) continue;
-    const [target, anchor] = href.split('#');
-    const destination = target
-      ? pages.find(({ url }) => url === target) ||
-        (fs.existsSync(path.resolve(buildDir, `.${target}`)) && { html: '' })
-      : page;
-    assert(destination, `${page.url}: links to ${href}, which is not a page`);
-    assert(
-      !anchor || !destination.html || destination.html.includes(` id="${anchor}"`),
-      `${page.url}: links to ${href}, and that anchor does not exist`
-    );
+    if (href.startsWith('#')) {
+      assert(ids.includes(href.slice(1)), `A link points to ${href}, and that anchor does not exist`);
+    } else {
+      assert(
+        href === '/' || fs.existsSync(path.resolve(buildDir, `.${href}`)),
+        `A link points to ${href}, which is not a file on the site`
+      );
+    }
   }
 }
 
@@ -196,8 +217,8 @@ const fontBytes = fonts.reduce(
   0
 );
 assert(
-  fonts.length <= 2 && fonts.every((file) => file.endsWith('.woff2')) && fontBytes < 30000,
-  `Expected at most two small woff2 fonts, found ${fonts.join(', ')} (${fontBytes} bytes)`
+  fonts.length <= 1 && fonts.every((file) => file.endsWith('.woff2')) && fontBytes < 30000,
+  `Expected at most one small woff2 font, found ${fonts.join(', ')} (${fontBytes} bytes)`
 );
 for (const font of fonts) {
   assert(html.includes(`url("/${font}")`), `${font} is shipped but not used`);
@@ -206,19 +227,20 @@ assert(
   (html.match(/@font-face/g) || []).length === fonts.length &&
     (html.match(/font-display: ?swap/g) || []).length === fonts.length &&
     !/rel="preload"/.test(everyPage),
-  'Fonts must use font-display: swap and must not be preloaded (only the theme samples use them)'
+  'Fonts must use font-display: swap and must not be preloaded (only a theme sample uses one)'
 );
 assert(
   fs.existsSync(path.resolve(buildDir, 'fonts-license.txt')),
   'Missing the font license'
 );
 
-// The site says "2.4 kB" a lot. Hold it to the measured size.
+// The site says "2.5 kB" a lot. Hold it to the measured size.
 const sizes = require('../docs/sizes.json');
-const sizePage = pages.find(({ url }) => url === '/size/').html;
+const sizePage = html;
 assert(
-  (sizes.all / 1000).toFixed(1) === '2.4' &&
-    html.includes('in&nbsp;2.4&nbsp;kB') &&
+  (sizes.all / 1000).toFixed(1) === '2.5' &&
+    html.includes('in&nbsp;2.5&nbsp;kB') &&
+    html.includes('in 2.5 kB</title>') &&
     html.includes(`${sizes.all.toLocaleString('en-US')} bytes`) &&
     sizePage.includes(`${sizes.all.toLocaleString('en-US')} bytes`),
   'The size on the site does not match docs/sizes.json'
@@ -386,7 +408,7 @@ for (const line of readmeProse.split('\n')) {
   if (heading) {
     assert(
       everyPage.includes(` id="${slugOf(heading[1])}"`) ||
-        new RegExp(`<h1[^>]*>${heading[1]}</h1>`).test(everyPage),
+        new RegExp(`<h2[^>]*>${heading[1]} <span>`).test(everyPage),
       `The README section "${heading[1]}" has no home on the site`
     );
     continue;
@@ -405,7 +427,7 @@ for (const line of readmeProse.split('\n')) {
 }
 assert(checkedLines > 80, `Expected to check the README's prose, found ${checkedLines} lines`);
 // The credits, in full, on the Project page.
-const projectPage = pages.find(({ url }) => url === '/project/').html;
+const projectPage = html.slice(html.indexOf('<section class="sec" id="project"'));
 const credits = readmeSource.slice(
   readmeSource.indexOf('## Credits'),
   readmeSource.indexOf('<!-- API-DOCS-START -->')
@@ -480,31 +502,140 @@ for (const name of exportNames) {
     `llms-full.txt is missing ${name}`
   );
 }
-for (const [heading] of readme.matchAll(/^#{2,3} .+$/gm)) {
-  assert(llmsFull.includes(heading), `llms-full.txt is missing "${heading}"`);
+// llms-full.txt leads with what an agent needs to write code: the rules, the
+// quickstart and the API. The long, rarely needed parts are linked instead.
+assert(
+  llmsFull.indexOf('## Rules') < llmsFull.indexOf('## Quickstart') &&
+    llmsFull.indexOf('## Quickstart') < llmsFull.indexOf('## API') &&
+    llmsFull.indexOf('## API') < llmsFull.indexOf('## Supported colors') &&
+    llmsFull.indexOf('## Supported colors') < llmsFull.indexOf('## Recipes'),
+  'llms-full.txt should run: rules, quickstart, API, supported colors, recipes'
+);
+assert(
+  !/softTheme|## Credits|## Trust/.test(llmsFull) &&
+    ['themes.md', 'size.md', 'project.md'].every((file) =>
+      llmsFull.includes(`https://color2k.com/${file}`)
+    ),
+  'llms-full.txt should link the theme builders, sizes and project notes, not inline them'
+);
+assert(llmsFull.length < 36000, `llms-full.txt has grown to ${llmsFull.length} characters`);
+for (const name of exportNames) {
+  const entry = llmsFull.slice(llmsFull.search(new RegExp(`^### ${name}\\b`, 'm')));
+  assert(
+    /^```ts\n/m.test(entry.slice(0, entry.indexOf('\n### ', 4))) &&
+      /^```js\n/m.test(entry.slice(0, entry.indexOf('\n### ', 4))),
+    `llms-full.txt needs a signature and an example for ${name}`
+  );
 }
+// Each section has a Markdown twin, linked from llms.txt and from the page.
+const markdownFiles = fs.readdirSync(buildDir).filter((file) => file.endsWith('.md'));
+assert(markdownFiles.length === SECTIONS.length, `Expected ${SECTIONS.length} Markdown files`);
+for (const file of markdownFiles) {
+  const markdown = read(file);
+  assert(
+    markdown.startsWith('# color2k: ') && !/<!--|<img|<p /.test(markdown),
+    `${file} should be plain Markdown under a title`
+  );
+  assert(llms.includes(`https://color2k.com/${file}`), `llms.txt does not link to ${file}`);
+  assert(
+    html.includes(`<link rel="alternate" type="text/markdown" href="/${file}"`) &&
+      html.includes(`<a href="/${file}">This section as Markdown</a>`),
+    `The page does not link to ${file}`
+  );
+}
+for (const name of exportNames) {
+  assert(
+    markdownFiles.some((file) => new RegExp(`^## ${name}\\b`, 'm').test(read(file))),
+    `No Markdown file has an entry for ${name}`
+  );
+}
+const everyMarkdown = markdownFiles.map(read).join('\n');
+for (const [heading] of readme
+  .slice(readme.search(/^## /m), readme.indexOf('<!-- API-DOCS-START -->'))
+  .matchAll(/^#{2,3} (.+)$/gm)) {
+  assert(
+    everyMarkdown.includes(heading.replace(/^#+ /, '')) || /For AI agents/.test(heading),
+    `No Markdown file has the README's "${heading}"`
+  );
+}
+assert(
+  llms.includes('https://github.com/ricokahler/color2k/blob/main/AGENTS.md'),
+  'llms.txt should link AGENTS.md'
+);
 assert(
   !/<!--|<p align|<img/.test(llms + llmsFull),
   'llms files should not contain HTML comments, images or the README header'
 );
 assert(
-  (llmsFull.match(/^Result:$/gm) || []).length ===
+  (everyMarkdown.match(/^Result:$/gm) || []).length ===
     (readme.match(/^<!-- RESULT: /gm) || []).length,
-  'llms-full.txt should give every recipe result as text'
+  'The Markdown files should give every recipe result as text'
 );
 assert(
   html.includes('href="/llms.txt"') && html.includes('href="/llms-full.txt"'),
   'Missing llms.txt links'
 );
 
+// The sitemap lists the one page.
 const sitemap = read('sitemap.xml');
-for (const page of pages.map(({ url }) => url.slice(1)).concat(['llms.txt', 'llms-full.txt'])) {
-  assert(
-    sitemap.includes(`<loc>https://color2k.com/${page}</loc>`),
-    `sitemap.xml is missing /${page}`
-  );
+assert(
+  (sitemap.match(/<loc>/g) || []).length === 1 && sitemap.includes('<loc>https://color2k.com/</loc>'),
+  'sitemap.xml should list the one canonical page'
+);
+// Addresses from when the site was several pages go to their sections, and
+// anchors from the old one-page site are still on the page.
+const redirects = read('_redirects');
+for (const [from, to] of [
+  ['quickstart', 'quickstart'],
+  ['parse', 'parse'],
+  ['convert', 'convert'],
+  ['adjust', 'adjust'],
+  ['mix', 'mixing'],
+  ['contrast', 'contrast'],
+  ['utilities', 'utilities'],
+  ['themes', 'themes'],
+  ['recipes', 'recipes'],
+  ['colors', 'supported-colors'],
+  ['size', 'size'],
+  ['project', 'project'],
+]) {
+  assert(redirects.includes(`/${from}/ /#${to} 301\n`), `_redirects is missing /${from}/`);
 }
+for (const id of [
+  'installation',
+  'usage',
+  'size-comparison',
+  'how-so-small',
+  'why-only-rgba-and-hsla-as-outputs',
+  'trust-and-publishing',
+  'credits',
+  'api',
+  'table-of-contents',
+  'darkencolor-amount',
+  'getscalecolors',
+  'colorerror',
+]) {
+  assert(ids.includes(id), `The old anchor #${id} no longer lands anywhere`);
+}
+const lost = read('404.html');
+assert(
+  lost.includes('href="/"') && lost.includes('href="/#quickstart"') && lost.includes('href="/#functions"'),
+  '404.html should link the overview, the quickstart and the API'
+);
+// What search results show.
+assert(pkg.description.length <= 155, 'The description is too long for a search result');
+assert(
+  /<title>color2k: JavaScript color manipulation library/.test(html) &&
+    html.includes('Lighten and darken colors in JavaScript') &&
+    html.includes('Readable text color and WCAG contrast') &&
+    html.includes('Supported CSS color formats'),
+  'The title and section headings lost the words people search for'
+);
+assert(
+  html.includes(`"version":"${pkg.version}"`) && html.includes('name="twitter:image:alt"'),
+  'Missing the package version in the structured data, or the social image text'
+);
 
 console.log(
-  `Website check passed: ${pages.length} static pages, demos, CSP, site theme contrast, llms files, structured data, and sitemap are present.`
+  `Website check passed: one page with ${SECTIONS.length} sections, demos, CSP, site theme contrast, llms files, structured data, and sitemap are present.`
 );

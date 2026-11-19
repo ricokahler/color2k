@@ -1,7 +1,7 @@
 {
   "name": "color2k",
   "version": "2.0.0",
-  "description": "Fully dynamic colors in 2.4 kB. Parse, convert, adjust and mix colors at runtime and check their contrast. Covers every 8-bit sRGB color written as hex, rgb(a), hsl(a) or a CSS name. No dependencies.",
+  "description": "Small, zero-dependency JavaScript color manipulation and WCAG contrast library with TypeScript types",
   "homepage": "https://color2k.com",
   "repository": {
     "type": "git",

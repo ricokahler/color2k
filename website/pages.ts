@@ -117,8 +117,12 @@ function layoutTreemap(sizes: Sizes, width: number, height: number) {
       );
 }
 
-function renderTiles(sizes: Sizes, width: number, height: number, className: string, mini: boolean) {
+function renderTiles(sizes: Sizes, width: number, height: number, className: string) {
   const percent = (value: number, of: number) => `${((value / of) * 100).toFixed(3)}%`;
+  const share = getTypicalBytes(sizes) / sizes.all;
+  // The tiles most apps import sit together, so one outline goes round them.
+  const mark =
+    width >= height ? `width:${percent(share, 1)};height:100%` : `width:100%;height:${percent(share, 1)}`;
 
   return `<div class="map ${className}" style="aspect-ratio:${width}/${height}">
             ${layoutTreemap(sizes, width, height)
@@ -128,36 +132,26 @@ function renderTiles(sizes: Sizes, width: number, height: number, className: str
                   width
                 )};height:${percent(tile.height, height)}`;
                 const label = fileLabel(tile.name);
-                const share = `${((tile.size / sizes.all) * 100).toFixed(1)}%`;
+                const part = `${((tile.size / sizes.all) * 100).toFixed(1)}%`;
                 const fits = tile.width >= 84 && tile.height >= 40;
                 const roomy = tile.width >= 44 && tile.height >= 44;
                 const classes = `tile${tile.typical ? ' tile-typical' : ''}`;
-                const inner = fits && !mini ? `<b>${label}</b><span>${tile.size} B</span>` : '';
+                const inner = fits ? `<b>${label}</b><span>${tile.size} B</span>` : '';
 
-                if (mini) return `<i class="${classes}" style="${style}"></i>`;
                 // Tiles too small to tap are still listed in the table below.
                 return roomy
-                  ? `<button type="button" class="${classes}" style="${style}" data-tile="${label}, ${tile.size} bytes, ${share} of the bundle" aria-label="${label}, ${tile.size} bytes, ${share} of the bundle">${inner}</button>`
+                  ? `<button type="button" class="${classes}" style="${style}" data-tile="${label}, ${tile.size} bytes, ${part} of the bundle" aria-label="${label}, ${tile.size} bytes, ${part} of the bundle">${inner}</button>`
                   : `<i class="${classes}" style="${style}" title="${label}, ${tile.size} bytes"></i>`;
               })
               .join('\n            ')}
+            <p class="map-mark" style="${mark}"><span>≈2 kB, what most apps import</span></p>
           </div>`;
 }
 
-export function renderTreemap(sizes: Sizes, mini = false) {
-  if (mini) {
-    return `<div class="treemap treemap-mini" aria-hidden="true">${renderTiles(sizes, 640, 280, 'map-wide', true)}${renderTiles(
-      sizes,
-      358,
-      300,
-      'map-tall',
-      true
-    )}</div>`;
-  }
-
+export function renderTreemap(sizes: Sizes) {
   return `<figure class="treemap" id="treemap">
-          ${renderTiles(sizes, 880, 470, 'map-wide', false)}
-          ${renderTiles(sizes, 358, 540, 'map-tall', false)}
+          ${renderTiles(sizes, 880, 470, 'map-wide')}
+          ${renderTiles(sizes, 358, 560, 'map-tall')}
           <figcaption>
             <p class="map-readout" id="map-readout" role="status">Tap or hover a tile to read it.</p>
             <p class="map-key"><span><i class="tile-typical"></i>What six common imports keep, ${getTypicalBytes(
@@ -179,34 +173,17 @@ export interface Theme {
 }
 
 /** A small made-up screen painted with nothing but the theme's tokens. */
-function renderSample(theme: Theme, text: { [key: string]: string }, mini: boolean) {
-  return `<div class="tp tp-${theme.key}" aria-hidden="true">
+function renderSample(theme: Theme) {
+  return `<div class="tp tp-${theme.key}">
             <p class="tp-top"><span class="tp-chip">New</span><span class="tp-muted">Muted text</span><i class="tp-extra"></i></p>
-            <p class="tp-title">${theme.name}</p>${
-              mini
-                ? ''
-                : `
-            <p class="tp-body">Body text sits on the page color, and this is a <span class="tp-link">link</span>.</p>`
-            }
+            <p class="tp-title">${theme.name}</p>
+            <p class="tp-body">Body text sits on the page color, and this is a <span class="tp-link">link</span>.</p>
             <div class="tp-card">
-              ${mini ? '' : '<p class="tp-field">you@studio.com</p>'}
-              <p class="tp-row"><span class="tp-btn">Save</span><span class="tp-btn tp-btn-hover">Hover</span>${
-                mini ? '' : '<span class="tp-card-text">On a card</span>'
-              }</p>
+              <p class="tp-card-text">Text on a card</p>
+              <p class="tp-field">you@studio.com</p>
+              <p class="tp-row"><button type="button" class="tp-btn tp-btn-ghost" data-say="That is a sample button. Nothing was cancelled.">Cancel</button><button type="button" class="tp-btn" data-say="That is a sample button. Nothing was saved.">Save</button></p>
             </div>
           </div>`;
-}
-
-export function renderThemeTeaser(themes: Theme[], models: any, color: string) {
-  return themes
-    .map((theme) => {
-      const model = models.demos[`theme-${theme.key}`](color, {}, { bg: '#ffffff', dark: false });
-      return `<a class="card card-theme" href="/themes/#${theme.key}" data-demo="theme-${theme.key}">
-          ${renderSample(theme, model.text, true)}
-          <span class="card-foot"><b>${theme.name}</b>${icons.arrow}</span>
-        </a>`;
-    })
-    .join('\n        ');
 }
 
 export function renderThemes(
@@ -229,7 +206,7 @@ export function renderThemes(
           </header>
           <div class="demo demo-theme" data-demo="theme-${theme.key}">
             <div class="theme-top">
-              ${renderSample(theme, model.text, false)}
+              ${renderSample(theme)}
               <div class="theme-side">
                 <h3>What it decided about your color</h3>
                 <ul class="why">
@@ -281,6 +258,8 @@ export interface FunctionEntry {
   descriptionHtml: string;
   signatureHtml: string;
   size: number;
+  /** The function's anchor on the old one-page site. */
+  legacy?: string;
 }
 
 function renderParams(doc: DocInfo, inline: (markdown: string) => string) {
@@ -309,6 +288,7 @@ export function renderFunction(
   const name = doc.functionName;
 
   return `<section class="fn" data-fn="${name}" id="${name}" aria-labelledby="${name}-title">
+          ${entry.legacy ? `<span id="${entry.legacy}"></span>` : ''}
           <header class="fn-head">
             <h2 id="${name}-title"><a href="#${name}">${name}</a><code>${escapeHtml(
               entry.display.slice(name.length)
@@ -340,7 +320,7 @@ export function renderFunction(
 
 export interface GroupCard {
   title: string;
-  path: string;
+  id: string;
   line: string;
   names: string[];
 }
@@ -371,34 +351,25 @@ interface OverviewOptions {
   groups: GroupCard[];
   models: any;
   color: string;
-  themeTeaser: string;
-  treemap: string;
-  sizes: Sizes;
-  quickstartHtml: string;
   whyHtml: string;
 }
 
-export function renderOverview({
-  groups,
-  models,
-  color,
-  themeTeaser,
-  treemap,
-  sizes,
-  quickstartHtml,
-  whyHtml,
-}: OverviewOptions) {
+export function renderOverview({ groups, models, color, whyHtml }: OverviewOptions) {
   const model = models.demos.overview(color, {}, { bg: '#ffffff', dark: false });
 
-  return `<section class="band" id="functions" aria-labelledby="functions-title">
+  return `<section class="band">
+          <div class="prose">${whyHtml}</div>
+        </section>
+        <section class="band" id="functions" aria-labelledby="functions-title">
+          <span id="api"></span><span id="table-of-contents"></span>
           <header class="band-head">
             <h2 id="functions-title">Functions</h2>
-            <p>Six groups. Each has a page where every function runs on your color.</p>
+            <p>Six groups. In each one, every function runs on your color.</p>
           </header>
           <div class="cards" data-demo="overview" style="${escapeHtml(styleOf(model.vars))}">
             ${groups
               .map(
-                ({ title, path, line, names }) => `<a class="card card-group" href="${path}">
+                ({ title, id, line, names }) => `<a class="card card-group" href="#${id}">
               ${pictures[title](model.text)}
               <b>${title}</b>
               <span class="card-line">${line}</span>
@@ -408,37 +379,6 @@ export function renderOverview({
               )
               .join('\n            ')}
           </div>
-        </section>
-        <section class="band">
-          <div class="prose">${whyHtml}</div>
-        </section>
-        <section class="band" aria-labelledby="themes-title">
-          <header class="band-head">
-            <h2 id="themes-title">A whole theme from one color</h2>
-            <p>Three small builders written with color2k. They are running on your color right now, in the mode this page is in.</p>
-          </header>
-          <div class="cards cards-3">
-            ${themeTeaser}
-          </div>
-        </section>
-        <section class="band band-split" aria-labelledby="size-title">
-          <header class="band-head">
-            <h2 id="size-title">Small on purpose</h2>
-            <p>
-              Everything on this site is ${sizes.all.toLocaleString('en-US')} bytes, minified and gzipped.
-              The filled part is what six common imports keep.
-            </p>
-            <a class="btn btn-quiet" href="/size/">See where the bytes go${icons.arrow}</a>
-          </header>
-          ${treemap}
-        </section>
-        <section class="band band-split" aria-labelledby="start-title">
-          <header class="band-head">
-            <h2 id="start-title">Quickstart</h2>
-            <p>Install it and call a function. Colors go in as CSS strings, and the functions that make a color hand a string back.</p>
-            <a class="btn btn-quiet" href="/quickstart/">Quickstart${icons.arrow}</a>
-          </header>
-          <div class="prose">${quickstartHtml}</div>
         </section>`;
 }
 
@@ -450,9 +390,17 @@ interface SizeOptions {
   costsHtml: string;
   othersHtml: string;
   smallHtml: string;
+  alternativeHtml: string;
 }
 
-export function renderSize({ sizes, comparison, costsHtml, othersHtml, smallHtml }: SizeOptions) {
+export function renderSize({
+  sizes,
+  comparison,
+  costsHtml,
+  othersHtml,
+  smallHtml,
+  alternativeHtml,
+}: SizeOptions) {
   const largest = Math.max(...comparison.map(({ size }) => size));
   const files = Object.keys(sizes.files)
     .map((name) => ({ name, size: sizes.files[name] }))
@@ -500,5 +448,6 @@ export function renderSize({ sizes, comparison, costsHtml, othersHtml, smallHtml
               )
               .join('\n            ')}
           </ul>
+          ${alternativeHtml}
         </section>`;
 }

@@ -1,9 +1,8 @@
 import { escapeHtml, styleOf, wedge } from './demos';
 
 export interface NavItem {
-  path: string;
+  id: string;
   title: string;
-  anchors?: Array<{ id: string; title: string }>;
 }
 
 export interface NavGroup {
@@ -11,14 +10,18 @@ export interface NavGroup {
   items: NavItem[];
 }
 
-export interface Page extends NavItem {
-  /** The menu group the page sits in, shown above its title. */
+/** One section of the page: Quickstart, Adjust, Size and so on. */
+export interface Section extends NavItem {
+  /** The menu group the section sits in, shown above its title. */
   parent: string;
-  /** The line under the title, and the page's meta description. */
+  /** What people search for, shown as the second line of the heading. */
+  search: string;
   lede: string;
-  heading?: string;
+  /** The section's Markdown twin, for agents. */
+  file: string;
+  /** Anchors from the old site that now land here. */
+  legacy?: string[];
   body: string;
-  hero?: string;
 }
 
 interface Preset {
@@ -33,9 +36,12 @@ interface Site {
   nav: NavGroup[];
   presets: Preset[];
   structuredData: object;
+  hero: string;
+  overview: string;
+  sections: Section[];
 }
 
-export const SITE_TITLE = 'color2k: fully dynamic colors in 2.4 kB';
+export const SITE_TITLE = 'color2k: JavaScript color manipulation library in 2.5 kB';
 
 function escapeJsonForHtml(value: object) {
   return JSON.stringify(value).replace(/</g, '\\u003c');
@@ -56,33 +62,32 @@ const icons = {
 
 export { icons };
 
-function renderMenu(nav: NavGroup[], current: Page) {
+function renderMenu(nav: NavGroup[]) {
   return nav
     .map(
       ({ title, items }) => `<section>
             <h2>${escapeHtml(title)}</h2>
             <ul>
               ${items
-                .map((item) => {
-                  const here = item.path === current.path;
-                  return `<li><a href="${item.path}"${here ? ' aria-current="page"' : ''}>${escapeHtml(
-                    item.title
-                  )}</a>${
-                    here && item.anchors && item.anchors.length
-                      ? `
-                <ul class="menu-anchors">
-                  ${item.anchors
-                    .map(({ id, title: name }) => `<li><a href="#${id}">${escapeHtml(name)}</a></li>`)
-                    .join('\n                  ')}
-                </ul>`
-                      : ''
-                  }</li>`;
-                })
+                .map(({ id, title: name }) => `<li><a href="#${id}" data-spy="${id}">${escapeHtml(name)}</a></li>`)
                 .join('\n              ')}
             </ul>
           </section>`
     )
     .join('\n          ');
+}
+
+function renderSection(section: Section) {
+  return `<section class="sec" id="${section.id}" aria-labelledby="${section.id}-title">
+          ${(section.legacy || []).map((id) => `<span id="${id}"></span>`).join('')}
+          <header class="head">
+            <p class="crumb">${escapeHtml(section.parent)}</p>
+            <h2 id="${section.id}-title">${escapeHtml(section.title)} <span>${escapeHtml(section.search)}</span></h2>
+            <p class="lede">${section.lede}</p>
+          </header>
+          ${section.body}
+          <p class="sec-foot"><a href="/${section.file}">This section as Markdown</a><a href="#top">Back to the top</a></p>
+        </section>`;
 }
 
 function renderBar(color: string, presets: Preset[]) {
@@ -130,26 +135,24 @@ function renderBar(color: string, presets: Preset[]) {
     </div>`;
 }
 
-/** The page every screen shares: the menu, the color bar and the footer. */
-export function shell(page: Page, site: Site) {
-  const home = page.path === '/';
-  const title = home ? SITE_TITLE : `${page.title} · color2k`;
-  const description = escapeHtml(home ? site.description : page.lede.replace(/<[^>]+>/g, ''));
-  const url = `https://color2k.com${page.path}`;
+/** The one page: the menu, the splash, the color bar and every section. */
+export function shell(site: Site) {
+  const description = escapeHtml(site.description);
+  const url = 'https://color2k.com/';
 
   return `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>${escapeHtml(title)}</title>
+    <title>${escapeHtml(SITE_TITLE)}</title>
     <meta name="description" content="${description}" />
     <meta
       name="keywords"
-      content="color, parsing, css, css-in-js, theming, contrast, tinycolor, polished, chroma-js, npm, javascript, typescript"
+      content="color, javascript color library, lighten, darken, mix colors, hex to rgb, wcag contrast, css-in-js, theming, tinycolor, polished, chroma-js, typescript"
     />
     <link rel="canonical" href="${url}" />
-    <meta property="og:title" content="${escapeHtml(title)}" />
+    <meta property="og:title" content="${escapeHtml(SITE_TITLE)}" />
     <meta property="og:site_name" content="color2k" />
     <meta property="og:url" content="${url}" />
     <meta property="og:description" content="${description}" />
@@ -157,11 +160,12 @@ export function shell(page: Page, site: Site) {
     <meta property="og:image" content="https://color2k.com/og.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="color2k. Fully dynamic colors in 2.4 kB." />
+    <meta property="og:image:alt" content="color2k. Fully dynamic colors in 2.5 kB." />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="${escapeHtml(title)}" />
+    <meta name="twitter:title" content="${escapeHtml(SITE_TITLE)}" />
     <meta name="twitter:description" content="${description}" />
     <meta name="twitter:image" content="https://color2k.com/og.png" />
+    <meta name="twitter:image:alt" content="color2k. Fully dynamic colors in 2.5 kB." />
     <meta name="author" content="Rico Kahler" />
     <meta name="theme-color" content="#10131f" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -171,31 +175,33 @@ export function shell(page: Page, site: Site) {
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt" />
     <link rel="alternate" type="text/plain" href="/llms-full.txt" title="llms-full.txt" />
+    ${site.sections
+      .map(
+        ({ file, title }) =>
+          `<link rel="alternate" type="text/markdown" href="/${file}" title="${escapeHtml(title)}" />`
+      )
+      .join('\n    ')}
     <script src="/theme.js"></script>
     <script src="/color2k.js" defer></script>
     <script src="/site.js" defer></script>
-    <style>${site.css}</style>${
-      home
-        ? `
-    <script type="application/ld+json">${escapeJsonForHtml(site.structuredData)}</script>`
-        : ''
-    }
+    <style>${site.css}</style>
+    <script type="application/ld+json">${escapeJsonForHtml(site.structuredData)}</script>
   </head>
-  <body${home ? ' class="is-home"' : ''}>
+  <body>
     <a class="skip" href="#content">Skip to content</a>
     <header class="side">
-      <a class="brand" href="/" aria-label="color2k, overview">
-        <img src="/logo.svg" alt="color2k" width="154" height="40" />
-      </a>
-      <nav class="menu" id="menu" aria-label="Site">
+      <div class="top">
+        <a class="brand" href="#top" aria-label="color2k, back to the top">
+          <img src="/logo.svg" alt="color2k" width="154" height="40" />
+        </a>
+        <button type="button" class="mode needs-js" id="mode" data-current="system" aria-label="Color mode: System. Switch to Light." title="Color mode: System">
+          <span class="mode-system">${icons.system}</span><span class="mode-light">${icons.light}</span><span class="mode-dark">${icons.dark}</span>
+        </button>
+      </div>
+      <nav class="menu" id="menu" aria-label="Sections">
         <button type="button" class="menu-close needs-js" data-menu-close>Close</button>
-        <div class="mode needs-js" role="group" aria-label="Color mode">
-          <button type="button" data-mode="system" aria-pressed="true">${icons.system}System</button>
-          <button type="button" data-mode="light" aria-pressed="false">${icons.light}Light</button>
-          <button type="button" data-mode="dark" aria-pressed="false">${icons.dark}Dark</button>
-        </div>
         <div class="menu-groups">
-          ${renderMenu(site.nav, page)}
+          ${renderMenu(site.nav)}
         </div>
         <ul class="menu-out">
           <li><a href="https://rico.codes">rico.codes</a></li>
@@ -205,30 +211,21 @@ export function shell(page: Page, site: Site) {
       </nav>
     </header>
     <div class="main">
-      ${page.hero || ''}
+      ${site.hero}
       ${renderBar(site.color, site.presets)}
       <main id="content">
-        ${
-          home
-            ? ''
-            : `<header class="head">
-          <p class="crumb"><a href="/">color2k</a><span aria-hidden="true">/</span>${escapeHtml(page.parent)}</p>
-          <h1>${escapeHtml(page.heading || page.title)}</h1>
-          <p class="lede">${page.lede}</p>
-        </header>`
-        }
-        ${page.body}
-        ${renderPager(page, site.nav)}
+        ${site.overview}
+        ${site.sections.map(renderSection).join('\n        ')}
       </main>
       <footer class="foot">
         <nav aria-label="More">
           <ul>
-            <li><a href="/project/#credits">Credits</a></li>
+            <li><a href="#credits">Credits</a></li>
             <li><a href="/llms.txt">llms.txt</a></li>
             <li><a href="/llms-full.txt">llms-full.txt</a></li>
             <li><a href="https://github.com/ricokahler/color2k">Source</a></li>
             <li><a href="https://www.npmjs.com/package/color2k">npm</a></li>
-            <li><a href="/fonts-license.txt">Font licenses</a></li>
+            <li><a href="/fonts-license.txt">Font license</a></li>
           </ul>
         </nav>
         <nav aria-label="Rico Kahler links">
@@ -246,35 +243,39 @@ export function shell(page: Page, site: Site) {
 `;
 }
 
-/** The pages before and after this one, in menu order. */
-function renderPager(page: Page, nav: NavGroup[]) {
-  const all = nav.flatMap(({ items }) => items);
-  const index = all.findIndex(({ path }) => path === page.path);
-  const before = all[index - 1];
-  const after = all[index + 1];
-
-  return `<nav class="pager" aria-label="Next and previous pages">
-          ${
-            before
-              ? `<a class="card pager-back" href="${before.path}"><small>Before</small><b>${escapeHtml(
-                  before.title
-                )}</b></a>`
-              : '<span></span>'
-          }
-          ${
-            after
-              ? `<a class="card pager-next" href="${after.path}"><small>Next</small><b>${escapeHtml(
-                  after.title
-                )}</b>${icons.arrow}</a>`
-              : ''
-          }
-        </nav>`;
+/** The page for an address that is not there. */
+export function notFound(css: string) {
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Page not found · color2k</title>
+    <meta name="robots" content="noindex" />
+    <script src="/theme.js"></script>
+    <style>${css}</style>
+  </head>
+  <body>
+    <main class="lost">
+      <a class="brand" href="/"><img src="/logo.svg" alt="color2k" width="154" height="40" /></a>
+      <h1>That page is not here</h1>
+      <p class="lede">color2k.com is one page now. These will get you where you were going.</p>
+      <p class="lost-links">
+        <a class="btn" href="/">Overview${icons.arrow}</a>
+        <a class="btn btn-quiet" href="/#quickstart">Quickstart</a>
+        <a class="btn btn-quiet" href="/#functions">API</a>
+      </p>
+      <p class="note">Reading by machine? Try <a href="/llms.txt">llms.txt</a>.</p>
+    </main>
+  </body>
+</html>
+`;
 }
 
 // ------------------------------------------------------------------ home
 
 interface WheelOptions {
-  rings: number[];
+  rings: number;
   wedges: number;
   vars: { [name: string]: string };
   hue: number;
@@ -306,13 +307,13 @@ function renderWheel({ rings, wedges, vars, hue, color }: WheelOptions) {
         >
           <svg viewBox="-100 -100 200 200" aria-hidden="true">
             <defs>
-              ${rings
+              ${Array.from({ length: rings })
                 .map((_, ring) => `<path id="wr${ring}" d="${wedge(radii[ring][0], radii[ring][1], sweep)}" />`)
                 .join('')}
             </defs>
             <circle class="wheel-back" r="99.5" />
             <g class="wheel-spin" id="wheel-spin" style="transform:rotate(${(-hue).toFixed(2)}deg)">
-              ${rings
+              ${Array.from({ length: rings })
                 .map((_, ring) =>
                   Array.from(
                     { length: wedges },
@@ -332,26 +333,35 @@ function renderWheel({ rings, wedges, vars, hue, color }: WheelOptions) {
 interface HomeOptions {
   wheel: WheelOptions;
   size: string;
+  /** The lightness slider: where it starts, and the gradient under it. */
+  lightness: number;
+  track: string;
 }
 
-export function renderHero({ wheel, size }: HomeOptions) {
+export function renderHero({ wheel, size, lightness, track }: HomeOptions) {
   return `<section class="hero" id="top" aria-labelledby="hero-title">
       <div class="hero-copy">
         <h1 id="hero-title">Fully dynamic colors in&nbsp;${size}&nbsp;kB</h1>
         <p class="hero-sub">
-          Hand color2k a color while your app runs. It gives back the hover
-          state and the text color that reads on top. It covers every 8-bit
-          sRGB color, written as hex, rgb(a), hsl(a) or a CSS name. No
-          dependencies.
+          color2k is a small JavaScript color library. Hand it a color while
+          your app runs and it gives back the hover state and the text color
+          that reads on top. It covers every 8-bit sRGB color, written as hex,
+          rgb(a), hsl(a) or a CSS name. No dependencies.
         </p>
         <div class="hero-actions">
           <div class="install">
             <code>npm i color2k</code>
             <button type="button" class="needs-js" data-copy-text="npm i color2k">Copy</button>
           </div>
-          <a class="btn" href="/quickstart/">Quickstart${icons.arrow}</a>
+          <a class="btn" href="#quickstart">Quickstart${icons.arrow}</a>
         </div>
-        <p class="hero-tip needs-js">This page is built from one color. Turn the wheel to change it.</p>
+        <div class="hero-tune needs-js">
+          <p class="hero-tip">This page is built from one color. Turn the wheel, or tap any wedge.</p>
+          <label class="rail">
+            <span class="rail-name">Lightness <b id="hero-light-value">${lightness}%</b></span>
+            <span class="rail-track"><span class="rail-fill" id="hero-light-fill" aria-hidden="true" style="--track:${track}"></span><input type="range" id="hero-light" min="0" max="100" step="1" value="${lightness}" /></span>
+          </label>
+        </div>
       </div>
       ${renderWheel(wheel)}
     </section>`;

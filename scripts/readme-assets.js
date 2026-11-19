@@ -386,9 +386,9 @@ function generateSizes(readme) {
   const sizes = JSON.parse(
     fs.readFileSync(path.resolve(root, 'docs/sizes.json'), 'utf8')
   );
-  if ((sizes.all / 1000).toFixed(1) !== '2.4') {
+  if ((sizes.all / 1000).toFixed(1) !== '2.5') {
     throw new Error(
-      `The bundle is ${formatBytes(sizes.all)} now. Update every "2.4 kB" in the README, website and package.json.`
+      `The bundle is ${formatBytes(sizes.all)} now. Update every "2.5 kB" in the README, website and package.json.`
     );
   }
 
@@ -461,7 +461,7 @@ function generateResults(readme) {
     files[`${id}.svg`] = result.svg;
     output.push(
       line,
-      `<p><img src="./docs/readme/${id}.svg" width="${width}" alt="${escapeXml(
+      `<p><img src="https://raw.githubusercontent.com/ricokahler/color2k/main/docs/readme/${id}.svg" width="${width}" alt="${escapeXml(
         result.alt
       )}" /></p>`,
       RESULT_END
@@ -625,7 +625,7 @@ function generateBanner() {
     .replace(/<title[^>]*>.*?<\/title>/, '')
     .replace(/<\/svg>\s*$/, '');
   const label =
-    'color2k. Fully dynamic colors in 2.4 kB. A palette computed by color2k drifts around the color wheel.';
+    'color2k. Fully dynamic colors in 2.5 kB. A palette computed by color2k drifts around the color wheel.';
   const [, logoWidth, logoHeight] = /viewBox="0 0 (\d+) (\d+)"/.exec(
     fs.readFileSync(path.resolve(root, 'website/static/logo.svg'), 'utf8')
   );
@@ -653,7 +653,7 @@ function generateBanner() {
       (430 * logoHeight) / logoWidth
     )}" viewBox="0 0 ${logoWidth} ${logoHeight}">${logo}</svg>`,
     '<text x="60" y="228" font-size="35" font-weight="800" letter-spacing="-0.6" fill="#fff">Fully dynamic colors</text>',
-    '<text x="60" y="272" font-size="35" font-weight="800" letter-spacing="-0.6" fill="#fff">in 2.4 kB.</text>',
+    '<text x="60" y="272" font-size="35" font-weight="800" letter-spacing="-0.6" fill="#fff">in 2.5 kB.</text>',
     '<rect x="60" y="312" width="212" height="50" rx="11" fill="#fff" fill-opacity="0.08" stroke="#fff" stroke-opacity="0.2"/>',
     `<text x="80" y="343" font-family="${MONO}" font-size="18" fill="#fff"><tspan fill="#8d94aa">$ </tspan>npm i color2k</text>`,
     '<text x="296" y="343" font-size="17" fill="#a2a9bd">No dependencies</text>',

@@ -4,7 +4,6 @@
 /* TOKENS */
 
 :root {
-  --pick: #ff2d6f;
   --side: 264px;
   --bar: 61px;
   --gutter: 16px;
@@ -14,14 +13,6 @@
   --cut: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
   --checks: repeating-conic-gradient(var(--checker) 0 25%, var(--surface) 0 50%) 0 0 / 16px 16px;
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-@font-face {
-  font-family: "Fredoka";
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url("/fredoka.woff2") format("woff2");
 }
 
 @font-face {
@@ -39,7 +30,6 @@
 }
 
 html {
-  scroll-behavior: smooth;
   scroll-padding-top: calc(var(--bar) + 20px);
   -webkit-text-size-adjust: 100%;
 }
@@ -186,8 +176,8 @@ p {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 48px;
-  padding: 0 18px;
+  min-height: 52px;
+  padding: 0 22px;
   border: 1.5px solid var(--edge);
   border-radius: 6px;
   background: var(--accent);
@@ -239,26 +229,75 @@ p {
 
 /* ----------------------------------------------------------------- menu */
 
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .brand {
   display: flex;
   align-items: center;
+  min-height: 44px;
   border-radius: 6px;
 }
 
 .brand img {
   display: block;
-  /* The logo's ink is nearly black. On a dark page a pale plate keeps its
+  /* The logo's ink is nearly black. On a dark page a pale line keeps its
      outline from sinking into the background. */
   filter: drop-shadow(0 0 0.5px var(--edge));
 }
 
-.menu h2 {
-  margin: 0 0 4px;
-  padding: 0 10px;
+/* The color mode: one small button that steps through System, Light, Dark. */
+.mode {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
   color: var(--muted);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  transition:
+    background-color 0.12s,
+    color 0.12s,
+    transform 0.2s var(--ease);
+}
+
+.mode:hover,
+.mode:focus-visible {
+  background: var(--soft);
+  color: var(--text);
+  transform: rotate(18deg);
+}
+
+.mode span {
+  display: none;
+}
+
+.mode svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+.mode[data-current="system"] .mode-system,
+.mode[data-current="light"] .mode-light,
+.mode[data-current="dark"] .mode-dark {
+  display: block;
+}
+
+.menu h2 {
+  margin: 0 0 2px;
+  padding: 0 12px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
@@ -270,100 +309,43 @@ p {
 
 .menu-groups {
   display: grid;
-  gap: 14px;
+  gap: 18px;
 }
 
 .menu-groups a {
   display: flex;
   align-items: center;
   min-height: 44px;
-  padding: 0 10px;
-  border-radius: 6px;
-  color: var(--text);
-  font-weight: 600;
+  padding: 0 12px;
+  border-left: 2px solid transparent;
+  color: var(--muted);
+  font-size: 15px;
   text-decoration: none;
   transition:
-    background-color 0.12s,
-    box-shadow 0.12s,
-    padding 0.12s var(--ease);
+    color 0.12s,
+    border-color 0.12s,
+    padding 0.14s var(--ease);
 }
 
 .menu-groups a:hover,
 .menu-groups a:focus-visible {
-  background: var(--soft);
-  box-shadow: inset 4px 0 0 var(--accent);
+  border-left-color: var(--line);
+  color: var(--text);
   padding-left: 16px;
 }
 
-.menu-groups a[aria-current="page"] {
-  background: var(--text);
-  color: var(--bg);
-  box-shadow: none;
-  padding-left: 10px;
-}
-
-.menu-anchors {
-  margin: 4px 0 8px 14px !important;
-  border-left: 1.5px solid var(--line);
-}
-
-.menu-anchors a {
-  min-height: 44px;
-  margin-left: 6px;
-  color: var(--muted);
-  font: 500 13.5px var(--mono);
-}
-
-.mode {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2px;
-  padding: 3px;
-  border: 1.5px solid var(--line);
-  border-radius: 8px;
-  background: var(--sunken);
-}
-
-.mode button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  min-height: 44px;
-  padding: 0;
-  border: 0;
-  border-radius: 5px;
-  background: transparent;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 700;
-  transition:
-    background-color 0.12s,
-    color 0.12s;
-}
-
-.mode svg {
-  width: 13px;
-  height: 13px;
-}
-
-.mode button:hover,
-.mode button:focus-visible {
-  background: var(--soft);
-  color: var(--text);
-}
-
-.mode button[aria-pressed="true"] {
-  background: var(--text);
-  color: var(--bg);
+.menu-groups a[aria-current] {
+  border-left-color: var(--ink);
+  color: var(--ink);
+  font-weight: 600;
 }
 
 .menu-out {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding-top: 14px !important;
-  border-top: 1.5px solid var(--line);
+  padding-top: 12px !important;
+  border-top: 1px solid var(--line);
 }
 
 .menu-out a {
@@ -372,12 +354,14 @@ p {
   justify-content: center;
   min-width: 44px;
   min-height: 44px;
-  padding: 0 10px;
+  padding: 0 12px;
   border-radius: 6px;
-  color: var(--text);
-  font-weight: 600;
+  color: var(--muted);
+  font-size: 15px;
   text-decoration: none;
-  transition: background-color 0.12s;
+  transition:
+    background-color 0.12s,
+    color 0.12s;
 }
 
 .menu-out li:first-child {
@@ -387,6 +371,7 @@ p {
 .menu-out a:hover,
 .menu-out a:focus-visible {
   background: var(--soft);
+  color: var(--text);
 }
 
 .menu-close {
@@ -408,6 +393,7 @@ p {
 @media (min-width: 900px) {
   :root {
     --gutter: 40px;
+    --side: 232px;
   }
 
   .side {
@@ -417,22 +403,17 @@ p {
     width: var(--side);
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    padding: 22px 16px 16px;
+    gap: 22px;
+    padding: 20px 14px 14px 20px;
     overflow-y: auto;
-    border-right: 1.5px solid var(--line);
-    background: var(--surface);
-  }
-
-  .brand {
-    padding: 0 6px;
+    border-right: 1px solid var(--line);
   }
 
   .menu {
     display: flex;
     flex: 1;
     flex-direction: column;
-    gap: 22px;
+    gap: 18px;
   }
 
   .menu-out {
@@ -446,9 +427,12 @@ p {
   .bar-menu {
     display: none !important;
   }
+}
 
+/* With a mouse the menu can sit tighter. A finger still gets 44px. */
+@media (min-width: 900px) and (pointer: fine) {
   .menu-groups a {
-    min-height: 44px;
+    min-height: 34px;
   }
 }
 
@@ -462,12 +446,10 @@ p {
     display: contents;
   }
 
-  .brand {
+  .top {
     order: 0;
-    align-self: flex-start;
     height: 56px;
-    margin-left: 12px;
-    padding: 0 4px;
+    padding: 0 10px 0 16px;
   }
 
   .brand img {
@@ -487,8 +469,7 @@ p {
     display: grid;
     gap: 22px;
     padding: 24px 16px 32px;
-    border-top: 1.5px solid var(--line);
-    background: var(--surface);
+    border-top: 1px solid var(--line);
   }
 
   .js .menu {
@@ -514,6 +495,10 @@ p {
   .js .menu-close {
     display: block;
     justify-self: end;
+  }
+
+  .menu-groups a {
+    font-size: 17px;
   }
 }
 
@@ -942,16 +927,18 @@ p {
 .install {
   display: flex;
   align-items: center;
-  min-height: 48px;
+  min-height: 52px;
   border: 1.5px solid var(--line);
   border-radius: 6px;
   background: var(--surface);
 }
 
 .install code {
-  padding: 0 14px;
+  padding: 0 20px 0 18px;
+  background: none;
   font-size: 15px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .install code::before {
@@ -961,8 +948,8 @@ p {
 
 .install button {
   align-self: stretch;
-  min-width: 64px;
-  padding: 0 14px;
+  min-width: 72px;
+  padding: 0 18px;
   border: 0;
   border-left: 1.5px solid var(--line);
   border-radius: 0 5px 5px 0;
@@ -977,8 +964,14 @@ p {
   color: var(--bg);
 }
 
+.hero-tune {
+  display: grid;
+  gap: 6px;
+  max-width: 420px;
+  margin-top: 18px;
+}
+
 .hero-tip {
-  margin-top: 16px;
   color: var(--text);
   font-size: 14.5px;
   font-weight: 600;
@@ -1124,31 +1117,78 @@ main {
   padding: 0 var(--gutter) 40px;
 }
 
+.sec {
+  margin-top: 72px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
 .head {
-  padding: 36px 0 8px;
+  padding: 28px 0 8px;
 }
 
 .crumb {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
-.crumb a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  margin-block: -12px;
-  color: var(--muted);
-}
-
-.head h1 {
+.head h2 {
   font-size: clamp(2.2rem, 7vw, 3.4rem);
   letter-spacing: -0.035em;
   font-weight: 850;
+}
+
+/* The second line of a section heading says it the way people search. */
+.head h2 span {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: clamp(1.05rem, 3.4vw, 1.3rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.sec-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 20px;
+  margin-top: 28px;
+  font-size: 14px;
+}
+
+.sec-foot a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--muted);
+}
+
+.sec-foot a:hover,
+.sec-foot a:focus-visible {
+  color: var(--ink);
+}
+
+.lost {
+  display: grid;
+  gap: 16px;
+  justify-items: start;
+  max-width: 640px;
+  padding: 12vh var(--gutter);
+}
+
+.lost h1 {
+  font-size: clamp(2rem, 7vw, 3rem);
+}
+
+.lost-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .lede {
@@ -1174,6 +1214,7 @@ main {
   display: inline-flex;
   align-items: center;
   gap: 7px;
+  min-width: 44px;
   min-height: 44px;
   padding: 0 12px;
   border: 1.5px solid var(--line);
@@ -1415,65 +1456,6 @@ main {
   background: var(--surface);
 }
 
-.card-theme {
-  overflow: hidden;
-}
-
-.card-theme .tp {
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-}
-
-.card-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-top: 1.5px solid var(--line);
-  font-size: 1.1rem;
-}
-
-.card-foot .arrow {
-  color: var(--ink);
-}
-
-.pager {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 56px;
-}
-
-.pager .card {
-  justify-content: center;
-  min-height: 72px;
-  padding: 10px 16px;
-}
-
-.pager small {
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.pager b {
-  font-size: 1.15rem;
-}
-
-.pager-next {
-  padding-right: 44px !important;
-  text-align: right;
-}
-
-.pager-next .arrow {
-  position: absolute;
-  right: 14px;
-  top: 50%;
-  margin-top: -9px;
-  color: var(--ink);
-}
-
 .foot {
   display: flex;
   flex-wrap: wrap;
@@ -1549,17 +1531,17 @@ main {
   margin-bottom: 18px;
 }
 
-.fn-head h2 {
+.fn-head h3 {
   font: 800 clamp(1.5rem, 5.5vw, 2rem) / 1.2 var(--mono);
   letter-spacing: -0.03em;
   overflow-wrap: anywhere;
 }
 
-.theme .fn-head h2 {
+.theme .fn-head h3 {
   font-family: var(--sans);
 }
 
-.fn-head h2 a {
+.fn-head h3 a {
   min-width: 44px;
   display: inline-flex;
   align-items: center;
@@ -1568,13 +1550,13 @@ main {
   text-decoration: none;
 }
 
-.fn-head h2 a:hover,
-.fn-head h2 a:focus-visible {
+.fn-head h3 a:hover,
+.fn-head h3 a:focus-visible {
   color: var(--ink);
   text-decoration: underline;
 }
 
-.fn-head h2 code {
+.fn-head h3 code {
   color: var(--muted);
   font-size: 0.62em;
   font-weight: 500;
@@ -1614,9 +1596,9 @@ main {
   margin-top: 12px;
 }
 
-.ref h3,
-.demo-theme h3,
-.theme-side h3 {
+.ref h4,
+.demo-theme h4,
+.theme-side h4 {
   margin-top: 20px;
   color: var(--muted);
   font-size: 12px;
@@ -2094,6 +2076,16 @@ button.sw:focus-visible::after {
   display: none;
 }
 
+.strip {
+  display: flex;
+  height: 40px;
+  clip-path: var(--cut);
+}
+
+.strip i {
+  flex: 1;
+}
+
 .steps {
   position: relative;
   height: 64px;
@@ -2372,11 +2364,11 @@ button.sw:focus-visible::after {
   padding: 16px;
 }
 
-.demo-theme > h3 {
+.demo-theme > h4 {
   margin: 4px 16px 10px;
 }
 
-.theme-side h3 {
+.theme-side h4 {
   margin-top: 0;
 }
 
@@ -2541,30 +2533,64 @@ button.sw:focus-visible::after {
 .tp-row {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  justify-content: flex-end;
   gap: 8px;
 }
 
 .tp-btn {
-  padding: 7px 16px;
+  min-height: 44px;
+  padding: 0 20px;
+  border: 1.5px solid var(--t-accent);
   background: var(--t-accent);
   color: var(--t-on-accent);
+  font: inherit;
   font-weight: 700;
+  transition:
+    background-color 0.12s,
+    border-color 0.12s,
+    box-shadow 0.12s,
+    transform 0.12s var(--ease);
 }
 
-.tp-btn-hover {
+.tp-btn:hover {
+  border-color: var(--t-accent-hover);
   background: var(--t-accent-hover);
 }
 
+.tp-btn:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 4px var(--t-ring);
+}
+
+.tp-btn:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+/* The second action: an outline that fills in softly on hover. */
+.tp-btn-ghost {
+  border-color: var(--t-border);
+  background: transparent;
+  color: var(--t-on-surface);
+}
+
+.tp-btn-ghost:hover {
+  border-color: var(--t-on-surface);
+  background: var(--t-ring);
+}
+
 .tp-card-text {
-  margin-left: auto;
   font-size: 13px;
   font-weight: 600;
 }
 
 .tp-soft {
   border-radius: 22px;
-  font-family: "Fredoka", ui-rounded, var(--sans);
+  font-family: Inter, "Nunito Sans", "Segoe UI", Roboto, "Helvetica Neue", system-ui, sans-serif;
+}
+
+.tp-soft .tp-title {
+  font-weight: 700;
+  letter-spacing: -0.03em;
 }
 
 .tp-soft .tp-chip,
@@ -2582,14 +2608,19 @@ button.sw:focus-visible::after {
   box-shadow: 0 10px 28px -8px var(--t-shadow);
 }
 
+.tp-soft .tp-btn:hover {
+  transform: translateY(-1px);
+}
+
 .tp-serious {
   border-radius: 3px;
 }
 
 .tp-serious .tp-title {
-  font-family: Georgia, "Times New Roman", serif;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-family: ui-serif, "New York", "Iowan Old Style", Charter, "Source Serif 4", "Source Serif Pro", Georgia, serif;
+  font-size: 2.4rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
 }
 
 .tp-serious .tp-link {
@@ -2609,10 +2640,17 @@ button.sw:focus-visible::after {
 
 .tp-bold .tp-title {
   font-family: "Anton", Impact, var(--sans);
-  font-size: 2.9rem;
+  font-size: 3.2rem;
   font-weight: 400;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
+  /* The logo's stacked letters, in the theme's second color. */
+  text-shadow:
+    1px 1px 0 var(--t-accent),
+    2px 2px 0 var(--t-accent),
+    3px 3px 0 var(--t-accent),
+    4px 4px 0 var(--t-extra),
+    5px 5px 0 var(--t-extra);
 }
 
 .tp-bold .tp-card {
@@ -2621,6 +2659,26 @@ button.sw:focus-visible::after {
 
 .tp-bold .tp-chip {
   text-transform: uppercase;
+}
+
+.tp-bold .tp-btn {
+  box-shadow: 3px 3px 0 var(--t-on-surface);
+}
+
+.tp-bold .tp-btn:hover {
+  box-shadow: 5px 5px 0 var(--t-on-surface);
+  transform: translate(-2px, -2px);
+}
+
+.tp-bold .tp-btn:focus-visible {
+  box-shadow:
+    3px 3px 0 var(--t-on-surface),
+    0 0 0 4px var(--t-ring);
+}
+
+.tp-bold .tp-btn:active {
+  box-shadow: 0 0 0 var(--t-on-surface);
+  transform: translate(3px, 3px);
 }
 
 /* ----------------------------------------------------------------- size */
@@ -2633,6 +2691,28 @@ button.sw:focus-visible::after {
 .map {
   position: relative;
   width: 100%;
+  margin-top: 36px;
+}
+
+/* An outline round the part most apps import, with its label on top. */
+.map-mark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  border: 3px solid var(--edge);
+  pointer-events: none;
+}
+
+.map-mark span {
+  position: absolute;
+  bottom: 100%;
+  left: -3px;
+  padding: 4px 10px;
+  background: var(--edge);
+  color: var(--bg);
+  font: 700 13px var(--sans);
+  white-space: nowrap;
 }
 
 .map-wide {
@@ -2833,12 +2913,13 @@ button.tile-typical:focus-visible {
   max-width: 56em;
 }
 
-.prose h2 {
+.prose h2,
+.prose h3 {
   margin-top: 48px;
   font-size: clamp(1.5rem, 5vw, 1.9rem);
 }
 
-.prose h3 {
+.prose h4 {
   margin-top: 28px;
   font-size: 1.2rem;
 }
@@ -2883,6 +2964,7 @@ button.tile-typical:focus-visible {
 
 h2:hover .heading-anchor,
 h3:hover .heading-anchor,
+h4:hover .heading-anchor,
 .heading-anchor:focus-visible,
 .heading-anchor:hover {
   background: var(--soft);
@@ -2903,7 +2985,6 @@ h3:hover .heading-anchor,
 .card-names code,
 .token code,
 .why code,
-.install code,
 .grades code,
 .params dt code:first-child {
   padding: 0;
@@ -2911,15 +2992,14 @@ h3:hover .heading-anchor,
 }
 
 .call code,
-.fn-head h2 code,
+.fn-head h3 code,
 .pic code,
-.install code,
 .grades code,
 .params dt code:first-child {
   font-size: inherit;
 }
 
-.fn-head h2 code {
+.fn-head h3 code {
   font-size: 0.62em;
 }
 
@@ -3057,10 +3137,6 @@ pre.shiki {
 /* --------------------------------------------------------------- motion */
 
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-
   *,
   *::before,
   *::after {

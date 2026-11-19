@@ -1,17 +1,25 @@
+# color2k
+
+color2k is a small JavaScript library for working with CSS colors. It parses and converts them, lightens, darkens and mixes them, and checks WCAG contrast. It is 2.5 kB minified and gzipped, with no dependencies, because it does less on purpose.
+
+```
+npm i color2k
+```
+
 <p align="center">
   <a href="https://color2k.com">
-    <img src="./docs/readme/banner.svg" alt="color2k. Fully dynamic colors in 2.4 kB. A palette computed by color2k drifts around the color wheel." width="100%" />
+    <img src="https://raw.githubusercontent.com/ricokahler/color2k/main/docs/readme/banner.svg" alt="color2k. Fully dynamic colors in 2.5 kB. A palette computed by color2k drifts around the color wheel." width="100%" />
   </a>
 </p>
 
 <p align="center">
-  <strong>Fully dynamic colors in 2.4 kB.</strong><br />
+  <strong>Fully dynamic colors in 2.5 kB.</strong><br />
   No dependencies. Types included.
 </p>
 
 <p align="center">
   <a href="https://www.npmjs.com/package/color2k"><img src="https://img.shields.io/npm/v/color2k" alt="npm version" /></a>
-  <a href="https://bundlephobia.com/package/color2k"><img src="https://img.shields.io/badge/min%20%2B%20gzip-2.4%20kB-brightgreen" alt="2.4 kB minified and gzipped" /></a>
+  <a href="https://bundlephobia.com/package/color2k"><img src="https://img.shields.io/badge/min%20%2B%20gzip-2.5%20kB-brightgreen" alt="2.5 kB minified and gzipped" /></a>
   <a href="https://github.com/ricokahler/color2k/actions/workflows/test.yml"><img src="https://img.shields.io/github/actions/workflow/status/ricokahler/color2k/test.yml?branch=main" alt="build status" /></a>
   <a href="https://codecov.io/gh/ricokahler/color2k"><img src="https://codecov.io/gh/ricokahler/color2k/branch/main/graph/badge.svg" alt="code coverage" /></a>
   <a href="https://www.npmjs.com/package/color2k"><img src="https://img.shields.io/npm/dw/color2k" alt="weekly downloads" /></a>
@@ -27,9 +35,9 @@
 
 ## Why color2k
 
-You have a brand color. You need its hover state, a faded version for the focus ring, and to know whether the text on top should be black or white. That is most of what an app does with color, and color2k does it in 2.4 kB.
+You have a brand color. You need its hover state, a faded version for the focus ring, and to know whether the text on top should be black or white. That is most of what an app does with color, and color2k does it in 2.5 kB.
 
-- **It's small.** All 23 exports come to 2.4 kB. Import only `darken` and you ship 1.6 kB.
+- **It's small.** All 25 exports come to 2.5 kB. Import only `darken` and you ship 1.6 kB.
 - **It's just functions.** Pass a CSS color string and get one back. There is nothing to set up or chain.
 - **It covers the daily work.** Parse and convert colors, lighten or darken them, mix them, build scales and check WCAG contrast.
 - **It's boring to depend on.** No dependencies, a test file for every function, TypeScript types and npm provenance. The build still runs on Node 6.
@@ -37,20 +45,21 @@ You have a brand color. You need its hover state, a faded version for the focus 
 ### What it costs
 
 <!-- SIZES-START -->
-All 23 exports together are **2.36 kB**, minified and gzipped. Import one and this is what lands in your bundle:
+All 25 exports together are **2.46 kB**, minified and gzipped. Import one and this is what lands in your bundle:
 
 | Import | Alone | Import | Alone | Import | Alone |
 | --- | --- | --- | --- | --- | --- |
-| `getScale` | 1.68 kB | `mix` | 1.62 kB | `transparentize` | 1.52 kB |
-| `saturate` | 1.66 kB | `getContrast` | 1.57 kB | `toRgba` | 1.51 kB |
-| `lighten` | 1.66 kB | `parseToHsla` | 1.57 kB | `parseToRgba` | 1.45 kB |
-| `adjustHue` | 1.65 kB | `readableColor` | 1.57 kB | `hsla` | 288 B |
-| `desaturate` | 1.65 kB | `readableColorIsBlack` | 1.56 kB | `rgba` | 277 B |
-| `darken` | 1.64 kB | `getLuminance` | 1.54 kB | `ColorError` | 244 B |
-| `toHsla` | 1.64 kB | `opacify` | 1.53 kB | `guard` | 221 B |
-| `hasBadContrast` | 1.63 kB | `toHex` | 1.52 kB |  |  |
+| `getScale` | 1.69 kB | `mix` | 1.63 kB | `transparentize` | 1.53 kB |
+| `complement` | 1.68 kB | `getContrast` | 1.58 kB | `toRgba` | 1.52 kB |
+| `saturate` | 1.67 kB | `invert` | 1.58 kB | `parseToRgba` | 1.46 kB |
+| `lighten` | 1.67 kB | `parseToHsla` | 1.58 kB | `hsla` | 292 B |
+| `adjustHue` | 1.66 kB | `readableColor` | 1.58 kB | `rgba` | 283 B |
+| `desaturate` | 1.66 kB | `readableColorIsBlack` | 1.57 kB | `ColorError` | 249 B |
+| `darken` | 1.65 kB | `getLuminance` | 1.55 kB | `guard` | 227 B |
+| `hasBadContrast` | 1.65 kB | `opacify` | 1.54 kB |  |  |
+| `toHsla` | 1.65 kB | `toHex` | 1.54 kB |  |  |
 
-The parser is about 1.4 kB and nearly every function needs it. So the first import costs the most, and each one after it adds very little. `scripts/sizes.js` measures these with Rollup, Terser and gzip, and CI fails if they change without the table.
+The parser is about 1.5 kB and nearly every function needs it. So the first import costs the most, and each one after it adds very little. `scripts/sizes.js` measures these with Rollup, Terser and gzip, and CI fails if they change without the table.
 <!-- SIZES-END -->
 
 ### Next to the others
@@ -62,9 +71,46 @@ The parser is about 1.4 kB and nearly every function needs it. So the first impo
 | [color](https://github.com/Qix-/color) | [8.5 kB](https://bundlephobia.com/package/color) |
 | [tinycolor2](https://github.com/bgrins/TinyColor) | [5.4 kB](https://bundlephobia.com/package/tinycolor2) |
 | [colord](https://github.com/omgovich/colord) with the names, mix and a11y plugins | 4.7 to 5.0 kB |
-| **color2k** | [**2.4 kB**](https://bundlephobia.com/package/color2k) |
+| **color2k** | [**2.5 kB**](https://bundlephobia.com/package/color2k) |
 
 The single figures come from Bundlephobia, November 2026. colord's core is 2.3 kB without named colors, mixing or contrast checks, so its row is measured with the plugins that cover what color2k does. Bundled the way `scripts/sizes.js` measures color2k (Rollup, Terser with two passes, gzip at level 9), colord 2.14.0 with those three plugins is 4.86 kB. Other minifiers put it between 4.7 and 5.0 kB.
+
+### An alternative to TinyColor and Polished
+
+color2k covers the everyday calls of both. Three things change when you move over. You import functions by name, the color comes first, and amounts are decimals from 0 to 1.
+
+In [tinycolor2](https://github.com/bgrins/TinyColor), amounts run from 0 to 100 and calls chain off an object:
+
+```js
+import { darken, getContrast, mix, toHex } from 'color2k';
+
+// tinycolor('#0d6efd').darken(10).toHexString()
+toHex(darken('#0d6efd', 0.1)); // '#0256d4'
+
+// tinycolor.mix('gold', 'tomato', 25).toHexString()
+toHex(mix('gold', 'tomato', 0.25)); // '#ffba12'
+
+// tinycolor.readability('#0d6efd', '#fff')
+getContrast('#0d6efd', '#fff'); // 4.500782787406787
+```
+
+In [polished](https://github.com/styled-components/polished), the amount comes first and the color last:
+
+```js
+import { darken, mix, transparentize } from 'color2k';
+
+// darken(0.1, '#0d6efd')
+darken('#0d6efd', 0.1); // 'hsla(216, 98%, 42%, 1)'
+
+// mix(0.75, 'gold', 'tomato')
+// In polished the weight is the share of the first color. Here it is the second.
+mix('gold', 'tomato', 0.25); // 'rgba(255, 186, 18, 1)'
+
+// transparentize(0.5, '#0d6efd')
+transparentize('#0d6efd', 0.5); // 'rgba(13, 110, 253, 0.5)'
+```
+
+Both of them return hex for a solid color. color2k returns `hsla()` and `rgba()` strings, so wrap a result in `toHex` when you need hex. HSL results are rounded to whole percents, so that hex can sit one step away from theirs in a channel.
 
 ## Quickstart
 
@@ -185,7 +231,7 @@ light.why; // { vivid: true, faint: false, clash: false }
 ```
 
 <!-- RESULT: theme { light, dark, build: softTheme } -->
-<p><img src="./docs/readme/a-whole-theme-from-one-color.svg" width="840" alt="light bg: #fdf1f6; light surface: #ffffff; light border: #f6d5e1; light text: #4b1b2c; light muted: #6b2e44; light onSurface: #4b1b2c; light accent: #f49abb; light accentHover: #f6a9c5; light onAccent: #4b1b2c; light soft: #fad9e5; light onSoft: #4b1b2c; light ring: rgba(244, 154, 187, 0.55); light extra: #f4b59a; light shadow: rgba(244, 154, 187, 0.5); light decision vivid: true; light decision faint: false; light decision clash: false; dark bg: #2c171e; dark surface: #3d1f2a; dark border: #5e3141; dark text: #f7e3ea; dark muted: #d7a2b6; dark onSurface: #f7e3ea; dark accent: #f49abb; dark accentHover: #f6a9c5; dark onAccent: #361722; dark soft: #643c4a; dark onSoft: #f7e3ea; dark ring: rgba(244, 154, 187, 0.55); dark extra: #f4b59a; dark shadow: rgba(244, 154, 187, 0.5); dark decision vivid: true; dark decision faint: false; dark decision clash: false" /></p>
+<p><img src="https://raw.githubusercontent.com/ricokahler/color2k/main/docs/readme/a-whole-theme-from-one-color.svg" width="840" alt="light bg: #fdf1f6; light surface: #ffffff; light border: #f6d5e1; light text: #4b1b2c; light muted: #6b2e44; light onSurface: #4b1b2c; light accent: #f49abb; light accentHover: #f6a9c5; light onAccent: #4b1b2c; light soft: #fad9e5; light onSoft: #4b1b2c; light ring: rgba(244, 154, 187, 0.55); light extra: #f4b59a; light shadow: rgba(244, 154, 187, 0.5); light decision vivid: true; light decision faint: false; light decision clash: false; dark bg: #2c171e; dark surface: #3d1f2a; dark border: #5e3141; dark text: #f7e3ea; dark muted: #d7a2b6; dark onSurface: #f7e3ea; dark accent: #f49abb; dark accentHover: #f6a9c5; dark onAccent: #361722; dark soft: #643c4a; dark onSoft: #f7e3ea; dark ring: rgba(244, 154, 187, 0.55); dark extra: #f4b59a; dark shadow: rgba(244, 154, 187, 0.5); dark decision vivid: true; dark decision faint: false; dark decision clash: false" /></p>
 <!-- RESULT-END -->
 
 **Serious** drains the color out. The page is built from grays that keep 8% of the hue. Your color is the link and the button, so it has to read on the page. If `hasBadContrast` says it doesn't, the theme darkens it a step at a time until it does. Then `readableColorIsBlack` picks the button label.
@@ -249,7 +295,7 @@ light.why; // { weak: true, darkLabel: false }
 ```
 
 <!-- RESULT: theme { light, dark, build: seriousTheme } -->
-<p><img src="./docs/readme/a-whole-theme-from-one-color-2.svg" width="840" alt="light bg: #faf9fa; light surface: #ffffff; light border: #e3dee0; light text: #241e20; light muted: #6e5e64; light onSurface: #241e20; light accent: #e00052; light accentHover: #be0046; light onAccent: #fff; light soft: #f6d6e2; light onSoft: #241e20; light ring: rgba(224, 0, 82, 0.4); light extra: #d0c8cb; light shadow: rgba(36, 30, 32, 0.08); light decision weak: true; light decision darkLabel: false; dark bg: #1c1719; dark surface: #272123; dark border: #42383c; dark text: #efeced; dark muted: #b4a7ac; dark onSurface: #efeced; dark accent: #ff8fb8; dark accentHover: #ffa0c3; dark onAccent: #000; dark soft: #3c282f; dark onSoft: #efeced; dark ring: rgba(255, 143, 184, 0.4); dark extra: #53464b; dark shadow: rgba(239, 236, 237, 0.08); dark decision weak: false; dark decision darkLabel: true" /></p>
+<p><img src="https://raw.githubusercontent.com/ricokahler/color2k/main/docs/readme/a-whole-theme-from-one-color-2.svg" width="840" alt="light bg: #faf9fa; light surface: #ffffff; light border: #e3dee0; light text: #241e20; light muted: #6e5e64; light onSurface: #241e20; light accent: #e00052; light accentHover: #be0046; light onAccent: #fff; light soft: #f6d6e2; light onSoft: #241e20; light ring: rgba(224, 0, 82, 0.4); light extra: #d0c8cb; light shadow: rgba(36, 30, 32, 0.08); light decision weak: true; light decision darkLabel: false; dark bg: #1c1719; dark surface: #272123; dark border: #42383c; dark text: #efeced; dark muted: #b4a7ac; dark onSurface: #efeced; dark accent: #ff8fb8; dark accentHover: #ffa0c3; dark onAccent: #000; dark soft: #3c282f; dark onSoft: #efeced; dark ring: rgba(255, 143, 184, 0.4); dark extra: #53464b; dark shadow: rgba(239, 236, 237, 0.08); dark decision weak: false; dark decision darkLabel: true" /></p>
 <!-- RESULT-END -->
 
 **Bold** uses your color as the page, after turning a muted one up with `saturate`. A light page gets black text, black cards and hard black shadows. A dark page gets white text and cards tinted from the page with `lighten`. The button is the hue next door, 40 degrees along the wheel, unless it would disappear on the card. Then it falls back to black or white.
@@ -315,7 +361,7 @@ light.why; // { dull: false, light: true, tinted: false, lost: false }
 ```
 
 <!-- RESULT: theme { light, dark, build: boldTheme } -->
-<p><img src="./docs/readme/a-whole-theme-from-one-color-3.svg" width="840" alt="light bg: #ff8fb8; light surface: #000; light border: #000; light text: #000; light muted: #000; light onSurface: #fff; light accent: #ffb08f; light accentHover: #ffbca0; light onAccent: #000; light soft: #000; light onSoft: #ff8fb8; light ring: rgba(255, 176, 143, 0.6); light extra: #ff8fdd; light shadow: #000; light decision dull: false; light decision light: true; light decision tinted: false; light decision lost: false; dark bg: #2e1a21; dark surface: #5b3341; dark border: #fff; dark text: #fff; dark muted: #fff; dark onSurface: #fff; dark accent: #ffb08f; dark accentHover: #ffbca0; dark onAccent: #000; dark soft: #fff; dark onSoft: #2e1a21; dark ring: rgba(255, 176, 143, 0.6); dark extra: #ff8fdd; dark shadow: #ffb08f; dark decision dull: false; dark decision light: false; dark decision tinted: true; dark decision lost: false" /></p>
+<p><img src="https://raw.githubusercontent.com/ricokahler/color2k/main/docs/readme/a-whole-theme-from-one-color-3.svg" width="840" alt="light bg: #ff8fb8; light surface: #000; light border: #000; light text: #000; light muted: #000; light onSurface: #fff; light accent: #ffb08f; light accentHover: #ffbca0; light onAccent: #000; light soft: #000; light onSoft: #ff8fb8; light ring: rgba(255, 176, 143, 0.6); light extra: #ff8fdd; light shadow: #000; light decision dull: false; light decision light: true; light decision tinted: false; light decision lost: false; dark bg: #2e1a21; dark surface: #5b3341; dark border: #fff; dark text: #fff; dark muted: #fff; dark onSurface: #fff; dark accent: #ffb08f; dark accentHover: #ffbca0; dark onAccent: #000; dark soft: #fff; dark onSoft: #2e1a21; dark ring: rgba(255, 176, 143, 0.6); dark extra: #ff8fdd; dark shadow: #ffb08f; dark decision dull: false; dark decision light: false; dark decision tinted: true; dark decision lost: false" /></p>
 <!-- RESULT-END -->
 
 The text pairs in all three (text on the page, text on a card, the button label, the chip, and the Serious link) hold WCAG AA for any color you pass, see-through ones included. The build sweeps about 1,300 colors through each one to check.
@@ -356,7 +402,7 @@ theme.onBrand; // '#fff'
 ```
 
 <!-- RESULT: swatches theme -->
-<p><img src="./docs/readme/hover-active-and-focus-states.svg" width="748" alt="brand: rebeccapurple; brandHover: hsla(270, 50%, 34%, 1); brandActive: hsla(270, 50%, 28%, 1); brandSubtle: rgba(102, 51, 153, 0.12); focusRing: rgba(102, 51, 153, 0.4); onBrand: #fff" /></p>
+<p><img src="https://raw.githubusercontent.com/ricokahler/color2k/main/docs/readme/hover-active-and-focus-states.svg" width="748" alt="brand: rebeccapurple; brandHover: hsla(270, 50%, 34%, 1); brandActive: hsla(270, 50%, 28%, 1); brandSubtle: rgba(102, 51, 153, 0.12); focusRing: rgba(102, 51, 153, 0.4); onBrand: #fff" /></p>
 <!-- RESULT-END -->
 
 ### Readable text on any background
@@ -382,7 +428,7 @@ const text = readableColorIsBlack('gold') ? '#1a1a1a' : '#fafafa'; // '#1a1a1a'
 ```
 
 <!-- RESULT: samples labels.map((label) => ({ ...label, passes: 'aa' })) -->
-<p><img src="./docs/readme/readable-text-on-any-background.svg" width="832" alt="gold: #000 on gold, contrast 14.97:1 (AAA); tomato: #000 on tomato, contrast 7.13:1 (AAA); rebeccapurple: #fff on rebeccapurple, contrast 8.41:1 (AAA); midnightblue: #fff on midnightblue, contrast 14.85:1 (AAA)" /></p>
+<p><img src="https://raw.githubusercontent.com/ricokahler/color2k/main/docs/readme/readable-text-on-any-background.svg" width="832" alt="gold: #000 on gold, contrast 14.97:1 (AAA); tomato: #000 on tomato, contrast 7.13:1 (AAA); rebeccapurple: #fff on rebeccapurple, contrast 8.41:1 (AAA); midnightblue: #fff on midnightblue, contrast 14.85:1 (AAA)" /></p>
 <!-- RESULT-END -->
 
 ### Contrast checks
@@ -407,7 +453,7 @@ hasBadContrast('gold', 'aa', 'midnightblue'); // false
 ```
 
 <!-- RESULT: samples pairs -->
-<p><img src="./docs/readme/contrast-checks.svg" width="624" alt="Aa Text: #767676 on white, contrast 4.54:1 (AA); Aa Text: #999 on white, contrast 2.85:1 (fails AA); Aa Text: gold on midnightblue, contrast 10.59:1 (AAA)" /></p>
+<p><img src="https://raw.githubusercontent.com/ricokahler/color2k/main/docs/readme/contrast-checks.svg" width="624" alt="Aa Text: #767676 on white, contrast 4.54:1 (AA); Aa Text: #999 on white, contrast 2.85:1 (fails AA); Aa Text: gold on midnightblue, contrast 10.59:1 (AAA)" /></p>
 <!-- RESULT-END -->
 
 Both functions ignore alpha and do not clamp, so give them opaque, in-range colors. A see-through color has no contrast ratio of its own, because it depends on what is behind it. `getContrast('rgb(999, 0, 0)', 'black')` is a meaningless 103.
@@ -453,7 +499,7 @@ const fromGlass = accessible('rgba(77, 171, 247, 0.5)'); // '#0b75cb'
 ```
 
 <!-- RESULT: samples [{ color: '#4dabf7', background: '#fff', label: 'Before' }, { color: onLight, background: '#fff', label: 'After', passes: 'aa' }, { color: '#555', background: '#000', label: 'Before' }, { color: onDark, background: '#000', label: 'After', passes: 'aa' }, { color: fromClear, background: '#fff', label: 'Transparent', passes: 'aa' }, { color: fromGlass, background: '#fff', label: 'Half clear', passes: 'aa' }] -->
-<p><img src="./docs/readme/contrast-checks-2.svg" width="832" alt="Before: #4dabf7 on #fff, contrast 2.48:1 (fails AA); After: #0a75cd on #fff, contrast 4.73:1 (AA); Before: #555 on #000, contrast 2.82:1 (fails AA); After: #787878 on #000, contrast 4.76:1 (AA); Transparent: #757575 on #fff, contrast 4.61:1 (AA); Half clear: #0b75cb on #fff, contrast 4.75:1 (AA)" /></p>
+<p><img src="https://raw.githubusercontent.com/ricokahler/color2k/main/docs/readme/contrast-checks-2.svg" width="832" alt="Before: #4dabf7 on #fff, contrast 2.48:1 (fails AA); After: #0a75cd on #fff, contrast 4.73:1 (AA); Before: #555 on #000, contrast 2.82:1 (fails AA); After: #787878 on #000, contrast 4.76:1 (AA); Transparent: #757575 on #fff, contrast 4.61:1 (AA); Half clear: #0b75cb on #fff, contrast 4.75:1 (AA)" /></p>
 <!-- RESULT-END -->
 
 ### Color scales
@@ -477,7 +523,7 @@ steps[2]; // '#97cd60'
 ```
 
 <!-- RESULT: swatches steps -->
-<p><img src="./docs/readme/color-scales.svg" width="667" alt="#2ec4b6; #62c98b; #97cd60; #cbd235; #ffd60a; #ffaf1e; #ff8933; #ff6248; #ff3b5c" /></p>
+<p><img src="https://raw.githubusercontent.com/ricokahler/color2k/main/docs/readme/color-scales.svg" width="667" alt="#2ec4b6; #62c98b; #97cd60; #cbd235; #ffd60a; #ffaf1e; #ff8933; #ff6248; #ff3b5c" /></p>
 <!-- RESULT-END -->
 
 ### Tints and shades
@@ -493,7 +539,7 @@ const shade = toHex(mix(base, 'black', 0.4)); // '#3d1f5c'
 ```
 
 <!-- RESULT: swatches { tint, base, shade } -->
-<p><img src="./docs/readme/tints-and-shades.svg" width="340" alt="tint: #e0d6eb; base: rebeccapurple; shade: #3d1f5c" /></p>
+<p><img src="https://raw.githubusercontent.com/ricokahler/color2k/main/docs/readme/tints-and-shades.svg" width="340" alt="tint: #e0d6eb; base: rebeccapurple; shade: #3d1f5c" /></p>
 <!-- RESULT-END -->
 
 ### Tailwind palette
@@ -528,7 +574,7 @@ const variables = Object.entries(brand)
 ```
 
 <!-- RESULT: swatches brand -->
-<p><img src="./docs/readme/tailwind-palette.svg" width="817" alt="50: #f0eafb; 100: #e2d4f7; 200: #c5a9f0; 300: #a77ee8; 400: #8a53e1; 500: #6d28d9; 600: #5720ae; 700: #411882; 800: #2c1057; 900: #16082b; 950: #0b0416" /></p>
+<p><img src="https://raw.githubusercontent.com/ricokahler/color2k/main/docs/readme/tailwind-palette.svg" width="817" alt="50: #f0eafb; 100: #e2d4f7; 200: #c5a9f0; 300: #a77ee8; 400: #8a53e1; 500: #6d28d9; 600: #5720ae; 700: #411882; 800: #2c1057; 900: #16082b; 950: #0b0416" /></p>
 <!-- RESULT-END -->
 
 ### CSS-in-JS
@@ -556,7 +602,7 @@ const save = <Button $color="#b3261e">Save</Button>;
 ```
 
 <!-- RESULT: css save -->
-<p><img src="./docs/readme/css-in-js.svg" width="624" alt="Save (default): #fff on #b3261e, contrast 6.54:1 (AA); Save (hover): #fff on hsla(3, 71%, 33%, 1), contrast 8.81:1 (AAA); Save (focus): #fff on #b3261e, contrast 6.54:1 (AA), ring rgba(179, 38, 30, 0.4)" /></p>
+<p><img src="https://raw.githubusercontent.com/ricokahler/color2k/main/docs/readme/css-in-js.svg" width="624" alt="Save (default): #fff on #b3261e, contrast 6.54:1 (AA); Save (hover): #fff on hsla(3, 71%, 33%, 1), contrast 8.81:1 (AAA); Save (focus): #fff on #b3261e, contrast 6.54:1 (AA), ring rgba(179, 38, 30, 0.4)" /></p>
 <!-- RESULT-END -->
 
 ### React
@@ -586,7 +632,7 @@ const tags = [
 ```
 
 <!-- RESULT: elements tags -->
-<p><img src="./docs/readme/react.svg" width="624" alt="New: #000 on tomato, contrast 7.13:1 (AAA), ring rgba(255, 99, 71, 0.2); Sale: #000 on gold, contrast 14.97:1 (AAA), ring rgba(255, 215, 0, 0.2); Pro: #fff on midnightblue, contrast 14.85:1 (AAA), ring rgba(25, 25, 112, 0.2)" /></p>
+<p><img src="https://raw.githubusercontent.com/ricokahler/color2k/main/docs/readme/react.svg" width="624" alt="New: #000 on tomato, contrast 7.13:1 (AAA), ring rgba(255, 99, 71, 0.2); Sale: #000 on gold, contrast 14.97:1 (AAA), ring rgba(255, 215, 0, 0.2); Pro: #fff on midnightblue, contrast 14.85:1 (AAA), ring rgba(25, 25, 112, 0.2)" /></p>
 <!-- RESULT-END -->
 
 ### Convert between formats
@@ -604,7 +650,7 @@ parseToHsla('tomato'); // [9.130434782608695, 1, 0.6392156862745098, 1]
 ```
 
 <!-- RESULT: swatches { hex, rgb, hsl } -->
-<p><img src="./docs/readme/convert-between-formats.svg" width="541" alt="hex: #0080ff; rgb: rgba(0, 128, 255, 1); hsl: hsla(210, 100%, 50%, 1)" /></p>
+<p><img src="https://raw.githubusercontent.com/ricokahler/color2k/main/docs/readme/convert-between-formats.svg" width="541" alt="hex: #0080ff; rgb: rgba(0, 128, 255, 1); hsl: hsla(210, 100%, 50%, 1)" /></p>
 <!-- RESULT-END -->
 
 Going the other way, `rgba` and `hsla` build a color string from numbers:
@@ -617,7 +663,7 @@ const sky = hsla(210, 1, 0.5, 1); // 'hsla(210, 100%, 50%, 1)'
 ```
 
 <!-- RESULT: swatches { glass, sky } -->
-<p><img src="./docs/readme/convert-between-formats-2.svg" width="358" alt="glass: rgba(0, 128, 255, 0.5); sky: hsla(210, 100%, 50%, 1)" /></p>
+<p><img src="https://raw.githubusercontent.com/ricokahler/color2k/main/docs/readme/convert-between-formats-2.svg" width="358" alt="glass: rgba(0, 128, 255, 0.5); sky: hsla(210, 100%, 50%, 1)" /></p>
 <!-- RESULT-END -->
 
 ### Check what color2k accepts
@@ -648,7 +694,7 @@ canParse('rgb(999, 0, 0)'); // true
 ```
 
 <!-- RESULT: checks results -->
-<p><img src="./docs/readme/check-what-color2k-accepts.svg" width="772" alt="#0d6efd: parses; rgb(13, 110, 253): parses; rgb(13 110 253): throws; #12345: throws" /></p>
+<p><img src="https://raw.githubusercontent.com/ricokahler/color2k/main/docs/readme/check-what-color2k-accepts.svg" width="772" alt="#0d6efd: parses; rgb(13, 110, 253): parses; rgb(13 110 253): throws; #12345: throws" /></p>
 <!-- RESULT-END -->
 
 Don't use this as a CSS validator. The parser is small and loose on purpose:
@@ -661,22 +707,20 @@ If you need real validation, do it with your own rules or an allow-list before c
 ### Invert and complement
 
 ```js
-import { adjustHue, parseToRgba, rgba } from 'color2k';
-
-function invert(color) {
-  const [red, green, blue, alpha] = parseToRgba(color);
-  return rgba(255 - red, 255 - green, 255 - blue, alpha);
-}
+import { complement, invert } from 'color2k';
 
 const original = '#0d6efd';
 const inverted = invert(original); // 'rgba(242, 145, 2, 1)'
 
 // The opposite side of the color wheel.
-const complement = adjustHue(original, 180); // 'hsla(36, 98%, 52%, 1)'
+const opposite = complement(original); // 'hsla(36, 98%, 52%, 1)'
+
+// Part of the way there. Halfway is always gray.
+invert(original, 0.5); // 'rgba(128, 128, 128, 1)'
 ```
 
-<!-- RESULT: swatches { original, inverted, complement } -->
-<p><img src="./docs/readme/invert-and-complement.svg" width="499" alt="original: #0d6efd; inverted: rgba(242, 145, 2, 1); complement: hsla(36, 98%, 52%, 1)" /></p>
+<!-- RESULT: swatches { original, inverted, opposite } -->
+<p><img src="https://raw.githubusercontent.com/ricokahler/color2k/main/docs/readme/invert-and-complement.svg" width="499" alt="original: #0d6efd; inverted: rgba(242, 145, 2, 1); opposite: hsla(36, 98%, 52%, 1)" /></p>
 <!-- RESULT-END -->
 
 ## Supported colors
@@ -802,6 +846,8 @@ This section is generated from the JSDoc comments in `src/*.ts`.
 |  | [`saturate(color, amount)`](#saturatecolor-amount) | Saturates a color by adding to the saturation channel in HSL space. |
 |  | [`desaturate(color, amount)`](#desaturatecolor-amount) | Desaturates a color by subtracting from the saturation channel in HSL space. |
 |  | [`adjustHue(color, degrees)`](#adjusthuecolor-degrees) | Rotates a color's hue by the given number of degrees and returns the result as an `hsla` string. |
+|  | [`complement(color)`](#complementcolor) | Rotates a color's hue by 180 degrees and returns the result as an `hsla` string, like Sass's `complement`. |
+|  | [`invert(color, weight)`](#invertcolor-weight) | Inverts a color's red, green, and blue channels, keeping its alpha, and returns the result as an `rgba` string. |
 |  | [`opacify(color, amount)`](#opacifycolor-amount) | Makes a color more opaque by increasing the alpha channel. |
 |  | [`transparentize(color, amount)`](#transparentizecolor-amount) | Makes a color more transparent by decreasing the alpha channel. |
 | **Mix** | [`mix(color1, color2, weight)`](#mixcolor1-color2-weight) | Mixes two colors together using the Sass mix algorithm and returns an `rgba` color string. |
@@ -1006,6 +1052,9 @@ function getScale(...colors: string[]): (n: number) => string
 ```
 
 Returns a scale function that interpolates through a list of colors.
+
+Pass at least two colors. With fewer there is nothing to interpolate
+between, and the scale has no colors to return.
 
 The returned function accepts a decimal between 0 and 1 and returns the color
 at that percentage in the scale.
