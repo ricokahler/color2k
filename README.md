@@ -61,10 +61,10 @@ The parser is about 1.4 kB and nearly every function needs it. So the first impo
 | [polished](https://github.com/styled-components/polished) | [11.6 kB](https://bundlephobia.com/package/polished) |
 | [color](https://github.com/Qix-/color) | [8.5 kB](https://bundlephobia.com/package/color) |
 | [tinycolor2](https://github.com/bgrins/TinyColor) | [5.4 kB](https://bundlephobia.com/package/tinycolor2) |
-| [colord](https://github.com/omgovich/colord) with the names, mix and a11y plugins | 5.0 kB |
+| [colord](https://github.com/omgovich/colord) with the names, mix and a11y plugins | 4.7 to 5.0 kB |
 | **color2k** | [**2.4 kB**](https://bundlephobia.com/package/color2k) |
 
-These come from Bundlephobia, November 2026. colord's core is 2.3 kB without named colors, mixing or contrast checks, so its row is measured with the plugins that cover what color2k does. That comes to 4.9 to 5.0 kB, depending on the minifier.
+The single figures come from Bundlephobia, November 2026. colord's core is 2.3 kB without named colors, mixing or contrast checks, so its row is measured with the plugins that cover what color2k does. Bundled the way `scripts/sizes.js` measures color2k (Rollup, Terser with two passes, gzip at level 9), colord 2.14.0 with those three plugins is 4.86 kB. Other minifiers put it between 4.7 and 5.0 kB.
 
 ## Quickstart
 
@@ -117,7 +117,7 @@ Pick a color and let color2k work out the rest. These are the three themes on [c
 
 They don't just compute colors. Each one looks at what you gave it and makes a few decisions, and it returns those too, as `why`.
 
-**Soft** is a pastel wash. It tames a loud color with `desaturate` and lifts a nearly gray one with `saturate`. Your color becomes the button as it is, unless the label would not read on it or the button would melt into the page. Then the button gets a pastel of the same hue.
+**Soft** is a pastel wash. It tames a loud color with `desaturate` and lifts a nearly gray one with `saturate`. Once it is calmed, your color becomes the button, unless the label would not read on it or the button would melt into the page. Then the button gets a pastel of the same hue.
 
 ```js
 import {

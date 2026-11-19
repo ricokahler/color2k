@@ -155,7 +155,7 @@ var showcase = (function () {
         pick: function (why) { return why.clash ? 0 : 1; },
         says: [
           ['A label would not read on your color, or it would melt into the page', 'the button gets a pastel of the same hue'],
-          ['A dark label reads on your color', 'it is the button, untouched'],
+          ['A dark label reads on your color', 'it becomes the button'],
         ],
       },
     ],
@@ -165,7 +165,7 @@ var showcase = (function () {
         pick: function (why) { return why.weak ? 0 : 1; },
         says: [
           ['Your color is too faint to read as a link on this page', 'it is nudged a step at a time until it passes AA'],
-          ['Your color already reads on this page', 'it is used exactly as you picked it'],
+          ['Your color already reads on this page', 'it is the link and the button with no nudge'],
         ],
       },
       {
@@ -577,6 +577,7 @@ var showcase = (function () {
     var base = '';
     var ink = '';
     var flipped = -1000;
+    var sampled = -1000;
     // Only the newest loop is allowed to draw, so pausing and resuming
     // quickly can never leave two of them running.
     var loop = 0;
@@ -609,30 +610,36 @@ var showcase = (function () {
       calls = 0;
       var began = performance.now();
       base = paintField(counted, seconds, columns, at, put);
-      var now = chip(counted, base);
       context.putImageData(image, 0, 0);
-      swatchContext.fillStyle = base;
-      swatchContext.fillRect(0, 0, 1, 1);
+
+      // The chip samples the color four times a second. Its swatch, its text
+      // color and the numbers in it all change in the same step, so what it
+      // says is always what it shows. The text only switches between black
+      // and white twice a second at most (anything quicker would be a flash),
+      // so a sample that needs a switch too soon is skipped.
+      if (time - sampled >= 250) {
+        var now = chip(counted, base);
+        if (now.readable === ink || time - flipped >= 500) {
+          sampled = time;
+          if (now.readable !== ink) {
+            ink = now.readable;
+            flipped = time;
+            chipBox.style.color = ink;
+          }
+          swatchContext.fillStyle = base;
+          swatchContext.fillRect(0, 0, 1, 1);
+          setText(slot.base, quote(now.base));
+          setText(slot.readable, quote(now.readable));
+          setText(slot.ratio, now.ratio);
+        }
+      }
       // The whole frame is on the clock: the color math and both canvas writes.
       spent += performance.now() - began;
       frames++;
-
-      // The label switches between black and white at once, with no fade, but
-      // never more than twice a second, however fast you steer. Anything
-      // quicker would be a flash.
-      if (now.readable !== ink && time - flipped >= 500) {
-        ink = now.readable;
-        flipped = time;
-        chipBox.style.color = ink;
-      }
-      return now;
     }
 
-    function report(now, time, still) {
+    function report(time, still) {
       var fps = still ? 0 : (frames * 1000) / (time - since);
-      setText(slot.base, quote(now.base));
-      setText(slot.readable, quote(now.readable));
-      setText(slot.ratio, now.ratio);
       setText(slot.calls, String(calls));
       setText(slot.ms, (spent / frames).toFixed(2));
       setText(slot.rate, (Math.round((calls * fps) / 100) * 100).toLocaleString('en-US'));
@@ -658,8 +665,8 @@ var showcase = (function () {
         at.light += (0.6 + 0.06 * Math.sin(seconds * 0.3) - at.light) * (1 - Math.exp(-delta * 2));
       }
 
-      var now = draw(time);
-      if (time - since >= 500) report(now, time);
+      draw(time);
+      if (time - since >= 500) report(time);
     }
 
     function sync() {
@@ -775,16 +782,20 @@ var showcase = (function () {
 
     function paintLook(look) {
       var tokens = look.tokens;
-      var decided = JSON.stringify(tokens.why);
       look.stale = false;
       look.card.style.cssText = tokenStyle(tokens);
-      if (decided !== look.decided) {
-        look.decided = decided;
-        look.card.setAttribute('data-adjusted', String(adjusted(tokens.why)));
-        whyRows(look.key, tokens.why).forEach(function (row, i) {
-          setText(look.rows[i], row.text);
-        });
-      }
+    }
+
+    // The sentences under a card. They only change when a decision does, so
+    // they are kept current even while the card itself is off screen.
+    function explain(look) {
+      var decided = JSON.stringify(look.tokens.why);
+      if (decided === look.decided) return;
+      look.decided = decided;
+      look.card.setAttribute('data-adjusted', String(adjusted(look.tokens.why)));
+      whyRows(look.key, look.tokens.why).forEach(function (row, i) {
+        setText(look.rows[i], row.text);
+      });
     }
 
     // Runs at most once a frame, however fast the pointer moves. Each card
@@ -793,6 +804,7 @@ var showcase = (function () {
       pending = false;
       looks.forEach(function (look, index) {
         look.tokens = look.build(color, dark);
+        explain(look);
         // A card that is off screen (swiped away on a phone, say) waits.
         if (look.card.onScreen) paintLook(look);
         else look.stale = true;
@@ -954,10 +966,15 @@ var showcase = (function () {
         spinning = 0;
         return;
       }
-      var id = (spinning = ++spins);
       var from = thumb.hidden ? 0.92 : spot.x;
-      var began = 0;
       measurePad();
+      // With reduced motion there is no trip. It lands a third of the way on.
+      if (reduced.matches) {
+        paintAt((from + 1 / 3) % 1, 0.3);
+        return;
+      }
+      var id = (spinning = ++spins);
+      var began = 0;
       requestAnimationFrame(function step(time) {
         if (spinning !== id) return;
         began = began || time;
@@ -1093,7 +1110,8 @@ var showcase = (function () {
       draw(0);
       frames = 0;
       spent = 0;
-      report(draw(performance.now()), performance.now(), true);
+      draw(performance.now());
+      report(performance.now(), true);
       canvas.setAttribute('data-ready', '');
       setPlaying(!reduced.matches);
     }

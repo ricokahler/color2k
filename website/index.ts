@@ -44,7 +44,7 @@ const THEMES = [
     name: 'Soft',
     builder: 'softTheme',
     kicker: 'Pastel',
-    how: 'One hue, washed out to a whisper. Your color stays the button whenever it can.',
+    how: 'One hue, washed out to a whisper. Your color becomes the button whenever it can.',
   },
   {
     key: 'serious',
