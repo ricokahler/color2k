@@ -1,4 +1,5 @@
 export { default as adjustHue } from './adjustHue';
+export { default as complement } from './complement';
 export { default as darken } from './darken';
 export { default as desaturate } from './desaturate';
 export { default as getContrast } from './getContrast';
@@ -7,6 +8,7 @@ export { default as getScale } from './getScale';
 export { default as guard } from './guard';
 export { default as hasBadContrast } from './hasBadContrast';
 export { default as hsla } from './hsla';
+export { default as invert } from './invert';
 export { default as lighten } from './lighten';
 export { default as mix } from './mix';
 export { default as opacify } from './opacify';

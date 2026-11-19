@@ -138,6 +138,32 @@ new ColorError('nope').message; // 'Failed to parse color: "nope"'
 
 [Source](https://github.com/ricokahler/color2k/blob/main/src/ColorError.ts)
 
+### complement(color)
+
+```ts
+function complement(color: string): string
+```
+
+Rotates a color's hue by 180 degrees and returns the result as an `hsla`
+string. This matches Sass's `complement`. Grays have no hue, so they come
+back as the same gray.
+
+```js
+complement('red'); // 'hsla(180, 100%, 50%, 1)'
+```
+
+#### Parameters
+
+| Name | Type | Description |
+| --- | --- | --- |
+| `color` | `string` | The input color. |
+
+#### Returns
+
+`string` - The complementary color as an `hsla` string.
+
+[Source](https://github.com/ricokahler/color2k/blob/main/src/complement.ts)
+
 ### darken(color, amount)
 
 ```ts
@@ -361,6 +387,36 @@ hsla(0, 1, 0.5, 1); // 'hsla(0, 100%, 50%, 1)'
 `string` - An `hsla` color string.
 
 [Source](https://github.com/ricokahler/color2k/blob/main/src/hsla.ts)
+
+### invert(color, weight)
+
+```ts
+function invert(color: string, weight: number = 1): string
+```
+
+Inverts a color's red, green, and blue channels, keeping its alpha, and
+returns the result as an `rgba` string. This matches Sass's `invert`.
+
+`weight` controls how far to go toward the inverse: `1` (the default) fully
+inverts the color, `0` returns it unchanged, and `0.5` always gives gray.
+
+```js
+invert('red'); // 'rgba(0, 255, 255, 1)'
+invert('#336699', 0.25); // 'rgba(89, 115, 140, 1)'
+```
+
+#### Parameters
+
+| Name | Type | Description |
+| --- | --- | --- |
+| `color` | `string` | The input color. |
+| `weight` | `number = 1` | How much to invert, given as a decimal between 0 and 1. |
+
+#### Returns
+
+`string` - The inverted color as an `rgba` string.
+
+[Source](https://github.com/ricokahler/color2k/blob/main/src/invert.ts)
 
 ### lighten(color, amount)
 
