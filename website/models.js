@@ -579,7 +579,7 @@ var c2kModels = function (c, builders) {
     adjustHue: { degrees: 120 },
     opacify: { amount: 0.3 },
     transparentize: { amount: 0.4 },
-    mix: { other: 'complement', weight: 0.5 },
+    mix: { other: '#4a35e8', weight: 0.5 },
     getScale: { set: 'rainbow', steps: 9, at: 0.5 },
     getContrast: { other: '#ffffff' },
     hasBadContrast: { other: '#ffffff' },
