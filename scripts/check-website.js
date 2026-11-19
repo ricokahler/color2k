@@ -84,7 +84,7 @@ const directives = Object.fromEntries(
     return [name, values.join(' ')];
   })
 );
-assert(/^\/\*\n/.test(headers), '_headers must apply the policy to every path');
+assert(/^\/\*\n/m.test(headers), '_headers must apply the policy to every path');
 assert(directives['default-src'] === "'none'", "CSP default-src must be 'none'");
 assert(directives['script-src'] === "'self'", "CSP script-src must be 'self' only");
 assert(

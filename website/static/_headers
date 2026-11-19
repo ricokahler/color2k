@@ -1,5 +1,8 @@
+# Scripts may only come from this site, and nothing else loads from anywhere
+# else. frame-src is for the toolbar Netlify adds to deploy previews; the
+# production site frames nothing.
 /*
-  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; img-src 'self' data:; manifest-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; img-src 'self' data:; manifest-src 'self'; frame-src https://app.netlify.com; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
 /llms.txt
