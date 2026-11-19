@@ -29,7 +29,7 @@ function mix(color1: string, color2: string, weight: number): string {
   const combinedWeight =
     normalizedWeight * alphaDelta === -1
       ? normalizedWeight
-      : normalizedWeight + alphaDelta / (1 + normalizedWeight * alphaDelta);
+      : (normalizedWeight + alphaDelta) / (1 + normalizedWeight * alphaDelta);
   const weight2 = (combinedWeight + 1) / 2;
   const weight1 = 1 - weight2;
 
