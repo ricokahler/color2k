@@ -20,9 +20,10 @@ function hsla(
   lightness: number,
   alpha: number
 ): string {
-  // wrap negative hues once; positive hues are left exactly as `hue % 360`
+  // Positive hues are rounded exactly as `hue % 360`. Negative ones are rounded
+  // before 360 is added, so float error from the addition can't move them.
   const wrapped = hue % 360;
-  return `hsla(${(wrapped < 0 ? wrapped + 360 : wrapped).toFixed()}, ${guard(
+  return `hsla(${(wrapped < 0 ? Math.round(wrapped) + 360 : wrapped).toFixed()}, ${guard(
     0,
     100,
     saturation * 100

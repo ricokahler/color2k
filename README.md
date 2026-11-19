@@ -564,7 +564,7 @@ parseToRgba('rgba(255, 0, 0, 0.5)'); // [255, 0, 0, 0.5]
 ### readableColor(color)
 
 ```ts
-function readableColor(color: string): '#000' | '#fff'
+function readableColor(color: string): string
 ```
 
 Returns black or white, whichever has better contrast against the given
@@ -582,7 +582,7 @@ readableColor('white'); // '#000'
 
 #### Returns
 
-`'#000' | '#fff'` - `#000` or `#fff`.
+`string` - `#000` or `#fff`.
 
 [Source](https://github.com/ricokahler/color2k/blob/main/src/readableColor.ts)
 

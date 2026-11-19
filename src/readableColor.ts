@@ -11,7 +11,7 @@ import readableColorIsBlack from './readableColorIsBlack';
  * @param color The background color.
  * @returns `#000` or `#fff`.
  */
-function readableColor(color: string): '#000' | '#fff' {
+function readableColor(color: string): string {
   return readableColorIsBlack(color) ? '#000' : '#fff';
 }
 
