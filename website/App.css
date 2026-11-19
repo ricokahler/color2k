@@ -1223,11 +1223,23 @@ main {
   color: var(--bg);
 }
 
-.chip i {
+.chip > i {
+  flex: none;
   width: 14px;
   height: 14px;
   border: 1.5px solid var(--edge);
   border-radius: 3px;
+  overflow: hidden;
+}
+
+.chip i i {
+  display: block;
+  height: 100%;
+}
+
+.chip[data-pick] {
+  font-family: var(--mono);
+  font-size: 13px;
 }
 
 .chips {
@@ -1488,6 +1500,7 @@ main {
 .foot a {
   display: inline-flex;
   align-items: center;
+  min-width: 44px;
   min-height: 44px;
   color: var(--muted);
 }
@@ -1551,6 +1564,10 @@ main {
 }
 
 .fn-head h2 a {
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: var(--text);
   text-decoration: none;
 }
@@ -1905,9 +1922,19 @@ button.sw:focus-visible::after {
 
 .hsl {
   display: grid;
-  grid-template-columns: 112px minmax(0, 1fr);
-  align-items: center;
+  justify-items: center;
   gap: 18px;
+}
+
+.hsl .meters {
+  width: 100%;
+}
+
+@media (min-width: 520px) {
+  .hsl {
+    grid-template-columns: 112px minmax(0, 1fr);
+    align-items: center;
+  }
 }
 
 .dial {
@@ -2844,9 +2871,9 @@ button.tile-typical:focus-visible {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  margin-left: 4px;
+  width: 44px;
+  height: 44px;
+  margin: -8px 0 -8px 2px;
   border-radius: 5px;
   color: var(--muted);
   font-weight: 500;

@@ -226,6 +226,15 @@ const bodies: { [name: string]: Body } = {
                     )}</b></p>`
                 )
                 .join('\n              ')}
+            </div>
+            <div class="chips needs-js" role="group" aria-label="Try another way to write a color">
+              <span class="chips-name">Try another spelling</span>
+              ${['rebeccapurple', '#0cf', 'hsl(48, 100%, 50%)', 'rgba(255, 45, 111, 0.5)', 'transparent']
+                .map(
+                  (value) =>
+                    `<button type="button" class="chip" data-pick="${value}"><i class="chk"><i style="background:${value}"></i></i>${value}</button>`
+                )
+                .join('\n              ')}
             </div>`
     )}
           ${call(model.text)}`,

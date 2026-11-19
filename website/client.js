@@ -523,6 +523,7 @@ document.addEventListener('click', function (event) {
   if (!target) return;
   var demo = demoOf(target);
   var value;
+  if (demo && !demo.model) paintDemo(demo);
 
   if (target.hasAttribute('data-pick')) {
     setColor(target.getAttribute('data-pick'));

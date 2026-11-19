@@ -68,8 +68,9 @@ that block's result, with the expression evaluated in the block's scope. Run
 `npm run docs:generate` after changing a recipe, and commit the SVGs.
 
 **Sizes are measured.** `scripts/sizes.js` bundles each export with Rollup,
-minifies it with Terser and gzips it, and writes `docs/sizes.json`. The README
-table and the website read that file, and the docs build fails if the total no
+minifies it with Terser and gzips it, and writes `docs/sizes.json`. It also
+measures what each source file adds to the whole bundle, for the treemap on
+the website. The README table and the website read that file, and the docs build fails if the total no
 longer rounds to the 2.4 kB the copy claims.
 
 **Write like a person.** Docs and site copy should sound like a sharp
@@ -92,7 +93,7 @@ are automatic after a maintainer approves them. See
 
 ## Fonts
 
-The theme cards on the website use two fonts, cut down to basic Latin and
+The theme samples on the website use two fonts, cut down to basic Latin and
 served from the site itself: Fredoka (weight 600) and Anton. Both are under
 the SIL Open Font License, which ships next to them as
 `website/static/fonts-license.txt`. Everything else uses system fonts.

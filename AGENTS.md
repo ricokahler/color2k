@@ -23,11 +23,15 @@ npm run website     # build the site and llms files into ./build
   test in `src/<name>.test.ts`. `src/index.ts` re-exports each one by name.
 - `website/docs.ts`: turns the JSDoc in `src` into the README API section,
   `llms.txt` and `llms-full.txt`.
-- `website/`: the static generator for color2k.com (`index.ts`, `template.ts`,
-  `App.css`, `showcase.js` for the hero, the theme studio and the function
-  index, and `static/` for the logo and icons).
-- `scripts/sizes.js` measures the bundle (everything, and each export alone)
-  into `docs/sizes.json`. The README table and the website read that file.
+- `website/`: the static generator for color2k.com. `index.ts` cuts the README
+  and the JSDoc into pages, `template.ts` is the shell every page shares (menu,
+  color bar, footer), `pages.ts` and `demos.ts` are the page bodies and the
+  demo markup, and `App.css` is the one stylesheet. `models.js` holds what each
+  demo shows as plain data and runs in both Node and the browser. `client.js`
+  and `theme.js` are the browser scripts. `static/` has the logo and icons.
+- `scripts/sizes.js` measures the bundle (everything, each export alone, and
+  what each source file adds) into `docs/sizes.json`. The README table and the
+  website's treemap read that file.
 - `scripts/`: build and check scripts. `scripts/color-map.ts` generates the
   compressed named-color table in `src/parseToRgba.ts`.
   `scripts/readme-assets.js` draws `docs/readme/*.svg` (the animated banner and
@@ -60,10 +64,14 @@ npm run website     # build the site and llms files into ./build
   the README as recipes. The website lifts those exact functions out of the
   README, shows them and runs them, so change them there and nowhere else.
   Each builder returns its decisions about the color as `why`, and the copy
-  for those decisions is `WHY` in `website/showcase.js`. The generator sweeps
+  for those decisions is `WHY` in `website/models.js`. The generator sweeps
   each builder through about 1,300 colors (see-through ones included) and
   fails if a text pair drops below WCAG AA.
-- The site self-hosts two small font subsets for the theme cards
+- The site's own colors come from the visitor's color through `site()` in
+  `website/models.js`, in light and dark. `npm run website:check` sweeps it the
+  same way, and checks highlighted code against it too. Add a pair to
+  `SITE_PAIRS` when you put text on a new background.
+- The site self-hosts two small font subsets for the theme samples
   (`website/static/fredoka.woff2` and `anton.woff2`, both OFL, license in
   `fonts-license.txt`). Do not add more, do not preload them, and keep
   `font-display: swap`. `npm run website:check` holds them under 30 kB.
@@ -71,24 +79,27 @@ npm run website     # build the site and llms files into ./build
   something else, the docs build fails until the copy is updated.
 - The list between `<!-- AGENT-NOTES-START -->` and `<!-- AGENT-NOTES-END -->`
   in README.md is copied into `llms.txt`. Keep it short and true.
-- New exports must be added to `API_GROUPS` in `website/docs.ts` and need an
-  example in `DEMOS` in `website/showcase.js`. The function index on the site
-  is built from those two, and `npm run website:check` fails unless it lists
-  exactly the exports in `src/index.ts`.
-- The site is designed for a phone first (390px), then widened. Its header
-  links are its sections, by the same names as the labels over them. Keep one
-  home for each thing: an export's home is its API entry, and the function
-  index and the recipes link there.
-- Nothing on the website may touch the DOM on every frame. The hero is one
-  small canvas (a pixel per tile, scaled up by the compositor), scroll effects
-  are CSS transforms and opacity, and DOM text updates are throttled into
-  boxes that never change size. Keep it that way.
+- New exports must be added to `API_GROUPS` in `website/docs.ts` and need a
+  demo: a model in `demos` in `website/models.js` and its markup in
+  `website/demos.ts`. The build fails without one, and `npm run website:check`
+  fails unless the function pages list exactly the package's exports.
+- The site is several small pages, designed for a phone first (390px), then
+  widened. Keep one home for each thing: a function's home is its section on
+  its group's page (`/adjust/#darken`), with its demo and its reference
+  together. Everything else links there. The menu is the map, so a new page
+  goes in `nav` in `website/index.ts`.
+- A demo's first paint and its updates come from the same model. Markup holds
+  `data-t` slots for text and reads colors from CSS variables, and the browser
+  only fills those in. Do not build demo markup in `client.js`.
+- Keep the site smooth. A color change repaints at most once a frame, demos
+  that are off screen wait until they scroll into view, the wheel turns with
+  a CSS transform, and nothing animates until the visitor touches it.
 - Copy follows the maintainer's guidelines: a sharp colleague talking. Plain
   words, real numbers, short sentences, no italics, no exclamation marks, no
   em-dash asides, and no claim you have not run.
 - The website stays static: no frameworks, no external requests, no inline
   scripts (the Content-Security-Policy written by `website/index.ts` only allows
-  the site's own two script files), and it must work with JavaScript turned
+  the site's own script files), and it must work with JavaScript turned
   off and respect `prefers-reduced-motion`. `npm run website:check` enforces
   most of this.
 - Do not reformat files you are not otherwise changing.
