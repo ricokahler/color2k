@@ -285,6 +285,9 @@ console.log(scale(0.5)); // rgba(255, 255, 0, 1)
 console.log(scale(1)); // rgba(0, 128, 0, 1)
 ```
 
+With a single color, the scale always returns that color. Calling `getScale`
+with no colors throws a `RangeError`.
+
 If you'd like to limit the domain and range like chroma-js, we recommend
 wrapping scale again.
 
@@ -343,7 +346,9 @@ function hasBadContrast(color: string, standard: 'decorative' | 'readable' | 'aa
 
 Returns whether a color fails a contrast threshold against a background.
 
-The supported standards are `decorative`, `readable`, `aa`, and `aaa`.
+The standards and the minimum contrast ratio each one needs are `decorative`
+(1.5), `readable` (3), `aa` (4.5), and `aaa` (7). By default the color is
+checked against `aa` on a white (`#fff`) background.
 
 ```js
 hasBadContrast('red', 'aa'); // true
@@ -354,8 +359,8 @@ hasBadContrast('red', 'aa'); // true
 | Name | Type | Description |
 | --- | --- | --- |
 | `color` | `string` | The foreground color. |
-| `standard` | `'decorative' \| 'readable' \| 'aa' \| 'aaa' = 'aa'` | The contrast standard to test against. |
-| `background` | `string = '#fff'` | The background color. |
+| `standard` | `'decorative' \| 'readable' \| 'aa' \| 'aaa' = 'aa'` | The contrast standard to test against. Defaults to `aa`. |
+| `background` | `string = '#fff'` | The background color. Defaults to `#fff`. |
 
 #### Returns
 
@@ -380,7 +385,7 @@ hsla(0, 1, 0.5, 1); // 'hsla(0, 100%, 50%, 1)'
 
 | Name | Type | Description |
 | --- | --- | --- |
-| `hue` | `number` | The color wheel angle from 0 to 360. |
+| `hue` | `number` | The color wheel angle in degrees. Any value wraps into 0 to 360. |
 | `saturation` | `number` | The saturation as a decimal between 0 and 1. |
 | `lightness` | `number` | The lightness as a decimal between 0 and 1. |
 | `alpha` | `number` | The opacity as a decimal between 0 and 1. |
@@ -507,7 +512,7 @@ opacify('rgba(255, 255, 255, 0.5)', 0.1); // 'rgba(255, 255, 255, 0.6)'
 ### parseToHsla(color)
 
 ```ts
-function parseToHsla(color: string): [number, number, number, number]
+function parseToHsla(color: string): [hue: number, saturation: number, lightness: number, alpha: number]
 ```
 
 Parses a color into hue, saturation, lightness, and alpha channel values.
@@ -527,14 +532,14 @@ parseToHsla('red'); // [0, 1, 0.5, 1]
 
 #### Returns
 
-`[number, number, number, number]` - A tuple of hue, saturation, lightness, and alpha values.
+`[hue: number, saturation: number, lightness: number, alpha: number]` - A tuple of hue, saturation, lightness, and alpha values.
 
 [Source](https://github.com/ricokahler/color2k/blob/main/src/parseToHsla.ts)
 
 ### parseToRgba(color)
 
 ```ts
-function parseToRgba(color: string): [number, number, number, number]
+function parseToRgba(color: string): [red: number, green: number, blue: number, alpha: number]
 ```
 
 Parses a color into red, green, blue, and alpha channel values.
@@ -553,14 +558,14 @@ parseToRgba('rgba(255, 0, 0, 0.5)'); // [255, 0, 0, 0.5]
 
 #### Returns
 
-`[number, number, number, number]` - A tuple of red, green, blue, and alpha channel values.
+`[red: number, green: number, blue: number, alpha: number]` - A tuple of red, green, blue, and alpha channel values.
 
 [Source](https://github.com/ricokahler/color2k/blob/main/src/parseToRgba.ts)
 
 ### readableColor(color)
 
 ```ts
-function readableColor(color: string): string
+function readableColor(color: string): '#000' | '#fff'
 ```
 
 Returns black or white, whichever has better contrast against the given
@@ -578,7 +583,7 @@ readableColor('white'); // '#000'
 
 #### Returns
 
-`string` - `#000` or `#fff`.
+`'#000' | '#fff'` - `#000` or `#fff`.
 
 [Source](https://github.com/ricokahler/color2k/blob/main/src/readableColor.ts)
 

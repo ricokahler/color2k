@@ -10,15 +10,17 @@ const guidelines = {
 /**
  * Returns whether a color fails a contrast threshold against a background.
  *
- * The supported standards are `decorative`, `readable`, `aa`, and `aaa`.
+ * The standards and the minimum contrast ratio each one needs are `decorative`
+ * (1.5), `readable` (3), `aa` (4.5), and `aaa` (7). By default the color is
+ * checked against `aa` on a white (`#fff`) background.
  *
  * ```js
  * hasBadContrast('red', 'aa'); // true
  * ```
  *
  * @param color The foreground color.
- * @param standard The contrast standard to test against.
- * @param background The background color.
+ * @param standard The contrast standard to test against. Defaults to `aa`.
+ * @param background The background color. Defaults to `#fff`.
  * @returns `true` when the contrast ratio is below the selected standard.
  */
 function hasBadContrast(

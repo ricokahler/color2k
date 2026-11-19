@@ -13,7 +13,9 @@ import ColorError from './ColorError';
  * @param color The input color.
  * @returns A tuple of red, green, blue, and alpha channel values.
  */
-function parseToRgba(color: string): [number, number, number, number] {
+function parseToRgba(
+  color: string
+): [red: number, green: number, blue: number, alpha: number] {
   if (typeof color !== 'string') throw new ColorError(color);
   // Ignore surrounding whitespace; errors still report the original `color`.
   const input = color.trim();

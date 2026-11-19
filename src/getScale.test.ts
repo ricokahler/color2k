@@ -107,3 +107,14 @@ test('out of bounds', () => {
   expect(scale(-1)).toMatchInlineSnapshot(`"rgba(255, 255, 255, 1)"`);
   expect(scale(100)).toMatchInlineSnapshot(`"rgba(0, 0, 0, 1)"`);
 });
+
+test('a single color always returns that color', () => {
+  const scale = getScale('rgba(51, 102, 153, 0.5)');
+  for (const n of [0, 0.3, 0.5, 1, -1, 2]) {
+    expect(scale(n)).toBe('rgba(51, 102, 153, 0.5)');
+  }
+});
+
+test('no colors throws', () => {
+  expect(() => getScale()).toThrow(RangeError);
+});

@@ -15,7 +15,9 @@ import parseToRgba from './parseToRgba';
  * @param color The input color.
  * @returns A tuple of hue, saturation, lightness, and alpha values.
  */
-function parseToHsla(color: string): [number, number, number, number] {
+function parseToHsla(
+  color: string
+): [hue: number, saturation: number, lightness: number, alpha: number] {
   const [red, green, blue, alpha] = parseToRgba(color).map((value, index) =>
     // 3rd index is alpha channel which is already normalized
     index === 3 ? value : value / 255
