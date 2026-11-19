@@ -96,8 +96,12 @@ npm run website     # build the site and llms files into ./build
   and let the site pick it up.
 - Old addresses keep working. Anchors from earlier versions of the site are
   real elements on the page (`LEGACY_ANCHORS` in `website/index.ts`, and one
-  per function), and the paths from when the site was several pages are 301
-  redirects in `_redirects`. Do not remove them.
+  per function), and each path from when the site was several pages keeps
+  a small page that forwards to its section, anchor included
+  (`website/forward.js`). Do not remove them.
+- The theme samples' buttons take their colors from `BUTTON_STATES` in
+  `website/models.js`. `npm run website:check` holds the CSS to that list and
+  sweeps every state for AA, so add a state there before you style it.
 - A demo's first paint and its updates come from the same model. Markup holds
   `data-t` slots for text and reads colors from CSS variables, and the browser
   only fills those in. Do not build demo markup in `client.js`.

@@ -140,11 +140,11 @@ function renderTiles(sizes: Sizes, width: number, height: number, className: str
 
                 // Tiles too small to tap are still listed in the table below.
                 return roomy
-                  ? `<button type="button" class="${classes}" style="${style}" data-tile="${label}, ${tile.size} bytes, ${part} of the bundle" aria-label="${label}, ${tile.size} bytes, ${part} of the bundle">${inner}</button>`
-                  : `<i class="${classes}" style="${style}" title="${label}, ${tile.size} bytes"></i>`;
+                  ? `<button type="button" class="${classes}" style="${style}" data-tile="${label}, ${tile.size} B, ${part} of the bundle" aria-label="${label}, ${tile.size} bytes, ${part} of the bundle">${inner}</button>`
+                  : `<i class="${classes}" style="${style}" title="${label}, ${tile.size} B"></i>`;
               })
               .join('\n            ')}
-            <p class="map-mark" style="${mark}"><span>≈2 kB, what most apps import</span></p>
+            <p class="map-mark" style="${mark}"><span>≈2 kB, a typical import</span></p>
           </div>`;
 }
 
@@ -154,7 +154,7 @@ export function renderTreemap(sizes: Sizes) {
           ${renderTiles(sizes, 358, 560, 'map-tall')}
           <figcaption>
             <p class="map-readout" id="map-readout" role="status">Tap or hover a tile to read it.</p>
-            <p class="map-key"><span><i class="tile-typical"></i>What six common imports keep, ${getTypicalBytes(
+            <p class="map-key"><span><i class="tile-typical"></i>A typical import (${sizes.typical.imports.join(', ')}), ${getTypicalBytes(
               sizes
             ).toLocaleString('en-US')} B</span><span><i></i>What tree shaking drops</span></p>
           </figcaption>
@@ -420,12 +420,12 @@ export function renderSize({
           <details class="more">
             <summary>The same numbers as a table</summary>
             <div class="table-scroll"><table>
-              <thead><tr><th scope="col">File</th><th scope="col">Gzipped bytes it adds</th><th scope="col">Kept by the six imports</th></tr></thead>
+              <thead><tr><th scope="col">File</th><th scope="col">Gzipped size it adds</th><th scope="col">Kept by the six imports</th></tr></thead>
               <tbody>
                 ${files
                   .map(
                     ({ name, size }) =>
-                      `<tr><th scope="row"><code>${fileLabel(name)}</code></th><td>${size}</td><td>${
+                      `<tr><th scope="row"><code>${fileLabel(name)}</code></th><td>${size} B</td><td>${
                         sizes.typical.files.includes(name) ? 'Yes' : 'No'
                       }</td></tr>`
                   )

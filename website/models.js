@@ -41,9 +41,8 @@ var c2kModels = function (c, builders) {
     }
   };
   /**
-   * Whether the site can be painted from this string. The parser lets a
-   * malformed alpha such as `rgba(255, 0, 0, .)` through as `NaN`, and a
-   * color like that cannot be mixed or measured.
+   * Whether the site can be painted from this string: it has to parse, to
+   * finite numbers, and the site's theme has to build from it.
    */
   var usable = function (value) {
     var parsed = tryParse(value);
@@ -860,6 +859,19 @@ var c2kModels = function (c, builders) {
     tokenVars: tokenVars,
     tryParse: tryParse,
     usable: usable,
+    /**
+     * The text and the background of the theme samples' buttons in each
+     * state, as token names. `scripts/check-website.js` holds the CSS to
+     * these and sweeps every pair for WCAG AA.
+     */
+    BUTTON_STATES: [
+      { selector: '.tp-btn', text: 'onAccent', back: 'accent' },
+      { selector: '.tp-btn:hover', text: 'onAccent', back: 'accentHover' },
+      { selector: '.tp-btn:active', text: 'onAccent', back: 'accentHover' },
+      { selector: '.tp-btn-ghost', text: 'onSurface', back: 'surface' },
+      { selector: '.tp-btn-ghost:hover', text: 'surface', back: 'onSurface' },
+      { selector: '.tp-btn-ghost:active', text: 'surface', back: 'onSurface' },
+    ],
     /**
      * The theme samples' colors as CSS rules. `root` is put in front of each
      * selector, to scope the rules to a color mode or to outrank them.

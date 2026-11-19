@@ -699,7 +699,7 @@ canParse('rgb(999, 0, 0)'); // true
 
 Don't use this as a CSS validator. The parser is small and loose on purpose:
 
-- Channel and alpha values are not range-checked. `rgb(999, 0, 0)` parses as it is written, and a malformed alpha such as `rgba(1, 2, 3, .)` parses to `NaN`.
+- Channel and alpha values are not range-checked. `rgb(999, 0, 0)` parses as it is written. An alpha that is not a number, such as `rgba(1, 2, 3, .)`, does throw a `ColorError`.
 - Named colors are stored as hashes to save bytes, so about 3% of made-up words are accepted as if they were a color name.
 
 If you need real validation, do it with your own rules or an allow-list before calling color2k. `CSS.supports('color', value)` won't do it either. Browsers accept forms color2k rejects, such as `rgb(13 110 253)`, so a string can pass there and still throw here.
@@ -744,7 +744,7 @@ Whitespace around a color is ignored. A string in none of these forms throws a `
 | Hex string | `toHex` |
 | `'#000'` or `'#fff'` | `readableColor` |
 
-When the input is a well-formed color, you can pass these strings back in, so wrap one in `toHex`, `toRgba` or `toHsla` to get the format you want. There are two exceptions, both under [Known edges](#known-edges): an `adjustHue` result with a negative hue, and anything made from a malformed alpha. The other functions return numbers, tuples or booleans.
+When the input is a well-formed color, you can pass these strings back in, so wrap one in `toHex`, `toRgba` or `toHsla` to get the format you want. There is one exception, under [Known edges](#known-edges): an `adjustHue` result with a negative hue. The other functions return numbers, tuples or booleans.
 
 Not supported yet:
 
@@ -758,7 +758,7 @@ Not supported yet:
 - `adjustHue` does not wrap a hue that goes below 0. When the color's own hue plus the degrees is negative, the result has a negative hue: `adjustHue('red', -120)` is `hsla(-120, 100%, 50%, 1)`. Browsers accept that, but color2k throws a `ColorError` if you pass it back in. `adjustHue('blue', -120)` is fine, because blue's hue is 240. This is a known bug. Until it is fixed, add 360 to a negative angle: `adjustHue('red', 240)`.
 - Out-of-range numbers are not clamped on the way in. `rgb(999, 0, 0)` parses as written, and `getContrast` or `getLuminance` on it return numbers outside their normal range.
 - Contrast functions ignore alpha. Flatten a see-through color onto its background first, as the `accessible` recipe does.
-- A malformed alpha carries through. `toRgba('rgba(1, 2, 3, .)')` returns `'rgba(1, 2, 3, NaN)'`, which color2k throws on if you pass it back in.
+- An alpha that is not a number throws. `toRgba('rgba(1, 2, 3, .)')` throws a `ColorError`.
 - `mix` always returns an `rgba()` string, even at the ends. `mix('red', 'blue', 0)` is `'rgba(255, 0, 0, 1)'`, not `'red'`.
 - `getScale` returns a function, not a list of colors. Call it with numbers from 0 to 1 to get your steps.
 
@@ -767,7 +767,7 @@ Not supported yet:
 If you're a model, or you're pointing one at this library, the docs come as plain Markdown:
 
 - [color2k.com/llms.txt](https://color2k.com/llms.txt) is a short index in the [llms.txt](https://llmstxt.org) format.
-- [color2k.com/llms-full.txt](https://color2k.com/llms-full.txt) is everything on this page in one file, with each recipe's result written out as text.
+- [color2k.com/llms-full.txt](https://color2k.com/llms-full.txt) has the rules below, the quickstart, every function, the supported colors and the recipes in one file, with each recipe's result written out as text. The theme builders, the size tables and the project notes are linked from it as files of their own.
 
 Both are built from this README and the JSDoc in `src`. The same JSDoc ships in the type definitions, so it shows up in your editor. These are the rules that matter when you write code with color2k:
 
@@ -823,6 +823,7 @@ Thanks to everyone who has pitched in:
 - [@dajiaohuang](https://github.com/dajiaohuang) and [@Ismayil77](https://github.com/Ismayil77) made the parser ignore whitespace around color strings ([#561](https://github.com/ricokahler/color2k/pull/561), [#567](https://github.com/ricokahler/color2k/pull/567), shipped in [#571](https://github.com/ricokahler/color2k/pull/571)).
 - [@ljharb](https://github.com/ljharb) (Jordan Harband) restored Node 6 compatibility ([#355](https://github.com/ricokahler/color2k/pull/355)).
 - [@diondiondion](https://github.com/diondiondion) improved the documentation ([#245](https://github.com/ricokahler/color2k/pull/245)).
+- [@bombillazo](https://github.com/bombillazo) asked for `invert` ([#449](https://github.com/ricokahler/color2k/issues/449)) and co-wrote it ([#575](https://github.com/ricokahler/color2k/pull/575)).
 - [@okikio](https://github.com/okikio) (Okiki Ojo) updated the bundlejs.com links ([#429](https://github.com/ricokahler/color2k/pull/429)).
 
 See everyone on the [contributors graph](https://github.com/ricokahler/color2k/graphs/contributors).

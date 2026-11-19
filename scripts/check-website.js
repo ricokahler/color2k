@@ -39,7 +39,7 @@ const everyPage = html;
 
 assert(
   fs.readdirSync(buildDir).filter((file) => file.endsWith('.html')).join() === '404.html,index.html',
-  'The site should be index.html and 404.html, and no other page'
+  'The site should be index.html and 404.html, plus a forwarding page at each old address'
 );
 // Every section is on the page, in the menu, and has a Markdown twin.
 for (const id of SECTIONS) {
@@ -250,7 +250,7 @@ const fileBytes = Object.values(sizes.files).reduce((sum, size) => sum + size, 0
 assert(fileBytes === sizes.all, 'The files in docs/sizes.json do not add up to the bundle');
 for (const [file, size] of Object.entries(sizes.files)) {
   assert(
-    new RegExp(`<code>${file === 'exports' ? 'export list' : file}(\\.ts)?</code></th><td>${size}</td>`).test(
+    new RegExp(`<code>${file === 'exports' ? 'export list' : file}(\\.ts)?</code></th><td>${size} B</td>`).test(
       sizePage
     ),
     `The size page is missing ${file}`
@@ -441,10 +441,45 @@ assert(
   readmeSource.includes(`costs ${sizes.files['named colors']} bytes`),
   'The README gives a size for the named colors that is not in docs/sizes.json'
 );
+// The theme samples' buttons. Each state's text and background are two of the
+// theme's tokens, named in models.js. Hold the CSS to those names, then sweep
+// the three builders (lifted from the README, as the site does) through the
+// same colors, light and dark, see-through ones included.
+const cssVar = (token) => `var(--t-${models.kebab(token)})`;
+for (const { selector, text, back } of models.BUTTON_STATES) {
+  const rule = new RegExp(`\\n${selector.replace(/[.:]/g, '\\$&')} \\{([^}]*)\\}`).exec(html);
+  assert(
+    rule && rule[1].includes(`background: ${cssVar(back)};`) && rule[1].includes(`color: ${cssVar(text)};`),
+    `${selector} should set ${text} on ${back}`
+  );
+}
+assert(
+  !/\.tp-[\w-]+ \.tp-btn[\w-]*(:\w+(-\w+)?)? \{[^}]*\b(background|color):/.test(html),
+  'A theme sample may not recolor its buttons outside BUTTON_STATES'
+);
+const scope = `var ${exportNames.map((name) => `${name} = color2k.${name}`).join(', ')};`;
+for (const builder of ['softTheme', 'seriousTheme', 'boldTheme']) {
+  const source = new RegExp(`^function ${builder}\\([\\s\\S]*?^}$`, 'm').exec(readmeSource);
+  assert(source, `README.md has no ${builder}`);
+  const build = new Function('color2k', `${scope}\n${source[0]}\nreturn ${builder};`)(color2k);
+  for (const color of sweep) {
+    for (const dark of [false, true]) {
+      const tokens = build(color, dark);
+      for (const { selector, text, back } of models.BUTTON_STATES) {
+        assert(
+          color2k.parseToRgba(tokens[text])[3] === 1 &&
+            color2k.parseToRgba(tokens[back])[3] === 1 &&
+            !color2k.hasBadContrast(tokens[text], 'aa', tokens[back]),
+          `${builder}: ${selector} fails AA for ${color}${dark ? ' (dark)' : ''}`
+        );
+      }
+    }
+  }
+}
 // The site refuses a color it cannot paint, such as one with a malformed alpha.
 assert(
   !models.usable('rgba(255,0,0,.)') && !models.usable('nope') && models.usable(' Tomato '),
-  'models.usable should reject colors that parse to NaN'
+  'models.usable should reject colors that do not parse'
 );
 // The label on the wheel's hub sits on the flattened color, never on the
 // see-through one.
@@ -584,23 +619,39 @@ assert(
 );
 // Addresses from when the site was several pages go to their sections, and
 // anchors from the old one-page site are still on the page.
-const redirects = read('_redirects');
-for (const [from, to] of [
-  ['quickstart', 'quickstart'],
-  ['parse', 'parse'],
-  ['convert', 'convert'],
-  ['adjust', 'adjust'],
-  ['mix', 'mixing'],
-  ['contrast', 'contrast'],
-  ['utilities', 'utilities'],
-  ['themes', 'themes'],
-  ['recipes', 'recipes'],
-  ['colors', 'supported-colors'],
-  ['size', 'size'],
-  ['project', 'project'],
+new vm.Script(read('forward.js'));
+for (const [from, to, anchor] of [
+  ['quickstart', 'quickstart', 'browser-and-node-support'],
+  ['parse', 'parse', 'parseToRgba'],
+  ['convert', 'convert', 'toHex'],
+  ['adjust', 'adjust', 'darken'],
+  ['mix', 'mixing', 'getScale'],
+  ['contrast', 'contrast', 'readableColor'],
+  ['utilities', 'utilities', 'guard'],
+  ['themes', 'themes', 'bold'],
+  ['recipes', 'recipes', 'tailwind-palette'],
+  ['colors', 'supported-colors', 'known-edges'],
+  ['supported-colors', 'supported-colors', 'known-edges'],
+  ['size', 'size', 'what-it-costs'],
+  ['project', 'project', 'credits'],
 ]) {
-  assert(redirects.includes(`/${from}/ /#${to} 301\n`), `_redirects is missing /${from}/`);
+  const stub = read(`${from}/index.html`);
+  // With a script it forwards, keeping the anchor. Without one, the section
+  // and each old anchor are links to their new homes.
+  assert(
+    stub.includes(`<html lang="en" data-to="${to}">`) &&
+      stub.includes('<script src="/forward.js"></script>') &&
+      stub.includes(`href="/#${to}"`) &&
+      stub.includes(`<a id="${anchor}" href="/#${anchor}">`) &&
+      ids.includes(anchor) &&
+      stub.includes('content="noindex"'),
+    `The page at /${from}/ does not forward to #${to} and #${anchor}`
+  );
 }
+assert(
+  /location\.replace\("\/"\+\(location\.hash\.length>1\?location\.hash:"#"\+/.test(read('forward.js')),
+  'forward.js should keep the anchor it was given'
+);
 for (const id of [
   'installation',
   'usage',
@@ -632,8 +683,10 @@ assert(
   'The title and section headings lost the words people search for'
 );
 assert(
-  html.includes(`"version":"${pkg.version}"`) && html.includes('name="twitter:image:alt"'),
-  'Missing the package version in the structured data, or the social image text'
+  /"version":"\d+\.\d+\.\d+"/.test(html) &&
+    !html.includes('"version":"2.0.0"') &&
+    html.includes('name="twitter:image:alt"'),
+  'The structured data needs the released version from the git tags, and the social image needs its text'
 );
 
 console.log(

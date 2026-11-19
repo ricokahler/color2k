@@ -2548,6 +2548,7 @@ button.sw:focus-visible::after {
   transition:
     background-color 0.12s,
     border-color 0.12s,
+    color 0.12s,
     box-shadow 0.12s,
     transform 0.12s var(--ease);
 }
@@ -2555,6 +2556,7 @@ button.sw:focus-visible::after {
 .tp-btn:hover {
   border-color: var(--t-accent-hover);
   background: var(--t-accent-hover);
+  color: var(--t-on-accent);
 }
 
 .tp-btn:focus-visible {
@@ -2562,20 +2564,34 @@ button.sw:focus-visible::after {
   box-shadow: 0 0 0 4px var(--t-ring);
 }
 
+/* Pressed: pushed into the page, with a line of the label's color inside. */
 .tp-btn:active {
-  transform: translateY(1px) scale(0.98);
+  border-color: var(--t-accent-hover);
+  background: var(--t-accent-hover);
+  color: var(--t-on-accent);
+  box-shadow: inset 0 0 0 2px var(--t-on-accent);
+  transform: translateY(2px) scale(0.97);
 }
 
-/* The second action: an outline that fills in softly on hover. */
+/* The second action: an outline that turns solid on hover. Its two colors
+   are the card and the text on it, swapped, so the label always reads. */
 .tp-btn-ghost {
-  border-color: var(--t-border);
-  background: transparent;
+  border-color: var(--t-on-surface);
+  background: var(--t-surface);
   color: var(--t-on-surface);
 }
 
 .tp-btn-ghost:hover {
   border-color: var(--t-on-surface);
-  background: var(--t-ring);
+  background: var(--t-on-surface);
+  color: var(--t-surface);
+}
+
+.tp-btn-ghost:active {
+  border-color: var(--t-on-surface);
+  background: var(--t-on-surface);
+  color: var(--t-surface);
+  box-shadow: inset 0 0 0 2px var(--t-surface);
 }
 
 .tp-card-text {
@@ -2610,6 +2626,10 @@ button.sw:focus-visible::after {
 
 .tp-soft .tp-btn:hover {
   transform: translateY(-1px);
+}
+
+.tp-soft .tp-btn:active {
+  transform: translateY(2px) scale(0.96);
 }
 
 .tp-serious {
@@ -2677,8 +2697,12 @@ button.sw:focus-visible::after {
 }
 
 .tp-bold .tp-btn:active {
-  box-shadow: 0 0 0 var(--t-on-surface);
+  box-shadow: inset 0 0 0 2px var(--t-on-accent);
   transform: translate(3px, 3px);
+}
+
+.tp-bold .tp-btn-ghost:active {
+  box-shadow: inset 0 0 0 2px var(--t-surface);
 }
 
 /* ----------------------------------------------------------------- size */

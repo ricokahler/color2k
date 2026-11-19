@@ -243,6 +243,44 @@ export function shell(site: Site) {
 `;
 }
 
+/**
+ * The page left at an address from when the site was several pages, such as
+ * `/adjust/`. `forward.js` sends the visitor on to the same anchor on the one
+ * page. Without a script, the anchors here are links to their new homes, so
+ * `/adjust/#darken` still lands on a link to `/#darken`.
+ */
+export function moved(css: string, section: Section, anchors: string[]) {
+  return `<!doctype html>
+<html lang="en" data-to="${section.id}">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>${escapeHtml(section.title)} moved · color2k</title>
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href="https://color2k.com/" />
+    <script src="/theme.js"></script>
+    <script src="/forward.js"></script>
+    <style>${css}</style>
+  </head>
+  <body>
+    <main class="lost">
+      <a class="brand" href="/"><img src="/logo.svg" alt="color2k" width="154" height="40" /></a>
+      <h1>${escapeHtml(section.title)} moved</h1>
+      <p class="lede">color2k.com is one page now, and this is a section of it.</p>
+      <p class="lost-links"><a class="btn" href="/#${section.id}">Go to ${escapeHtml(section.title)}${icons.arrow}</a></p>
+      ${
+        anchors.length
+          ? `<ul class="jump">
+        ${anchors.map((id) => `<li><a id="${id}" href="/#${id}">${id}</a></li>`).join('\n        ')}
+      </ul>`
+          : ''
+      }
+    </main>
+  </body>
+</html>
+`;
+}
+
 /** The page for an address that is not there. */
 export function notFound(css: string) {
   return `<!doctype html>

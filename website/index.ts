@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { execFileSync } from 'child_process';
-import { NavGroup, notFound, renderHero, Section, shell } from './template';
+import { moved, NavGroup, notFound, renderHero, Section, shell } from './template';
 import { escapeHtml, styleOf } from './demos';
 import {
   FunctionEntry,
@@ -326,12 +326,48 @@ function getComparison(markdown: string) {
   return rows;
 }
 
+/**
+ * The released version. `package.json` always says 2.0.0, because
+ * semantic-release works the version out from the git tags when it
+ * publishes. So this reads the newest `vX.Y.Z` tag, fetching tags first if
+ * the checkout came without them.
+ */
+function getVersion() {
+  const git = (...args: string[]) =>
+    execFileSync('git', args, { cwd: repoPath(), encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  const newest = (tags: string) =>
+    tags
+      .split('\n')
+      .map((line) => /v(\d+)\.(\d+)\.(\d+)$/.exec(line.trim()))
+      .filter((match): match is RegExpExecArray => Boolean(match))
+      .map((match) => match.slice(1).map(Number))
+      .sort((one, other) => other[0] - one[0] || other[1] - one[1] || other[2] - one[2])[0];
+  const attempts = [
+    () => git('tag', '--list', 'v*'),
+    () => {
+      git('fetch', '--tags', '--quiet');
+      return git('tag', '--list', 'v*');
+    },
+    () => git('ls-remote', '--tags', '--refs', 'https://github.com/ricokahler/color2k.git', 'v*'),
+  ];
+
+  for (const attempt of attempts) {
+    try {
+      const version = newest(attempt());
+      if (version) return version.join('.');
+    } catch {
+      // Try the next way of finding the tags.
+    }
+  }
+  throw new Error('Found no vX.Y.Z git tag to read the released version from. Fetch the tags.');
+}
+
 function getStructuredData(pkg: any) {
   return {
     '@context': 'https://schema.org',
     '@type': 'SoftwareSourceCode',
     name: pkg.name,
-    version: pkg.version,
+    version: getVersion(),
     description: pkg.description,
     keywords: pkg.keywords.join(', '),
     author: { '@type': 'Person', name: 'Rico Kahler', url: 'https://rico.codes' },
@@ -636,21 +672,20 @@ async function render() {
   await write('404.html', notFound(css));
   for (const { file, markdown } of files) await write(file, markdown);
   await write('_headers', getHeaders(files.map(({ file }) => file)));
-  // The site was several pages for a while. Each old address goes to its section.
-  await write(
-    '_redirects',
-    sections
-      .map(({ id, file }) => {
-        const name = file.replace(/\.md$/, '');
-        const old = Object.keys(LEGACY_PATHS).find((key) => LEGACY_PATHS[key] === id) || name;
-        return [old, name]
-          .filter((value, index, all) => all.indexOf(value) === index)
-          .map((value) => `/${value}/ /#${id} 301`)
-          .join('\n');
-      })
-      .concat('')
-      .join('\n')
-  );
+  // The site was several pages for a while. Each old address keeps a small
+  // page that forwards to its section, anchor included.
+  for (const entry of sections) {
+    const name = entry.file.replace(/\.md$/, '');
+    const old = Object.keys(LEGACY_PATHS).find((key) => LEGACY_PATHS[key] === entry.id);
+    const anchors = Array.from(
+      entry.body.matchAll(/<(?:section|h[34])[^>]* id="([^"]+)"/g),
+      ([, id]) => id
+    ).filter((id) => !id.endsWith('-title'));
+    for (const folder of old ? [old, name] : [name]) {
+      await write(`${folder}/index.html`, moved(css, entry, anchors));
+    }
+  }
+  await write('forward.js', await minifyScript(readSource('./forward.js')));
   await write('color2k.js', await getBrowserBundle());
   await write('site.js', await getSiteScript(themeSources));
   await write('theme.js', await minifyScript(readSource('./theme.js')));
