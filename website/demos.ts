@@ -145,7 +145,7 @@ const OTHERS: Choice[] = [
   { value: '#ffffff', label: 'White', color: '#ffffff' },
   { value: '#000000', label: 'Black', color: '#000000' },
   { value: 'complement', label: 'Complement' },
-  { value: '#4a35e8', label: 'Indigo', color: '#4a35e8' },
+  { value: '#ff2d6f', label: 'Pink', color: '#ff2d6f' },
   { value: '#ffe100', label: 'Sun', color: '#ffe100' },
 ];
 
@@ -172,17 +172,17 @@ const rampBody =
           ${call(model.text)}`;
 
 const alphaBody =
-  (name: string, stuck: string): Body =>
+  (name: string, note: string, flag = 'stuck', from = 'Your color'): Body =>
   (model, p) =>
     `${stage(
-      `<div class="pair pair-layers">${swatch('from', 'Your color')}${swatch('res', name, 'sw-res')}</div>${amountRail(
+      `<div class="pair pair-layers">${swatch('from', from)}${swatch('res', name, 'sw-res')}</div>${amountRail(
         model,
         p,
         true,
         1
       )}`
     )}
-          ${hint('stuck', stuck)}
+          ${hint(flag, note)}
           ${call(model.text)}`;
 
 const spellingBody: Body = (model) =>
@@ -398,7 +398,9 @@ const bodies: { [name: string]: Body } = {
 
   opacify: alphaBody(
     'opacify',
-    'Your color is already solid, so there is nothing to add. <button type="button" class="link" data-pick="rgba(74, 53, 232, 0.5)">Try a see-through indigo</button>'
+    'Your color is solid, so this starts from it at 40% and builds back up. <button type="button" class="link" data-pick="rgba(74, 53, 232, 0.5)">Pick a see-through indigo</button>',
+    'faded',
+    'Start'
   ),
   transparentize: alphaBody(
     'transparentize',

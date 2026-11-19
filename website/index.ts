@@ -441,7 +441,7 @@ async function render() {
 
   // Where every README heading lives on the site, so a link written for the
   // README (`#known-edges`) can be pointed at the right page.
-  const moved: { [slug: string]: string } = { api: '/#functions', 'why-color2k': '/size/' };
+  const moved: { [slug: string]: string } = { api: '/#functions' };
   const pages: Page[] = [];
 
   const docPage = (
@@ -505,6 +505,7 @@ async function render() {
       return code[0].replace(/\s+/g, ' ').trim();
     }),
   }));
+  const themeIntro = themeRecipe.slice(0, themeRecipe.indexOf('**Soft**'));
   const themeClosing = themeRecipe.slice(themeRecipe.indexOf('The text pairs in all three'));
   if (themeClosing.length < 100) throw new Error('README.md theme recipe lost its closing');
   moved['a-whole-theme-from-one-color'] = '/themes/';
@@ -542,6 +543,7 @@ async function render() {
       color,
       themeTeaser: renderThemeTeaser(themes, models, color),
       treemap: renderTreemap(sizes, true),
+      whyHtml: renderMarkdown(`## Why color2k\n\n${why.get('')}`).html,
       sizes,
       quickstartHtml: renderMarkdown(
         section('Quickstart').slice(0, section('Quickstart').indexOf('Colors go in as CSS strings'))
@@ -568,7 +570,14 @@ async function render() {
       Math.round(themes.reduce((sum, { lines }) => sum + lines, 0) / themes.length / 5) * 5
     } lines of color2k. They take your color and return fourteen tokens, for light or for dark. Switch the mode in the menu and they rebuild.`,
     anchors: themes.map(({ key, name }) => ({ id: key, title: name })),
-    body: renderThemes(themes, models, color, renderMarkdown(themeClosing).html),
+    body: renderThemes(
+      themes,
+      models,
+      color,
+      // The line that sends README readers here is dropped.
+      renderMarkdown(themeIntro.replace(/^You can try all three.*\n/m, '')).html,
+      renderMarkdown(themeClosing).html
+    ),
   });
   docPage(
     {
@@ -610,7 +619,6 @@ async function render() {
     )} bytes.`,
     anchors: [
       { id: 'treemap', title: 'Where the bytes go' },
-      { id: 'boring-on-purpose', title: 'Boring on purpose' },
       { id: 'how-it-stays-small', title: 'How it stays small' },
       { id: 'what-it-costs', title: 'What it costs' },
       { id: 'next-to-the-others', title: 'Next to the others' },
@@ -628,9 +636,9 @@ async function render() {
       path: '/project/',
       title: 'Project',
       parent: 'Reference',
-      lede: 'Who makes color2k, how it ships and how to help.',
+      lede: 'The people behind color2k, how to help, and how it ships.',
     },
-    ['For AI agents', 'Trust and publishing', 'Contributing', 'Credits']
+    ['Credits', 'Contributing', 'Trust and publishing', 'For AI agents']
       .map((title) => `## ${title}\n\n${section(title)}`)
       .join('\n\n')
   );

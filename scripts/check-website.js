@@ -356,6 +356,69 @@ for (const color of sweep) {
     }
   }
 }
+// The README is the one source for the site's prose. Every README section has
+// a home on the site, as a heading with the same anchor or as a page title,
+// and every paragraph and list item of the hand-written sections is there
+// word for word.
+const readmeSource = fs.readFileSync(path.resolve(__dirname, '../README.md'), 'utf8');
+const readmeProse = readmeSource.slice(
+  readmeSource.search(/^## /m),
+  readmeSource.indexOf('<!-- API-DOCS-START -->')
+);
+const slugOf = (title) =>
+  title.trim().toLowerCase().replace(/[^\w\s-]/g, '').trim().replace(/\s/g, '-');
+const plain = (text) =>
+  text
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, ' ');
+const siteText = plain(everyPage);
+let fenced = false;
+let checkedLines = 0;
+for (const line of readmeProse.split('\n')) {
+  if (/^```/.test(line)) fenced = !fenced;
+  if (fenced || /^```/.test(line)) continue;
+  const heading = /^#{2,3} (.+)$/.exec(line);
+  if (heading) {
+    assert(
+      everyPage.includes(` id="${slugOf(heading[1])}"`) ||
+        new RegExp(`<h1[^>]*>${heading[1]}</h1>`).test(everyPage),
+      `The README section "${heading[1]}" has no home on the site`
+    );
+    continue;
+  }
+  // Tables, pictures and markers are checked elsewhere. This is the prose.
+  // So are lines that only send README readers to the site.
+  if (!line.trim() || /^(\||<|!\[)/.test(line) || /^You can try all three/.test(line)) continue;
+  const text = plain(
+    line
+      .replace(/^- /, '')
+      .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+      .replace(/\*\*|`/g, '')
+  ).trim();
+  assert(siteText.includes(text), `The site is missing this line of the README: "${text.slice(0, 80)}"`);
+  checkedLines += 1;
+}
+assert(checkedLines > 80, `Expected to check the README's prose, found ${checkedLines} lines`);
+// The credits, in full, on the Project page.
+const projectPage = pages.find(({ url }) => url === '/project/').html;
+const credits = readmeSource.slice(
+  readmeSource.indexOf('## Credits'),
+  readmeSource.indexOf('<!-- API-DOCS-START -->')
+);
+const creditLinks = Array.from(credits.matchAll(/\]\((https:[^)]+)\)/g), ([, url]) => url);
+assert(creditLinks.length >= 15, 'Could not read the credits in README.md');
+for (const url of creditLinks) {
+  assert(projectPage.includes(`href="${url}"`), `The Project page is missing the credit link ${url}`);
+}
+assert(
+  readmeSource.includes(`costs ${sizes.files['named colors']} bytes`),
+  'The README gives a size for the named colors that is not in docs/sizes.json'
+);
 // The site refuses a color it cannot paint, such as one with a malformed alpha.
 assert(
   !models.usable('rgba(255,0,0,.)') && !models.usable('nope') && models.usable(' Tomato '),

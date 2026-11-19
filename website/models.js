@@ -16,7 +16,9 @@ var c2kModels = function (c, builders) {
     { name: 'Indigo', color: '#4a35e8' },
     { name: 'Glass', color: 'rgba(74, 53, 232, 0.5)' },
   ];
-  var DEFAULT = PRESETS[0].color;
+  // The page opens on Indigo. It is solid and not fully saturated, so every
+  // demo has room to move it.
+  var DEFAULT = PRESETS[5].color;
 
   var quote = function (value) {
     return "'" + value + "'";
@@ -171,9 +173,10 @@ var c2kModels = function (c, builders) {
   }
 
   // opacify and transparentize: a ramp of alpha steps over a checkerboard.
-  function alphaRamp(name, stuck) {
-    return function (color, p, ctx) {
+  function alphaRamp(name, stuck, start) {
+    return function (picked, p, ctx) {
       var vars = {};
+      var color = start ? start(picked) : picked;
       var out = c[name](color, p.amount);
       STEPS.forEach(function (amount, index) {
         swatch(vars, 'c' + index, c[name](color, amount * 2), ctx);
@@ -189,7 +192,7 @@ var c2kModels = function (c, builders) {
           amount: fmt(p.amount),
           alpha: fmt(c.parseToRgba(color)[3]),
         },
-        flags: { stuck: stuck(c.parseToRgba(color)[3]) },
+        flags: { stuck: stuck(c.parseToRgba(color)[3]), faded: color !== picked },
       };
     };
   }
@@ -390,9 +393,16 @@ var c2kModels = function (c, builders) {
       };
     },
 
-    opacify: alphaRamp('opacify', function (alpha) {
-      return alpha >= 1;
-    }),
+    // A solid color has no alpha to add, so the demo fades it first.
+    opacify: alphaRamp(
+      'opacify',
+      function () {
+        return false;
+      },
+      function (color) {
+        return c.parseToRgba(color)[3] >= 1 ? c.transparentize(color, 0.6) : color;
+      }
+    ),
     transparentize: alphaRamp('transparentize', function (alpha) {
       return alpha <= 0;
     }),
@@ -594,7 +604,7 @@ var c2kModels = function (c, builders) {
     adjustHue: { degrees: 120 },
     opacify: { amount: 0.3 },
     transparentize: { amount: 0.4 },
-    mix: { other: '#4a35e8', weight: 0.5 },
+    mix: { other: '#ff2d6f', weight: 0.5 },
     getScale: { set: 'rainbow', steps: 9, at: 0.5 },
     getContrast: { other: '#ffffff' },
     hasBadContrast: { other: '#ffffff' },

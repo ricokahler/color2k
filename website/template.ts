@@ -223,6 +223,7 @@ export function shell(page: Page, site: Site) {
       <footer class="foot">
         <nav aria-label="More">
           <ul>
+            <li><a href="/project/#credits">Credits</a></li>
             <li><a href="/llms.txt">llms.txt</a></li>
             <li><a href="/llms-full.txt">llms-full.txt</a></li>
             <li><a href="https://github.com/ricokahler/color2k">Source</a></li>

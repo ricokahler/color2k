@@ -209,8 +209,15 @@ export function renderThemeTeaser(themes: Theme[], models: any, color: string) {
     .join('\n        ');
 }
 
-export function renderThemes(themes: Theme[], models: any, color: string, closing: string) {
-  return `${themes
+export function renderThemes(
+  themes: Theme[],
+  models: any,
+  color: string,
+  intro: string,
+  closing: string
+) {
+  return `<section class="prose">${intro}</section>
+        ${themes
     .map((theme) => {
       const model = models.demos[`theme-${theme.key}`](color, {}, { bg: '#ffffff', dark: false });
       const slot = (key: string) => `<span data-t="${key}">${escapeHtml(model.text[key])}</span>`;
@@ -368,6 +375,7 @@ interface OverviewOptions {
   treemap: string;
   sizes: Sizes;
   quickstartHtml: string;
+  whyHtml: string;
 }
 
 export function renderOverview({
@@ -378,6 +386,7 @@ export function renderOverview({
   treemap,
   sizes,
   quickstartHtml,
+  whyHtml,
 }: OverviewOptions) {
   const model = models.demos.overview(color, {}, { bg: '#ffffff', dark: false });
 
@@ -399,6 +408,9 @@ export function renderOverview({
               )
               .join('\n            ')}
           </div>
+        </section>
+        <section class="band">
+          <div class="prose">${whyHtml}</div>
         </section>
         <section class="band" aria-labelledby="themes-title">
           <header class="band-head">
@@ -475,16 +487,6 @@ export function renderSize({ sizes, comparison, costsHtml, othersHtml, smallHtml
           </details>
         </section>
         <section class="prose">
-          <h2 id="boring-on-purpose">Boring on purpose<a class="heading-anchor" href="#boring-on-purpose" aria-label="Permalink to Boring on purpose">#</a></h2>
-          <p>
-            There is one clever thing in here. The 148 CSS color names are packed into a single
-            string and looked up by hash, so they cost ${sizes.files['named colors']} bytes.
-          </p>
-          <p>
-            The rest is plain. Each function takes a string and returns a string. There is nothing to
-            configure and nothing to chain. It does the least a color library can do and still be
-            useful, and it was written with care, so you can drop it into anything.
-          </p>
           ${smallHtml}
           ${costsHtml}
           ${othersHtml}

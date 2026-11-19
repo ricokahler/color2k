@@ -107,13 +107,19 @@ Or as a global named `color2k`:
 <script src="https://unpkg.com/color2k"></script>
 ```
 
+### Browser and Node support
+
+The CommonJS build runs on Node 6, and CI runs it there on every change. The ES module and UMD builds are written in ES2015 syntax, so they load in any browser that understands ES2015 without a compile step. TypeScript types ship in the package.
+
 ## Recipes
 
 Every example here runs against the built package in CI. The picture under each one is drawn from what that code returned, so the two can't disagree.
 
 ### A whole theme from one color
 
-Pick a color and let color2k work out the rest. These are the three themes on [color2k.com/themes](https://color2k.com/themes/), where they run live on any color you pick. Each one takes a color and returns the same fourteen tokens, for light or dark.
+Pick a color and let color2k work out the rest. Each of these three builders takes a color and returns the same fourteen tokens, for light or dark.
+
+You can try all three on any color at [color2k.com/themes](https://color2k.com/themes/).
 
 Each one also looks at what you gave it and makes a few decisions. It returns those too, as `why`.
 
@@ -738,6 +744,8 @@ Both are built from this README and the JSDoc in `src`. The same JSDoc ships in 
 
 ## How it stays small
 
+color2k is boring on purpose. Each function takes a string and returns a string. There is nothing to configure and nothing to chain. The one clever thing in here is the packed table of color names, which costs 561 bytes. The rest is plain code written with care, so you can drop it into anything.
+
 - **It does less.** color2k has the color functions apps use every day, in sRGB, and stops there.
 - **Two output formats.** Results come back as `rgba()` or `hsla()` strings, which every browser reads, and `toHex` covers the rest. That skips the code other libraries spend on optional alpha channels and extra color models.
 - **A squeezed color-name table.** The 148 CSS color names are stored as one hashed string of 740 characters. A plain lookup object would be several times that.
@@ -755,7 +763,9 @@ Missing something you need? [Open an issue](https://github.com/ricokahler/color2
 
 ## Contributing
 
-Issues and pull requests are welcome. [CONTRIBUTING.md](https://github.com/ricokahler/color2k/blob/main/CONTRIBUTING.md) gets you set up, and [AGENTS.md](https://github.com/ricokahler/color2k/blob/main/AGENTS.md) has the same rules for coding agents.
+Issues and pull requests are welcome. Clone the repo and run `npm ci`, then `npm run check` runs everything CI does. Each function is one small file in `src` with its test next to it, so most fixes touch two files.
+
+[CONTRIBUTING.md](https://github.com/ricokahler/color2k/blob/main/CONTRIBUTING.md) gets you set up, and [AGENTS.md](https://github.com/ricokahler/color2k/blob/main/AGENTS.md) has the same rules for coding agents.
 
 ## Credits
 

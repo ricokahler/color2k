@@ -335,7 +335,7 @@ p {
   border-radius: 5px;
   background: transparent;
   color: var(--muted);
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 700;
   transition:
     background-color 0.12s,
@@ -343,8 +343,8 @@ p {
 }
 
 .mode svg {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
 }
 
 .mode button:hover,
@@ -3040,6 +3040,18 @@ pre.shiki {
   display: block;
   max-width: 100%;
   height: auto;
+}
+
+/* ----------------------------------------------------------- wide screens */
+
+@media (min-width: 1600px) {
+  :root {
+    --gutter: 64px;
+  }
+
+  main {
+    max-width: 1500px;
+  }
 }
 
 /* --------------------------------------------------------------- motion */
