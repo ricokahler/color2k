@@ -85,6 +85,8 @@ Before publishing, maintainers should run the checks in [docs/release-checklist.
 
 Heavy credit goes to polished.js and Sass. Much of the implementation of this lib is copied from polished.
 
+Thanks to everyone who has contributed fixes, including [@dajiaohuang](https://github.com/dajiaohuang) and [@Ismayil77](https://github.com/Ismayil77) for whitespace handling in color strings ([#561](https://github.com/ricokahler/color2k/pull/561), [#567](https://github.com/ricokahler/color2k/pull/567)), and [@feritcemkahraman](https://github.com/feritcemkahraman) for the Sass alpha weighting in `mix` ([#564](https://github.com/ricokahler/color2k/pull/564)). See all [contributors](https://github.com/ricokahler/color2k/graphs/contributors).
+
 <!-- API-DOCS-START -->
 ## API
 
