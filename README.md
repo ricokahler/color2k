@@ -61,10 +61,10 @@ The parser is about 1.4 kB and nearly every function needs it. So the first impo
 | [polished](https://github.com/styled-components/polished) | [11.6 kB](https://bundlephobia.com/package/polished) |
 | [color](https://github.com/Qix-/color) | [8.5 kB](https://bundlephobia.com/package/color) |
 | [tinycolor2](https://github.com/bgrins/TinyColor) | [5.4 kB](https://bundlephobia.com/package/tinycolor2) |
-| [colord](https://github.com/omgovich/colord) with the names, mix and a11y plugins | 4.9 kB |
+| [colord](https://github.com/omgovich/colord) with the names, mix and a11y plugins | 5.0 kB |
 | **color2k** | [**2.4 kB**](https://bundlephobia.com/package/color2k) |
 
-These come from Bundlephobia, November 2026. colord's core is 2.3 kB without named colors, mixing or contrast checks, so its row is measured (with esbuild) with the plugins that cover what color2k does.
+These come from Bundlephobia, November 2026. colord's core is 2.3 kB without named colors, mixing or contrast checks, so its row is measured with the plugins that cover what color2k does. That comes to 4.9 to 5.0 kB, depending on the minifier.
 
 ## Quickstart
 
@@ -113,35 +113,51 @@ Every example here runs against the built package in CI. The picture under each 
 
 ### A whole theme from one color
 
-Pick a color and let color2k work out the rest. These are the three themes on [color2k.com](https://color2k.com), where you can paint with them. Each one takes a color and returns the same thirteen tokens, for light or dark.
+Pick a color and let color2k work out the rest. These are the three themes on [color2k.com](https://color2k.com), where you can paint with them and watch all three recolor together. Each one takes a color and returns the same fourteen tokens, for light or dark.
 
-**Soft** keeps the hue and throws away the rest. Every token is that hue at a chosen lightness, so the page reads as one pastel wash. The second color is its neighbor on the wheel, 40 degrees along.
+They don't just compute colors. Each one looks at what you gave it and makes a few decisions, and it returns those too, as `why`.
+
+**Soft** is a pastel wash. It tames a loud color with `desaturate` and lifts a nearly gray one with `saturate`. Your color becomes the button as it is, unless the label would not read on it or the button would melt into the page. Then the button gets a pastel of the same hue.
 
 ```js
 import {
   adjustHue,
+  desaturate,
+  hasBadContrast,
   hsla,
   mix,
   parseToHsla,
+  parseToRgba,
   readableColor,
+  saturate,
   toHex,
   transparentize,
 } from 'color2k';
 
 function softTheme(color, dark = false) {
-  const [hue] = parseToHsla(color);
-  const tone = (lightness, saturation) => toHex(hsla(hue, saturation, lightness, 1));
-  const bg = dark ? tone(0.13, 0.3) : tone(0.97, 0.8);
-  const text = dark ? tone(0.93, 0.6) : tone(0.2, 0.4);
-  const accent = dark ? tone(0.78, 0.75) : tone(0.74, 0.85);
-  const onAccent = dark ? tone(0.15, 0.4) : tone(0.2, 0.4);
+  // A see-through pick is flattened onto the page first, the way it would look.
+  const solid = toHex(mix(dark ? '#000' : '#fff', toHex(color).slice(0, 7), parseToRgba(color)[3]));
+  const [, saturation] = parseToHsla(solid);
+  const vivid = saturation > 0.8;
+  const faint = saturation < 0.35;
+  // Tame a loud color and lift a quiet one, so the wash is always gentle.
+  const calm = vivid ? desaturate(solid, 0.2) : faint ? saturate(solid, 0.3) : solid;
+  const [hue, chroma] = parseToHsla(calm);
+  const tone = (lightness, scale = 1) => toHex(hsla(hue, chroma * scale, lightness, 1));
+  const bg = dark ? tone(0.13, 0.4) : tone(0.97);
+  const text = dark ? tone(0.93, 0.7) : tone(0.2, 0.6);
+  const onAccent = dark ? tone(0.15, 0.5) : text;
+  // The button is your color, unless its label would not read on it or the
+  // button would melt into the page.
+  const clash = hasBadContrast(onAccent, 'aa', calm) || hasBadContrast(calm, 'decorative', bg);
+  const accent = clash ? tone(dark ? 0.78 : 0.74) : toHex(calm);
 
   return {
     bg,
-    surface: dark ? tone(0.18, 0.3) : '#ffffff',
-    border: dark ? tone(0.28, 0.3) : tone(0.9, 0.6),
+    surface: dark ? tone(0.18, 0.4) : '#ffffff',
+    border: dark ? tone(0.28, 0.4) : tone(0.9, 0.8),
     text,
-    muted: dark ? tone(0.74, 0.35) : tone(0.36, 0.3),
+    muted: dark ? tone(0.74, 0.5) : tone(0.3, 0.5),
     onSurface: text,
     accent,
     accentHover: toHex(mix(accent, readableColor(onAccent), 0.15)),
@@ -150,40 +166,55 @@ function softTheme(color, dark = false) {
     onSoft: text,
     ring: transparentize(accent, 0.45),
     extra: toHex(adjustHue(accent, 40)),
+    shadow: transparentize(accent, 0.5),
+    why: { vivid, faint, clash },
   };
 }
 
 const light = softTheme('#ff8fb8');
 const dark = softTheme('#ff8fb8', true);
 
-light.accent; // '#f584ae'
-light.text; // '#471f2e'
+light.accent; // '#f49abb'
+light.why; // { vivid: true, faint: false, clash: false }
 ```
 
 <!-- RESULT: theme { light, dark, build: softTheme } -->
-<p><img src="./docs/readme/a-whole-theme-from-one-color.svg" width="840" alt="light bg: #fdf1f6; light surface: #ffffff; light border: #f5d6e1; light text: #471f2e; light muted: #774054; light onSurface: #471f2e; light accent: #f584ae; light accentHover: #f796ba; light onAccent: #471f2e; light soft: #fbd2e2; light onSoft: #471f2e; light ring: rgba(245, 132, 174, 0.55); light extra: #f5a684; dark bg: #2b171e; dark surface: #3c202a; dark border: #5d3242; dark text: #f8e2ea; dark muted: #d4a5b7; dark onSurface: #f8e2ea; dark accent: #f19dbc; dark accentHover: #f3acc6; dark onAccent: #361722; dark soft: #623d4a; dark onSoft: #f8e2ea; dark ring: rgba(241, 157, 188, 0.55); dark extra: #f1b69d" /></p>
+<p><img src="./docs/readme/a-whole-theme-from-one-color.svg" width="840" alt="light bg: #fdf1f6; light surface: #ffffff; light border: #f6d5e1; light text: #4b1b2c; light muted: #6b2e44; light onSurface: #4b1b2c; light accent: #f49abb; light accentHover: #f6a9c5; light onAccent: #4b1b2c; light soft: #fad9e5; light onSoft: #4b1b2c; light ring: rgba(244, 154, 187, 0.55); light extra: #f4b59a; light shadow: rgba(244, 154, 187, 0.5); light decision vivid: true; light decision faint: false; light decision clash: false; dark bg: #2c171e; dark surface: #3d1f2a; dark border: #5e3141; dark text: #f7e3ea; dark muted: #d7a2b6; dark onSurface: #f7e3ea; dark accent: #f49abb; dark accentHover: #f6a9c5; dark onAccent: #361722; dark soft: #643c4a; dark onSoft: #f7e3ea; dark ring: rgba(244, 154, 187, 0.55); dark extra: #f4b59a; dark shadow: rgba(244, 154, 187, 0.5); dark decision vivid: true; dark decision faint: false; dark decision clash: false" /></p>
 <!-- RESULT-END -->
 
-**Serious** drains the color out. The page is built from grays that keep 8% of the hue, and the color itself shows up once, on the thing you want clicked.
+**Serious** drains the color out. The page is built from grays that keep 8% of the hue. Your color is the link and the button, so it has to read on the page. If `hasBadContrast` says it doesn't, the theme darkens it a step at a time until it does. Then `readableColorIsBlack` picks the button label.
 
 ```js
 import {
+  darken,
   desaturate,
+  hasBadContrast,
   hsla,
+  lighten,
   mix,
   parseToHsla,
+  parseToRgba,
   readableColor,
+  readableColorIsBlack,
   toHex,
   transparentize,
 } from 'color2k';
 
 function seriousTheme(color, dark = false) {
-  const [hue] = parseToHsla(color);
+  // A see-through pick is flattened onto the page first, the way it would look.
+  const solid = toHex(mix(dark ? '#000' : '#fff', toHex(color).slice(0, 7), parseToRgba(color)[3]));
+  const [hue] = parseToHsla(solid);
   const gray = (lightness) => toHex(desaturate(hsla(hue, 1, lightness, 1), 0.92));
   const bg = dark ? gray(0.1) : gray(0.98);
   const text = dark ? gray(0.93) : gray(0.13);
-  const accent = toHex(hsla(hue, 0.7, dark ? 0.66 : 0.42, 1));
-  const onAccent = readableColor(accent);
+  // Links are set in your color, so it has to read on the page.
+  const weak = hasBadContrast(solid, 'aa', bg);
+  let accent = solid;
+  for (let i = 0; i < 50 && hasBadContrast(accent, 'aa', bg); i++) {
+    accent = toHex(dark ? lighten(accent, 0.02) : darken(accent, 0.02));
+  }
+  const darkLabel = readableColorIsBlack(accent);
+  const onAccent = darkLabel ? '#000' : '#fff';
 
   return {
     bg,
@@ -199,38 +230,56 @@ function seriousTheme(color, dark = false) {
     onSoft: text,
     ring: transparentize(accent, 0.6),
     extra: dark ? gray(0.3) : gray(0.8),
+    shadow: transparentize(text, 0.92),
+    why: { weak, darkLabel },
   };
 }
 
-const light = seriousTheme('#3b5bdb');
-const dark = seriousTheme('#3b5bdb', true);
+const light = seriousTheme('#ff8fb8');
+const dark = seriousTheme('#ff8fb8', true);
 
-light.accent; // '#203eb6'
-light.bg; // '#f9fafa'
+light.accent; // '#e00052'
+light.why; // { weak: true, darkLabel: false }
 ```
 
 <!-- RESULT: theme { light, dark, build: seriousTheme } -->
-<p><img src="./docs/readme/a-whole-theme-from-one-color-2.svg" width="840" alt="light bg: #f9fafa; light surface: #ffffff; light border: #dedfe3; light text: #1e2024; light muted: #5e616e; light onSurface: #1e2024; light accent: #203eb6; light accentHover: #1b359b; light onAccent: #fff; light soft: #dbe0f0; light onSoft: #1e2024; light ring: rgba(32, 62, 182, 0.4); light extra: #c8cad0; dark bg: #17181c; dark surface: #212227; dark border: #383a42; dark text: #ececef; dark muted: #a7a9b4; dark onSurface: #ececef; dark accent: #6c84e5; dark accentHover: #8296e9; dark onAccent: #000; dark soft: #232738; dark onSoft: #ececef; dark ring: rgba(108, 132, 229, 0.4); dark extra: #464953" /></p>
+<p><img src="./docs/readme/a-whole-theme-from-one-color-2.svg" width="840" alt="light bg: #faf9fa; light surface: #ffffff; light border: #e3dee0; light text: #241e20; light muted: #6e5e64; light onSurface: #241e20; light accent: #e00052; light accentHover: #be0046; light onAccent: #fff; light soft: #f6d6e2; light onSoft: #241e20; light ring: rgba(224, 0, 82, 0.4); light extra: #d0c8cb; light shadow: rgba(36, 30, 32, 0.08); light decision weak: true; light decision darkLabel: false; dark bg: #1c1719; dark surface: #272123; dark border: #42383c; dark text: #efeced; dark muted: #b4a7ac; dark onSurface: #efeced; dark accent: #ff8fb8; dark accentHover: #ffa0c3; dark onAccent: #000; dark soft: #3c282f; dark onSoft: #efeced; dark ring: rgba(255, 143, 184, 0.4); dark extra: #53464b; dark shadow: rgba(239, 236, 237, 0.08); dark decision weak: false; dark decision darkLabel: true" /></p>
 <!-- RESULT-END -->
 
-**Bold** uses your color as the page. Text is whichever of black or white reads on it, and the button is the color on the opposite side of the wheel.
+**Bold** uses your color as the page, after turning a muted one up with `saturate`. A light page gets black text, black cards and hard black shadows. A dark page gets white text and cards tinted from the page with `lighten`. The button is the color on the far side of the wheel, unless it would disappear on the card. Then it falls back to black or white.
 
 ```js
 import {
   adjustHue,
+  hasBadContrast,
+  lighten,
   mix,
+  parseToHsla,
+  parseToRgba,
   readableColor,
+  readableColorIsBlack,
   saturate,
   toHex,
   transparentize,
 } from 'color2k';
 
 function boldTheme(color, dark = false) {
-  const brand = toHex(saturate(color, 0.15));
+  // A see-through pick is flattened onto the page first, the way it would look.
+  const solid = toHex(mix(dark ? '#000' : '#fff', toHex(color).slice(0, 7), parseToRgba(color)[3]));
+  const [, saturation] = parseToHsla(solid);
+  const dull = saturation < 0.5;
+  // Bold needs volume, so a muted color is turned up first.
+  const brand = toHex(dull ? saturate(solid, 0.35) : solid);
   const bg = dark ? toHex(mix(brand, 'black', 0.82)) : brand;
-  const text = readableColor(bg);
-  const surface = dark ? brand : text;
-  const accent = toHex(adjustHue(brand, 180));
+  const light = readableColorIsBlack(bg);
+  const text = light ? '#000' : '#fff';
+  // A light page gets black cards. A dark page gets cards tinted from it.
+  const tinted = !light;
+  const surface = tinted ? toHex(lighten(bg, 0.14)) : '#000';
+  const complement = toHex(adjustHue(brand, 180));
+  // The button is the complement, unless it would disappear on the card.
+  const lost = hasBadContrast(complement, 'readable', surface);
+  const accent = lost ? readableColor(surface) : complement;
   const onAccent = readableColor(accent);
 
   return {
@@ -239,7 +288,7 @@ function boldTheme(color, dark = false) {
     border: text,
     text,
     muted: text,
-    onSurface: dark ? readableColor(brand) : brand,
+    onSurface: readableColor(surface),
     accent,
     accentHover: toHex(mix(accent, readableColor(onAccent), 0.15)),
     onAccent,
@@ -247,21 +296,23 @@ function boldTheme(color, dark = false) {
     onSoft: bg,
     ring: transparentize(accent, 0.4),
     extra: toHex(adjustHue(brand, 90)),
+    shadow: light ? '#000' : accent,
+    why: { dull, light, tinted, lost },
   };
 }
 
-const light = boldTheme('#ffd60a');
-const dark = boldTheme('#ffd60a', true);
+const light = boldTheme('#ff8fb8');
+const dark = boldTheme('#ff8fb8', true);
 
-light.accent; // '#0a33ff'
-light.text; // '#000'
+light.accent; // '#8fffd6'
+light.why; // { dull: false, light: true, tinted: false, lost: false }
 ```
 
 <!-- RESULT: theme { light, dark, build: boldTheme } -->
-<p><img src="./docs/readme/a-whole-theme-from-one-color-3.svg" width="840" alt="light bg: #ffd60a; light surface: #000; light border: #000; light text: #000; light muted: #000; light onSurface: #ffd60a; light accent: #0a33ff; light accentHover: #092bd9; light onAccent: #fff; light soft: #000; light onSoft: #ffd60a; light ring: rgba(10, 51, 255, 0.6); light extra: #0aff5c; dark bg: #2e2702; dark surface: #ffd60a; dark border: #fff; dark text: #fff; dark muted: #fff; dark onSurface: #000; dark accent: #0a33ff; dark accentHover: #092bd9; dark onAccent: #fff; dark soft: #fff; dark onSoft: #2e2702; dark ring: rgba(10, 51, 255, 0.6); dark extra: #0aff5c" /></p>
+<p><img src="./docs/readme/a-whole-theme-from-one-color-3.svg" width="840" alt="light bg: #ff8fb8; light surface: #000; light border: #000; light text: #000; light muted: #000; light onSurface: #fff; light accent: #8fffd6; light accentHover: #a0ffdc; light onAccent: #000; light soft: #000; light onSoft: #ff8fb8; light ring: rgba(143, 255, 214, 0.6); light extra: #f0ff8f; light shadow: #000; light decision dull: false; light decision light: true; light decision tinted: false; light decision lost: false; dark bg: #2e1a21; dark surface: #5b3341; dark border: #fff; dark text: #fff; dark muted: #fff; dark onSurface: #fff; dark accent: #8fffd6; dark accentHover: #a0ffdc; dark onAccent: #000; dark soft: #fff; dark onSoft: #2e1a21; dark ring: rgba(143, 255, 214, 0.6); dark extra: #f0ff8f; dark shadow: #8fffd6; dark decision dull: false; dark decision light: false; dark decision tinted: true; dark decision lost: false" /></p>
 <!-- RESULT-END -->
 
-The text pairs in all three (text on background, text on a card, the button label, the chip) hold WCAG AA for any color you pass. The build sweeps a few hundred colors through each one to check.
+The text pairs in all three (text on the page, text on a card, the button label, the chip, and the Serious link) hold WCAG AA for any color you pass, see-through ones included. The build sweeps about 1,300 colors through each one to check.
 
 A theme is a plain object of strings, so putting it on the page is a loop:
 
@@ -643,7 +694,7 @@ Whitespace around a color is ignored. A string in none of these forms throws a `
 | Hex string | `toHex` |
 | `'#000'` or `'#fff'` | `readableColor` |
 
-You can pass these strings back in, so wrap one in `toHex`, `toRgba` or `toHsla` to get the format you want. The one exception is an `adjustHue` result with a negative hue, covered under [Known edges](#known-edges). The other functions return numbers, tuples or booleans.
+When the input is a well-formed color, you can pass these strings back in, so wrap one in `toHex`, `toRgba` or `toHsla` to get the format you want. There are two exceptions, both under [Known edges](#known-edges): an `adjustHue` result with a negative hue, and anything made from a malformed alpha. The other functions return numbers, tuples or booleans.
 
 Not supported yet:
 
@@ -657,6 +708,7 @@ Not supported yet:
 - `adjustHue` does not wrap a hue that goes below 0. When the color's own hue plus the degrees is negative, the result has a negative hue: `adjustHue('red', -120)` is `hsla(-120, 100%, 50%, 1)`. Browsers accept that, but color2k throws a `ColorError` if you pass it back in. `adjustHue('blue', -120)` is fine, because blue's hue is 240. This is a known bug. Until it is fixed, add 360 to a negative angle: `adjustHue('red', 240)`.
 - Out-of-range numbers are not clamped on the way in. `rgb(999, 0, 0)` parses as written, and `getContrast` or `getLuminance` on it return numbers outside their normal range.
 - Contrast functions ignore alpha. Flatten a see-through color onto its background first, as the `accessible` recipe does.
+- A malformed alpha carries through. `toRgba('rgba(1, 2, 3, .)')` returns `'rgba(1, 2, 3, NaN)'`, which color2k throws on if you pass it back in.
 - `mix` always returns an `rgba()` string, even at the ends. `mix('red', 'blue', 0)` is `'rgba(255, 0, 0, 1)'`, not `'red'`.
 - `getScale` returns a function, not a list of colors. Call it with numbers from 0 to 1 to get your steps.
 

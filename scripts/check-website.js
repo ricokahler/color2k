@@ -91,6 +91,7 @@ assert(
   'Only deploy previews may allow a frame (for the Netlify toolbar)'
 );
 assert(directives['script-src'] === "'self'", "CSP script-src must be 'self' only");
+assert(directives['font-src'] === "'self'", "CSP font-src must be 'self' only");
 assert(
   directives['base-uri'] === "'none'" && directives['frame-ancestors'] === "'none'",
   'CSP must lock down base-uri and frame-ancestors'
@@ -111,8 +112,16 @@ assert(
 );
 assert(html.includes('class="hero"'), 'Missing hero');
 assert(
-  html.includes('<svg class="field-still"') && html.includes('<canvas id="field"'),
-  'Missing the hero field and its server-rendered first frame'
+  html.includes('<svg class="field-still"') &&
+    getTags('canvas').some(({ id, role, 'aria-label': label }) => id === 'field' && role === 'img' && label),
+  'Missing the hero field, its text alternative or its server-rendered first frame'
+);
+// The color pad has to work from the keyboard.
+assert(
+  getTags('div').some(
+    ({ id, role, tabindex }) => id === 'studio-slider' && role === 'slider' && tabindex === '0'
+  ),
+  'The color pad must be a focusable slider'
 );
 for (const theme of ['soft', 'serious', 'bold']) {
   assert(
@@ -120,6 +129,30 @@ for (const theme of ['soft', 'serious', 'bold']) {
     `The ${theme} theme is not rendered with its tokens`
   );
 }
+// Fonts: at most two, small, served from this site and never render-blocking.
+const fonts = fs.readdirSync(buildDir).filter((file) => /\.(woff2?|ttf|otf)$/.test(file));
+const fontBytes = fonts.reduce(
+  (total, file) => total + fs.statSync(path.resolve(buildDir, file)).size,
+  0
+);
+assert(
+  fonts.length <= 2 && fonts.every((file) => file.endsWith('.woff2')) && fontBytes < 30000,
+  `Expected at most two small woff2 fonts, found ${fonts.join(', ')} (${fontBytes} bytes)`
+);
+for (const font of fonts) {
+  assert(html.includes(`url("/${font}")`), `${font} is shipped but not used`);
+}
+assert(
+  (html.match(/@font-face/g) || []).length === fonts.length &&
+    (html.match(/font-display: ?swap/g) || []).length === fonts.length &&
+    !/rel="preload"/.test(html),
+  'Fonts must use font-display: swap and must not be preloaded (they are below the fold)'
+);
+assert(
+  fs.existsSync(path.resolve(buildDir, 'fonts-license.txt')),
+  'Missing the font license'
+);
+
 // The page says "2.4 kB" a lot. Hold it to the measured size.
 const sizes = require('../docs/sizes.json');
 assert(

@@ -7,13 +7,14 @@ interface TocItem {
 interface Theme {
   key: string;
   name: string;
+  kicker: string;
   how: string;
-  uses: string[];
+  adjusted: boolean;
   codeHtml: string;
-  lightStyle: string;
-  darkStyle: string;
+  lines: number;
+  style: string;
   ratios: { text: string; button: string; chip: string };
-  tokens: string[];
+  why: Array<{ text: string; code: string }>;
 }
 
 interface Params {
@@ -37,6 +38,7 @@ interface Params {
   structuredData: object;
   studioColor: string;
   studioPresets: Array<{ name: string; color: string }>;
+  studioWash: string;
   themes: Theme[];
   toc: TocItem[];
 }
@@ -77,46 +79,38 @@ function renderToc(toc: TocItem[]) {
     .join('\n          ');
 }
 
-// A small made-up invoice screen, painted entirely with a theme's tokens.
-function renderMock(mode: 'light' | 'dark', style: string) {
-  return `<div class="mock" data-tokens="${mode}" style="${escapeHtml(style)}">
-              <div class="mock-top"><i class="mock-logo"></i><b>Ledger</b><span>Invoices</span><small>${mode}</small></div>
-              <strong class="mock-title">3 invoices are due this week</strong>
-              <span class="mock-muted">Two were sent on Monday. One is still a draft.</span>
-              <div class="mock-chips"><span>Draft</span><span>Sent</span><span>Paid</span></div>
-              <div class="mock-card">
-                <b>Northwind Studio</b>
-                <span>Due Friday, $2,400</span>
-                <div class="mock-bar"><i></i></div>
-                <div class="mock-actions"><span class="mock-primary">Send reminder</span><span class="mock-hover">Hover</span><span class="mock-focus">Focus</span></div>
-              </div>
-            </div>`;
-}
+const check =
+  '<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="currentColor"/><path d="M5.5 10.4l3 3 6-6.6" fill="none" stroke="var(--surface)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-function renderTheme(theme: Theme) {
-  return `<article class="band" data-theme="${theme.key}">
-          <div class="band-skin" data-tokens="light" style="${escapeHtml(theme.lightStyle)}"></div>
-          <div class="band-inner">
-            <div class="band-copy reveal" data-tokens="light" style="${escapeHtml(theme.lightStyle)}">
-              <h3>${theme.name}</h3>
-              <p>${escapeHtml(theme.how)}</p>
-              <ul class="band-swatches" aria-hidden="true">
-                ${theme.tokens.map((token) => `<li style="background:var(--${token.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)})" title="${token}"></li>`).join('')}
-              </ul>
-              <dl class="band-ratios">
-                <div><dt>Text</dt><dd data-ratio="text">${theme.ratios.text}</dd></div>
-                <div><dt>Button</dt><dd data-ratio="button">${theme.ratios.button}</dd></div>
-                <div><dt>Chip</dt><dd data-ratio="chip">${theme.ratios.chip}</dd></div>
-              </dl>
-              <p class="band-uses">Made with ${theme.uses.map((name) => `<code>${name}</code>`).join(' ')}</p>
+// One theme: a card painted entirely with its tokens, then what the builder
+// decided about the color, then the builder itself.
+function renderLook(theme: Theme, index: number) {
+  return `<div class="look reveal" data-theme="${theme.key}">
+          <article class="tcard" data-adjusted="${theme.adjusted}" style="${escapeHtml(theme.style)}">
+            <p class="t-top"><i class="t-mark"></i><span class="t-kicker">Theme 0${index + 1}</span><span class="t-chip">${theme.kicker}</span></p>
+            <h3 class="t-title">${theme.name}</h3>
+            <p class="t-body">${escapeHtml(theme.how)}</p>
+            <p class="t-actions"><span class="t-btn">Get started</span><span class="t-link">Learn more</span><span class="t-note">Adjusted</span></p>
+            <div class="t-panel">
+              <p class="t-row">${check}<span><b>Text on the page</b><small data-ratio="text">${theme.ratios.text}</small></span></p>
+              <p class="t-row">${check}<span><b>Button label</b><small data-ratio="button">${theme.ratios.button}</small></span></p>
+              <p class="t-row">${check}<span><b>Chip</b><small data-ratio="chip">${theme.ratios.chip}</small></span></p>
+              <div class="t-meter"><i></i></div>
             </div>
-            <div class="band-mocks reveal" aria-hidden="true">
-              ${renderMock('light', theme.lightStyle)}
-              ${renderMock('dark', theme.darkStyle)}
-            </div>
-            <div class="band-code reveal">${theme.codeHtml}</div>
-          </div>
-        </article>`;
+          </article>
+          <ul class="why">
+            ${theme.why
+              .map(
+                ({ text, code }) =>
+                  `<li><p data-why>${escapeHtml(text)}</p><code>${escapeHtml(code)}</code></li>`
+              )
+              .join('\n            ')}
+          </ul>
+          <details class="look-code">
+            <summary>The whole builder, ${theme.lines} lines</summary>
+            ${theme.codeHtml}
+          </details>
+        </div>`;
 }
 
 function template({
@@ -135,6 +129,7 @@ function template({
   structuredData,
   studioColor,
   studioPresets,
+  studioWash,
   themes,
   toc,
 }: Params) {
@@ -223,11 +218,17 @@ function template({
       </div>
     </header>
     <section class="hero" id="hero" style="--columns:${fieldColumns}">
-      <div class="field" aria-hidden="true">
+      <div class="field">
         ${fieldSvg}
-        <canvas id="field" width="${fieldColumns}" height="${fieldRows.length}"></canvas>
-        <div class="field-grid"></div>
-        <ul class="field-rows">
+        <canvas
+          id="field"
+          width="${fieldColumns}"
+          height="${fieldRows.length}"
+          role="img"
+          aria-label="A wall of color tiles, one row for each of ${fieldRows.length} color2k functions. The colors drift around the color wheel."
+        ></canvas>
+        <div class="field-grid" aria-hidden="true"></div>
+        <ul class="field-rows" aria-hidden="true">
           ${fieldRows.map((name) => `<li><code>${name}</code></li>`).join('')}
         </ul>
       </div>
@@ -271,23 +272,32 @@ function template({
       </div>
     </section>
     <div class="ticker" aria-hidden="true"><div class="ticker-track">${ticker}</div></div>
-    <section class="studio" id="themes" aria-labelledby="themes-title">
-      <div class="studio-head">
-        <div class="studio-intro reveal">
-          <h2 id="themes-title">Pick a color. Get a theme.</h2>
-          <p>
-            Paint on the strip, or drop in your brand color. Each theme below
-            is about 25 lines of color2k, and its text holds WCAG AA whatever
-            you pick.
-          </p>
-        </div>
-        <div class="studio-pad needs-js reveal">
-          <canvas id="studio-pad" width="72" height="9" role="img" aria-label="Color strip. Drag across it to paint a color."></canvas>
-          <i id="studio-thumb" hidden></i>
-        </div>
+    <section class="studio" id="themes" aria-labelledby="themes-title" data-mode="light">
+      <div class="studio-wash" id="studio-wash" style="background:${escapeHtml(studioWash)}" aria-hidden="true"></div>
+      <div class="studio-head reveal">
+        <h2 id="themes-title">One color in. Three looks out.</h2>
+        <p>
+          Paint on the strip. All three themes rebuild from your color as you
+          go, and each one makes its own calls about it. Their text holds
+          WCAG AA whatever you pick.
+        </p>
       </div>
       <div class="studio-bar needs-js">
         <div class="studio-bar-inner">
+          <div
+            class="studio-pad"
+            id="studio-slider"
+            role="slider"
+            tabindex="0"
+            aria-label="Color. Drag across it, or use the arrow keys: left and right for hue, up and down for lightness."
+            aria-valuemin="0"
+            aria-valuemax="360"
+            aria-valuenow="0"
+            aria-valuetext="${escapeHtml(studioColor)}"
+          >
+            <canvas id="studio-pad" width="72" height="9" aria-hidden="true"></canvas>
+            <i id="studio-thumb" hidden></i>
+          </div>
           <div class="studio-row">
             <input type="color" id="studio-picker" value="${escapeHtml(
               studioColor
@@ -310,11 +320,15 @@ function template({
                   )}" style="--dot:${escapeHtml(color)}">${escapeHtml(name)}</button>`
               )
               .join('\n            ')}
+            <button type="button" class="studio-tool" id="studio-spin">Spin the wheel</button>
+            <button type="button" class="studio-tool" id="studio-mode" aria-pressed="false">Dark</button>
           </div>
           <p class="studio-error" id="studio-error" role="status"></p>
         </div>
       </div>
-      ${themes.map(renderTheme).join('\n      ')}
+      <div class="looks">
+        ${themes.map(renderLook).join('\n        ')}
+      </div>
     </section>
     <section class="size" id="size" aria-labelledby="size-title">
       <div class="size-inner">
@@ -324,9 +338,10 @@ function template({
             <h2 id="size-title">${sizes.rounded} kB is the whole thing.</h2>
             <p>
               That is all ${exportCount} exports, minified and gzipped:
-              ${sizes.bytes} bytes. Every color on this page is computed by
-              it, live, in your browser. Import a single function and you
-              ship about 1.6 kB, because nearly all of them share one parser.
+              ${sizes.bytes} bytes. The hero, the themes and the function
+              demos on this page are all computed by it, live, in your
+              browser. Import a single function and you ship about 1.6 kB,
+              because nearly all of them share one parser.
             </p>
           </div>
         </div>

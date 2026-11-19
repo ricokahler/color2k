@@ -59,8 +59,14 @@ npm run website     # build the site and llms files into ./build
 - The three theme builders (`softTheme`, `seriousTheme`, `boldTheme`) live in
   the README as recipes. The website lifts those exact functions out of the
   README, shows them and runs them, so change them there and nowhere else.
-  The generator sweeps each one through a few hundred colors and fails if a
-  text pair drops below WCAG AA.
+  Each builder returns its decisions about the color as `why`, and the copy
+  for those decisions is `WHY` in `website/showcase.js`. The generator sweeps
+  each builder through about 1,300 colors (see-through ones included) and
+  fails if a text pair drops below WCAG AA.
+- The site self-hosts two small font subsets for the theme cards
+  (`website/static/fredoka.woff2` and `anton.woff2`, both OFL, license in
+  `fonts-license.txt`). Do not add more, do not preload them, and keep
+  `font-display: swap`. `npm run website:check` holds them under 30 kB.
 - Every "2.4 kB" is held to `docs/sizes.json`. If the bundle rounds to
   something else, the docs build fails until the copy is updated.
 - The list between `<!-- AGENT-NOTES-START -->` and `<!-- AGENT-NOTES-END -->`

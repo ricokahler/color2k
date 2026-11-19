@@ -90,6 +90,13 @@ the title decides the release: `feat:` is a minor version, `fix:`, `perf:` and
 are automatic after a maintainer approves them. See
 [docs/release-checklist.md](./docs/release-checklist.md).
 
+## Fonts
+
+The theme cards on the website use two fonts, cut down to basic Latin and
+served from the site itself: Fredoka (weight 600) and Anton. Both are under
+the SIL Open Font License, which ships next to them as
+`website/static/fonts-license.txt`. Everything else uses system fonts.
+
 ## Logo and icons
 
 The logo (`website/static/logo.svg`) and icon (`website/static/favicon.svg`)

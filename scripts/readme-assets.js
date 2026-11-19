@@ -254,17 +254,35 @@ const renderers = {
       ['onAccent', 'accentHover'],
       ['onSoft', 'soft'],
     ];
-    const sweep = ['white', 'black', '#808080', 'gold', 'tomato', '#ffd1e8'];
+    const sweep = [
+      'white',
+      'black',
+      '#808080',
+      'gold',
+      'tomato',
+      '#ffd1e8',
+      // See-through picks have to work too.
+      'transparent',
+      'rgba(255, 143, 184, 0.5)',
+      'rgba(0, 0, 0, 0.5)',
+      '#0d6efd80',
+    ];
+    const variants = [[1, 0.5], [0.7, 0.6], [0.5, 0.3], [0.9, 0.85], [0.2, 0.5], [1, 0.15], [0.6, 0.93]];
     for (let hue = 0; hue < 360; hue += 2) {
-      for (const [saturation, lightness] of [[1, 0.5], [0.7, 0.6], [0.5, 0.3], [0.9, 0.85]]) {
+      for (const [saturation, lightness] of variants) {
         sweep.push(c.toHex(c.hsla(hue, saturation, lightness, 1)));
       }
     }
     for (const color of sweep) {
       for (const dark of [false, true]) {
-        const tokens = value.build(color, dark);
+        const { why, ...tokens } = value.build(color, dark);
+        if (!why) throw new Error(`${id}: a theme has to return its decisions as \`why\``);
         Object.values(tokens).forEach((token) => c.parseToRgba(token));
-        for (const [front, back] of pairs) {
+        // A theme that sets links in the accent has to keep it readable.
+        const checks = /^serious/i.test(value.build.name)
+          ? pairs.concat([['accent', 'bg']])
+          : pairs;
+        for (const [front, back] of checks) {
           if (c.hasBadContrast(tokens[front], 'aa', tokens[back])) {
             throw new Error(
               `${id}: ${front} on ${back} fails AA for ${color}${dark ? ' (dark)' : ''}`
@@ -298,7 +316,13 @@ const renderers = {
       ].join('');
     const alt = ['light', 'dark']
       .flatMap((mode) =>
-        Object.entries(value[mode]).map(([name, token]) => `${mode} ${name}: ${token}`)
+        Object.entries(value[mode]).flatMap(([name, token]) =>
+          name === 'why'
+            ? Object.entries(token).map(
+                ([decision, answer]) => `${mode} decision ${decision}: ${answer}`
+              )
+            : [`${mode} ${name}: ${token}`]
+        )
       )
       .join('; ');
 

@@ -43,22 +43,22 @@ const THEMES = [
     key: 'soft',
     name: 'Soft',
     builder: 'softTheme',
-    how: 'One hue, many lightnesses. The page reads as a single pastel wash, and the second color is its neighbor on the wheel.',
-    uses: ['hsla', 'mix', 'adjustHue'],
+    kicker: 'Pastel',
+    how: 'One hue, washed out to a whisper. Your color stays the button whenever it can.',
   },
   {
     key: 'serious',
     name: 'Serious',
     builder: 'seriousTheme',
-    how: 'Grays that keep 8% of your hue, so the page feels like yours without shouting. The color shows up once, on the button.',
-    uses: ['desaturate', 'readableColor', 'transparentize'],
+    kicker: 'Editorial',
+    how: 'Grays that keep 8% of your hue. The color itself shows up twice, on the link and the button.',
   },
   {
     key: 'bold',
     name: 'Bold',
     builder: 'boldTheme',
-    how: 'Your color is the page. Text is black or white, whichever reads, and the button comes from the far side of the wheel.',
-    uses: ['saturate', 'adjustHue', 'readableColor'],
+    kicker: 'Loud',
+    how: 'Your color is the page. Everything else is black, white, or from the far side of the wheel.',
   },
 ];
 const FIELD_COLUMNS = 24;
@@ -256,6 +256,7 @@ function getHeaders() {
     "script-src 'self'",
     "style-src 'unsafe-inline'",
     "img-src 'self' data:",
+    "font-src 'self'",
     "manifest-src 'self'",
     ...(isPreview ? ['frame-src https://app.netlify.com'] : []),
     "base-uri 'none'",
@@ -457,17 +458,28 @@ async function render() {
       },
       structuredData: getStructuredData(),
       studioColor: STUDIO_COLOR,
+      studioWash: (buildTheme(themes[0].source, themes[0].builder)(STUDIO_COLOR, false) as any).bg,
       studioPresets: STUDIO_PRESETS,
       themes: themes.map((theme) => {
         const build = buildTheme(theme.source, theme.builder);
-        const light = build(STUDIO_COLOR, false);
+        const light = build(STUDIO_COLOR, false) as any;
         return {
           ...theme,
+          adjusted: showcase.adjusted(light.why),
           codeHtml: highlight(theme.source),
-          lightStyle: showcase.tokenStyle(light),
-          darkStyle: showcase.tokenStyle(build(STUDIO_COLOR, true)),
+          lines: theme.source.split('\n').length,
+          style: showcase.tokenStyle(light),
           ratios: showcase.themeRatios(color2k, light),
-          tokens: Object.keys(light),
+          // Each decision, with the line of the builder that makes it.
+          why: showcase
+            .whyRows(theme.key, light.why)
+            .map(({ line, text }: { line: string; text: string }) => {
+              const code = new RegExp(`^ *(?:const|let) ${line} =[^;]*;`, 'm').exec(
+                theme.source
+              );
+              if (!code) throw new Error(`${theme.builder} has no "${line}" line`);
+              return { text, code: code[0].replace(/\s+/g, ' ').trim() };
+            }),
         };
       }),
       toc: getToc(headings),

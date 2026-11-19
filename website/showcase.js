@@ -119,6 +119,7 @@ var showcase = (function () {
   // `accentHover` becomes `--accent-hover`.
   function tokenStyle(tokens) {
     return Object.keys(tokens)
+      .filter(function (name) { return typeof tokens[name] === 'string'; })
       .map(function (name) {
         return '--' + name.replace(/[A-Z]/g, function (letter) { return '-' + letter.toLowerCase(); }) + ':' + tokens[name];
       })
@@ -132,6 +133,89 @@ var showcase = (function () {
       button: c.getContrast(tokens.onAccent, tokens.accent).toFixed(1) + ':1',
       chip: c.getContrast(tokens.onSoft, tokens.soft).toFixed(1) + ':1',
     };
+  }
+
+  // What each theme decided about the color, in words. `line` names the
+  // variable in the builder that makes the call (the page shows that line of
+  // code), `pick` reads the builder's `why`, and `says` is "because, so" for
+  // each outcome.
+  var WHY = {
+    soft: [
+      {
+        line: 'calm',
+        pick: function (why) { return why.vivid ? 0 : why.faint ? 1 : 2; },
+        says: [
+          ['Your color is very saturated', 'it is toned down with desaturate to keep the page calm'],
+          ['Your color is nearly gray', 'it is lifted with saturate to give the page a wash'],
+          ['Your color is already gentle', 'its saturation is left alone'],
+        ],
+      },
+      {
+        line: 'clash',
+        pick: function (why) { return why.clash ? 0 : 1; },
+        says: [
+          ['A label would not read on your color, or it would melt into the page', 'the button gets a pastel of the same hue'],
+          ['A dark label reads on your color', 'it is the button, untouched'],
+        ],
+      },
+    ],
+    serious: [
+      {
+        line: 'weak',
+        pick: function (why) { return why.weak ? 0 : 1; },
+        says: [
+          ['Your color is too faint to read as a link on this page', 'it is nudged a step at a time until it passes AA'],
+          ['Your color already reads on this page', 'it is used exactly as you picked it'],
+        ],
+      },
+      {
+        line: 'darkLabel',
+        pick: function (why) { return why.darkLabel ? 0 : 1; },
+        says: [
+          ['The button came out light', 'its label is black'],
+          ['The button came out dark', 'its label is white'],
+        ],
+      },
+    ],
+    bold: [
+      {
+        line: 'brand',
+        pick: function (why) { return why.dull ? 0 : 1; },
+        says: [
+          ['Your color is muted', 'it is turned up with saturate, because Bold needs volume'],
+          ['Your color is already vivid', 'it is used at full strength'],
+        ],
+      },
+      {
+        line: 'tinted',
+        pick: function (why) { return why.tinted ? 0 : 1; },
+        says: [
+          ['The page came out dark', 'text goes white and the card is a lighter tint of the page'],
+          ['The page came out light', 'text, the card and the hard shadows go black'],
+        ],
+      },
+      {
+        line: 'accent',
+        pick: function (why) { return why.lost ? 0 : 1; },
+        says: [
+          ['The complement would disappear on the card', 'the button falls back to black or white'],
+          ['The complement stands out on the card', 'it becomes the button'],
+        ],
+      },
+    ],
+  };
+
+  // The sentences for one theme, given what its builder decided.
+  function whyRows(key, why) {
+    return WHY[key].map(function (row) {
+      var says = row.says[row.pick(why)];
+      return { line: row.line, text: says[0] + ', so ' + says[1] + '.' };
+    });
+  }
+
+  // A theme fell back on something when its builder had to step in.
+  function adjusted(why) {
+    return Boolean(why.clash || why.weak || why.lost);
   }
 
   // The pad you paint on: hue across, lightness down.
@@ -492,6 +576,10 @@ var showcase = (function () {
     var pointer = null;
     var base = '';
     var ink = '';
+    var flipped = -1000;
+    // Only the newest loop is allowed to draw, so pausing and resuming
+    // quickly can never leave two of them running.
+    var loop = 0;
     // Rolling numbers for the scoreboard, refreshed twice a second.
     var frames = 0;
     var spent = 0;
@@ -517,20 +605,24 @@ var showcase = (function () {
       image.data[i + 3] = a * 255;
     }
 
-    function draw() {
+    function draw(time) {
       calls = 0;
       var began = performance.now();
       base = paintField(counted, seconds, columns, at, put);
       var now = chip(counted, base);
-      spent += performance.now() - began;
-      frames++;
-
       context.putImageData(image, 0, 0);
       swatchContext.fillStyle = base;
       swatchContext.fillRect(0, 0, 1, 1);
-      if (now.readable !== ink) {
-        // Switch at once, so the text is never caught on the wrong side.
+      // The whole frame is on the clock: the color math and both canvas writes.
+      spent += performance.now() - began;
+      frames++;
+
+      // The label switches between black and white at once, with no fade, but
+      // never more than twice a second, however fast you steer. Anything
+      // quicker would be a flash.
+      if (now.readable !== ink && time - flipped >= 500) {
         ink = now.readable;
+        flipped = time;
         chipBox.style.color = ink;
       }
       return now;
@@ -551,7 +643,6 @@ var showcase = (function () {
     }
 
     function frame(time) {
-      if (!running) return;
       var delta = Math.min(time - (last || time), 100) / 1000;
       last = time;
       seconds += delta;
@@ -567,22 +658,27 @@ var showcase = (function () {
         at.light += (0.6 + 0.06 * Math.sin(seconds * 0.3) - at.light) * (1 - Math.exp(-delta * 2));
       }
 
-      var now = draw();
+      var now = draw(time);
       if (time - since >= 500) report(now, time);
-      requestAnimationFrame(frame);
     }
 
     function sync() {
       var should = playing && hero.onScreen;
       if (should && !running) {
+        var id = ++loop;
         running = true;
         last = 0;
         since = performance.now();
         frames = 0;
         spent = 0;
-        requestAnimationFrame(frame);
-      } else if (!should) {
+        requestAnimationFrame(function step(time) {
+          if (!running || id !== loop) return;
+          frame(time);
+          requestAnimationFrame(step);
+        });
+      } else if (!should && running) {
         running = false;
+        loop++;
       }
     }
 
@@ -597,7 +693,7 @@ var showcase = (function () {
     watch(hero, sync);
     window.addEventListener('resize', function () {
       measure();
-      if (!running) draw();
+      if (!running) draw(performance.now());
     });
     hero.addEventListener('pointermove', function (event) {
       if (event.pointerType === 'touch') return;
@@ -611,129 +707,257 @@ var showcase = (function () {
     toggle.addEventListener('click', function () { setPlaying(!playing); });
     reduced.addEventListener('change', function () { setPlaying(!reduced.matches); });
 
-    // ---- studio: one color in, three themes out ---------------------------
+    // ---- studio: one color in, three looks out ----------------------------
     var studio = doc.getElementById('themes');
     var text = doc.getElementById('studio-text');
     var picker = doc.getElementById('studio-picker');
     var error = doc.getElementById('studio-error');
     var pad = doc.getElementById('studio-pad');
+    var slider = doc.getElementById('studio-slider');
     var thumb = doc.getElementById('studio-thumb');
+    var wash = doc.getElementById('studio-wash');
+    var modeToggle = doc.getElementById('studio-mode');
+    var spinToggle = doc.getElementById('studio-spin');
     var color = text.value;
+    // The color as you gave it, which is what the text field shows.
+    var shown = color;
+    var dark = false;
     var pending = false;
-    var bands = [];
+    var glide = 0;
+    var spinning = 0;
+    var spins = 0;
+    var spot = { x: 0, y: 0, width: 1, height: 1 };
+    var looks = [];
     studio.querySelectorAll('[data-theme]').forEach(function (element) {
-      var ratios = {};
-      element.querySelectorAll('[data-ratio]').forEach(function (node) {
-        ratios[node.getAttribute('data-ratio')] = node.firstChild;
-      });
-      var band = {
-        element: element,
-        stale: false,
-        build: themes[element.getAttribute('data-theme')],
-        light: element.querySelectorAll('[data-tokens="light"]'),
-        dark: element.querySelectorAll('[data-tokens="dark"]'),
-        ratios: ratios,
+      var key = element.getAttribute('data-theme');
+      var look = {
+        key: key,
+        build: themes[key],
+        card: element.querySelector('.tcard'),
+        ratios: {},
+        rows: [],
+        tokens: null,
+        decided: '',
       };
-      // A theme that is off screen waits until you scroll to it.
-      watch(element, function (onScreen) {
-        if (onScreen && band.stale) paintBand(band);
+      element.querySelectorAll('[data-ratio]').forEach(function (node) {
+        look.ratios[node.getAttribute('data-ratio')] = node.firstChild;
       });
-      bands.push(band);
+      element.querySelectorAll('[data-why]').forEach(function (node) {
+        look.rows.push(node.firstChild);
+      });
+      looks.push(look);
     });
 
-    function setTokens(elements, tokens) {
-      var style = tokenStyle(tokens);
-      for (var i = 0; i < elements.length; i++) elements[i].style.cssText = style;
+    // The numbers and form fields that describe the color. Changing text means
+    // layout, so while you paint these catch up eight times a second, not on
+    // every frame, and once more when you stop.
+    var labelled = 0;
+    var labelTimer = 0;
+    function label() {
+      labelled = performance.now();
+      labelTimer = 0;
+      looks.forEach(function (look) {
+        var ratios = themeRatios(c, look.tokens);
+        setText(look.ratios.text, ratios.text);
+        setText(look.ratios.button, ratios.button);
+        setText(look.ratios.chip, ratios.chip);
+      });
+      var hex = c.toHex(color);
+      if (doc.activeElement !== text && text.value !== shown) text.value = shown;
+      if (picker.value !== hex.slice(0, 7)) picker.value = hex.slice(0, 7);
+      slider.setAttribute('aria-valuetext', shown);
+      slider.setAttribute('aria-valuenow', String(Math.round(spot.x * 360)));
     }
 
-    function paintBand(band) {
-      var light = band.build(color, false);
-      var ratios = themeRatios(c, light);
-      band.stale = false;
-      setTokens(band.light, light);
-      setTokens(band.dark, band.build(color, true));
-      setText(band.ratios.text, ratios.text);
-      setText(band.ratios.button, ratios.button);
-      setText(band.ratios.chip, ratios.chip);
-    }
-
-    // Runs at most once a frame, however fast the pointer moves.
+    // Runs at most once a frame, however fast the pointer moves. Each card
+    // gets one style write, and nothing here causes layout.
     function apply() {
       pending = false;
-      bands.forEach(function (band) {
-        if (band.element.onScreen) paintBand(band);
-        else band.stale = true;
+      looks.forEach(function (look, index) {
+        var tokens = look.build(color, dark);
+        var decided = JSON.stringify(tokens.why);
+        look.tokens = tokens;
+        look.card.style.cssText = tokenStyle(tokens);
+        if (decided !== look.decided) {
+          look.decided = decided;
+          look.card.setAttribute('data-adjusted', String(adjusted(tokens.why)));
+          whyRows(look.key, tokens.why).forEach(function (row, i) {
+            setText(look.rows[i], row.text);
+          });
+        }
+        // The section behind the cards takes the first theme's page color.
+        if (index === 0) wash.style.background = tokens.bg;
       });
+      if (performance.now() - labelled >= 120) label();
+      else if (!labelTimer) labelTimer = setTimeout(label, 130);
       cards.forEach(function (card) {
         card.stale = true;
         if (card.element.onScreen) drawCard(card);
       });
     }
 
-    function setColor(value, from) {
+    function schedule() {
+      if (pending) return;
+      pending = true;
+      requestAnimationFrame(apply);
+    }
+
+    function parses(value) {
       try {
         // color2k parses loosely, so also turn away values like rgb(999, 0, 0).
         var rgb = c.parseToRgba(value);
         if (!(Math.max(rgb[0], rgb[1], rgb[2]) <= 255 && rgb[3] >= 0 && rgb[3] <= 1)) {
           throw new Error('Out of range: ' + value);
         }
+        return true;
       } catch (e) {
         error.textContent = e.message;
         text.setAttribute('aria-invalid', 'true');
+        return false;
+      }
+    }
+
+    // `smooth` slides from the old color to the new one along a getScale, for
+    // jumps like a preset. Painting sets the color at once.
+    function setColor(value, from, smooth) {
+      if (!parses(value)) return;
+      var target = value.trim();
+      var id = ++glide;
+      shown = target;
+      if (error.textContent) error.textContent = '';
+      if (text.hasAttribute('aria-invalid')) text.removeAttribute('aria-invalid');
+      if (from !== slider) {
+        thumb.hidden = true;
+        spinning = 0;
+      }
+
+      if (!smooth || reduced.matches) {
+        color = target;
+        schedule();
         return;
       }
-      color = value.trim();
-      if (error.textContent) error.textContent = '';
-      text.removeAttribute('aria-invalid');
-      if (from !== text) text.value = color;
-      if (from !== picker) picker.value = c.toHex(color).slice(0, 7);
-      if (from !== pad) thumb.hidden = true;
-      if (!pending) {
-        pending = true;
-        requestAnimationFrame(apply);
-      }
+
+      var scale = c.getScale(color, target);
+      var began = 0;
+      requestAnimationFrame(function step(time) {
+        if (id !== glide) return;
+        began = began || time;
+        var progress = Math.min(1, (time - began) / 420);
+        // Ease out, so it lands softly.
+        color = progress < 1 ? scale(1 - Math.pow(1 - progress, 3)) : target;
+        schedule();
+        if (progress < 1) requestAnimationFrame(step);
+      });
     }
 
     // The pad is drawn once, a pixel per swatch, and scaled up like the hero.
     function drawPad() {
-    var padContext = pad.getContext('2d');
-    var padImage = padContext.createImageData(pad.width, pad.height);
-    for (var py = 0; py < pad.height; py++) {
-      for (var px = 0; px < pad.width; px++) {
-        var swatchRgb = c.parseToRgba(padColor(c, px / pad.width, py / (pad.height - 1)));
-        var offset = (py * pad.width + px) * 4;
-        padImage.data[offset] = swatchRgb[0];
-        padImage.data[offset + 1] = swatchRgb[1];
-        padImage.data[offset + 2] = swatchRgb[2];
-        padImage.data[offset + 3] = 255;
+      var padContext = pad.getContext('2d');
+      var padImage = padContext.createImageData(pad.width, pad.height);
+      for (var py = 0; py < pad.height; py++) {
+        for (var px = 0; px < pad.width; px++) {
+          var swatchRgb = c.parseToRgba(padColor(c, px / pad.width, py / (pad.height - 1)));
+          var offset = (py * pad.width + px) * 4;
+          padImage.data[offset] = swatchRgb[0];
+          padImage.data[offset + 1] = swatchRgb[1];
+          padImage.data[offset + 2] = swatchRgb[2];
+          padImage.data[offset + 3] = 255;
+        }
       }
+      padContext.putImageData(padImage, 0, 0);
     }
-    padContext.putImageData(padImage, 0, 0);
+
+    // Puts the thumb at a point on the pad (0 to 1 each way) and paints with
+    // the color there. The thumb moves by transform only.
+    function paintAt(x, y) {
+      spot.x = Math.max(0, Math.min(1, x));
+      spot.y = Math.max(0, Math.min(1, y));
+      thumb.hidden = false;
+      thumb.style.transform =
+        'translate(' + spot.x * spot.width + 'px,' + spot.y * spot.height + 'px)';
+      setColor(padColor(c, spot.x, spot.y), slider);
+    }
+
+    function measurePad() {
+      var box = slider.getBoundingClientRect();
+      spot.left = box.left;
+      spot.top = box.top;
+      spot.width = box.width;
+      spot.height = box.height;
     }
 
     function paint(event) {
-      var box = pad.getBoundingClientRect();
-      var x = Math.max(0, Math.min(1, (event.clientX - box.left) / box.width));
-      var y = Math.max(0, Math.min(1, (event.clientY - box.top) / box.height));
-      thumb.hidden = false;
-      thumb.style.transform = 'translate(' + x * box.width + 'px,' + y * box.height + 'px)';
-      setColor(padColor(c, x, y), pad);
+      paintAt((event.clientX - spot.left) / spot.width, (event.clientY - spot.top) / spot.height);
     }
-    pad.addEventListener('pointerdown', function (event) {
-      pad.setPointerCapture(event.pointerId);
+
+    slider.addEventListener('pointerdown', function (event) {
+      spinning = 0;
+      measurePad();
+      slider.setPointerCapture(event.pointerId);
       paint(event);
     });
-    pad.addEventListener('pointermove', function (event) {
-      if (pad.hasPointerCapture(event.pointerId)) paint(event);
+    slider.addEventListener('pointermove', function (event) {
+      if (slider.hasPointerCapture(event.pointerId)) paint(event);
     });
-    text.addEventListener('input', function () { setColor(text.value, text); });
+    // The same pad from the keyboard: left and right change the hue, up and
+    // down the lightness. Shift takes bigger steps.
+    slider.addEventListener('keydown', function (event) {
+      var step = event.shiftKey ? 5 : 1;
+      var moves = {
+        ArrowLeft: [-step / 72, 0],
+        ArrowRight: [step / 72, 0],
+        ArrowUp: [0, -1 / 8],
+        ArrowDown: [0, 1 / 8],
+        Home: [-1, 0],
+        End: [1, 0],
+      };
+      var move = moves[event.key];
+      if (!move) return;
+      event.preventDefault();
+      spinning = 0;
+      measurePad();
+      if (thumb.hidden) spot.y = 0.35;
+      paintAt(spot.x + move[0], spot.y + move[1]);
+    });
+    text.addEventListener('input', function () { setColor(text.value, text, true); });
     picker.addEventListener('input', function () { setColor(picker.value, picker); });
     studio.addEventListener('click', function (event) {
       var preset = event.target.getAttribute && event.target.getAttribute('data-color');
-      if (preset) setColor(preset);
+      if (preset) setColor(preset, null, true);
     });
     doc.getElementById('use-color').addEventListener('click', function () {
-      setColor(base);
+      setColor(base, null, true);
+    });
+
+    function setDark(next) {
+      dark = next;
+      studio.setAttribute('data-mode', dark ? 'dark' : 'light');
+      modeToggle.setAttribute('aria-pressed', String(dark));
+      schedule();
+    }
+    modeToggle.addEventListener('click', function () { setDark(!dark); });
+
+    // One trip around the wheel, for watching the themes change on their own.
+    spinToggle.addEventListener('click', function () {
+      if (spinning) {
+        spinning = 0;
+        return;
+      }
+      var id = (spinning = ++spins);
+      var from = thumb.hidden ? 0.92 : spot.x;
+      var began = 0;
+      measurePad();
+      requestAnimationFrame(function step(time) {
+        if (spinning !== id) return;
+        began = began || time;
+        var turn = (time - began) / 9000;
+        if (turn >= 1) {
+          spinning = 0;
+          return;
+        }
+        paintAt((from + turn) % 1, 0.3 + 0.12 * Math.sin(turn * TAU * 2));
+        requestAnimationFrame(step);
+      });
     });
 
     // ---- gallery: every function on your color -----------------------------
@@ -851,13 +1075,14 @@ var showcase = (function () {
     // loaded and the browser has a spare moment, so it never delays either.
     function begin() {
       drawPad();
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) setDark(true);
       // A few frames first, so a paused page still shows real numbers (the
       // first ones only warm the engine up).
-      draw();
-      draw();
+      draw(0);
+      draw(0);
       frames = 0;
       spent = 0;
-      report(draw(), performance.now(), true);
+      report(draw(performance.now()), performance.now(), true);
       canvas.setAttribute('data-ready', '');
       setPlaying(!reduced.matches);
     }
@@ -872,8 +1097,10 @@ var showcase = (function () {
     galleryHtml: galleryHtml,
     heroChip: heroChip,
     padColor: padColor,
+    adjusted: adjusted,
     themeRatios: themeRatios,
     tokenStyle: tokenStyle,
+    whyRows: whyRows,
     start: start,
   };
 })();

@@ -301,9 +301,25 @@ h3 {
   gap: 40px;
 }
 
+/* A curtain of ink behind the words, from the left edge to just past them.
+   It is tied to the text, not the viewport, so the words keep their contrast
+   at any width, whatever the tiles behind them are doing. */
 .hero-copy {
+  position: relative;
+  z-index: 0;
   max-width: 660px;
   margin: auto 0;
+}
+
+.hero-copy::before {
+  position: absolute;
+  top: -100vh;
+  right: -260px;
+  bottom: -100vh;
+  left: -100vw;
+  z-index: -1;
+  background: linear-gradient(90deg, rgb(16 19 31 / 0.93) 0, rgb(16 19 31 / 0.93) calc(100% - 240px), transparent);
+  content: "";
 }
 
 .hero-logo {
@@ -324,7 +340,7 @@ h3 {
 .hero-lead {
   max-width: 50ch;
   margin: 20px 0 0;
-  color: #cfd3e0;
+  color: #e3e6f0;
   font-size: clamp(1.05rem, 1.5vw, 1.25rem);
 }
 
@@ -398,6 +414,8 @@ h3 {
    twice a second into boxes that never change size. */
 
 .board {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 14px;
@@ -515,7 +533,6 @@ h3 {
 
 /* Section headings, shared. */
 
-.studio-intro h2,
 .size-head h2,
 .gallery-head h2 {
   margin: 0;
@@ -525,7 +542,6 @@ h3 {
   letter-spacing: -0.035em;
 }
 
-.studio-intro p,
 .size-head p,
 .gallery-head p {
   max-width: 56ch;
@@ -533,32 +549,93 @@ h3 {
   font-size: 1.1rem;
 }
 
-/* Studio: pick a color, get three themes. Each theme is a full-width band in
-   its own colors. Tokens are set on the few elements that use them, never on
-   a parent of the code, so repainting a theme restyles very little. */
+/* Studio: one color in, three looks out. The cards sit side by side and all
+   repaint together. Tokens are set on each card and nowhere above it, so a
+   new color restyles three small subtrees and nothing else. */
 
-.studio-head {
-  display: grid;
-  width: var(--wide);
-  margin: 0 auto;
-  padding: 72px 0 40px;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
-  align-items: end;
-  gap: 32px 56px;
+@font-face {
+  font-family: "Fredoka";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fredoka.woff2") format("woff2");
 }
 
-.studio-intro p {
-  color: var(--muted);
+@font-face {
+  font-family: "Anton";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/anton.woff2") format("woff2");
+}
+
+.studio {
+  position: relative;
+  padding-bottom: 88px;
+}
+
+/* The section's own background follows the color too. It is one flat layer. */
+.studio-wash {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+
+.studio-head {
+  position: relative;
+  width: var(--wide);
+  margin: 0 auto;
+  padding: 80px 0 28px;
+  color: #1c2030;
+}
+
+.studio[data-mode="dark"] .studio-head {
+  color: #f3f4fa;
+}
+
+.studio-head h2 {
+  margin: 0;
+  font-size: clamp(2.2rem, 5.4vw, 4.4rem);
+  font-weight: 850;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+}
+
+.studio-head p {
+  max-width: 58ch;
+  margin: 16px 0 0;
+  font-size: 1.12rem;
+}
+
+/* The pad and the controls follow you down the section. */
+.studio-bar {
+  position: sticky;
+  top: 60px;
+  z-index: 5;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.studio-bar-inner {
+  width: var(--wide);
+  margin: 0 auto;
+  padding: 12px 0 10px;
 }
 
 .studio-pad {
   position: relative;
-  height: 132px;
+  height: 76px;
   overflow: hidden;
-  border-radius: 14px;
+  border-radius: 12px;
   box-shadow: 0 0 0 1px var(--border);
   cursor: crosshair;
   touch-action: none;
+}
+
+.studio-pad:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
 }
 
 .studio-pad canvas {
@@ -571,34 +648,14 @@ h3 {
 
 .studio-pad i {
   position: absolute;
-  top: -11px;
-  left: -11px;
-  width: 22px;
-  height: 22px;
+  top: -12px;
+  left: -12px;
+  width: 24px;
+  height: 24px;
   border: 3px solid #fff;
   border-radius: 50%;
-  box-shadow: 0 0 0 2px #000;
+  box-shadow: 0 0 0 2px #000, 0 4px 10px rgb(0 0 0 / 0.4);
   pointer-events: none;
-}
-
-/* The color controls follow you down through the three themes. */
-.studio-bar {
-  position: sticky;
-  top: 60px;
-  z-index: 5;
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  background: var(--bg);
-}
-
-.studio-bar-inner {
-  display: flex;
-  width: var(--wide);
-  margin: 0 auto;
-  padding: 10px 0;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 16px;
 }
 
 .studio-row {
@@ -606,11 +663,12 @@ h3 {
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+  margin-top: 10px;
 }
 
 .studio-row input[type="color"] {
   width: 46px;
-  height: 40px;
+  height: 38px;
   padding: 2px;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -620,7 +678,7 @@ h3 {
 
 .studio-row input[type="text"] {
   width: 9.5rem;
-  height: 40px;
+  height: 38px;
   padding: 0 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -650,13 +708,27 @@ h3 {
   cursor: pointer;
 }
 
-.studio-row button::before {
+.studio-row button[data-color]::before {
   width: 12px;
   height: 12px;
   border-radius: 50%;
   background: var(--dot);
   box-shadow: 0 0 0 1px rgb(128 128 128 / 0.5);
   content: "";
+}
+
+.studio-row .studio-tool {
+  border-color: var(--text);
+  font-weight: 700;
+}
+
+.studio-row #studio-spin {
+  margin-left: auto;
+}
+
+.studio-row button[aria-pressed="true"] {
+  color: var(--bg);
+  background: var(--text);
 }
 
 .studio-row button:hover,
@@ -671,273 +743,429 @@ h3 {
   font-size: 0.85rem;
 }
 
-.band {
-  position: relative;
-}
-
-/* The band's background is its own flat layer, so repainting it is free. */
-.band-skin {
-  position: absolute;
-  inset: 0;
-  background: var(--bg);
-  will-change: transform;
-}
-
-.band-inner {
+.looks {
   position: relative;
   display: grid;
   width: var(--wide);
-  margin: 0 auto;
-  padding: 64px 0;
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.25fr) minmax(0, 1.15fr);
-  align-items: center;
-  gap: 40px;
+  margin: 44px auto 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: 28px;
 }
 
-.band-copy {
-  color: var(--text);
-}
-
-.band-copy h3 {
-  margin: 0;
-  font-size: clamp(2.4rem, 5vw, 4.2rem);
-  font-weight: 850;
-  line-height: 1;
-  letter-spacing: -0.04em;
-}
-
-.band-copy p {
-  margin: 14px 0 0;
-  color: var(--muted);
-  font-size: 1.02rem;
-}
-
-.band-swatches {
-  display: flex;
-  height: 30px;
-  padding: 0;
-  margin: 22px 0 0;
-  overflow: hidden;
-  border-radius: 8px;
-  box-shadow: 0 0 0 2px var(--text);
-  list-style: none;
-}
-
-.band-swatches li {
-  flex: 1;
-}
-
-.band-ratios {
-  display: flex;
-  gap: 22px;
-  margin: 18px 0 0;
-}
-
-.band-ratios dt {
-  font-size: 0.78rem;
-  font-weight: 600;
-}
-
-.band-ratios dd {
-  margin: 0;
-  font-family: var(--mono);
-  font-size: 1.15rem;
-  font-variant-numeric: tabular-nums;
-  font-weight: 700;
-}
-
-.band-copy .band-uses {
-  font-size: 0.85rem;
-}
-
-.band-uses code {
-  font-weight: 700;
-}
-
-.band-mocks {
+/* Each look spans three shared rows (card, decisions, code), so the cards
+   line up with each other and so do the notes under them. */
+.look {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  min-width: 0;
+  grid-row: span 3;
+  grid-template-rows: subgrid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
 }
 
-/* The mock screen. Every color in it is a token. */
-.mock {
+/* A theme card. Every color in it is one of the theme's tokens. What follows
+   this block gives each theme its own type, corners, borders, shadows and
+   spacing, because color is only half of a look. */
+.tcard {
   display: flex;
-  min-width: 0;
-  padding: 16px;
+  min-height: 34rem;
   flex-direction: column;
-  gap: 8px;
-  border: 1px solid var(--border);
-  border-radius: 18px;
   color: var(--text);
   background: var(--bg);
-  font-size: 0.82rem;
-  line-height: 1.35;
-  contain: layout paint style;
+  contain: layout style;
 }
 
-.mock-top {
+.tcard p {
+  margin: 0;
+}
+
+.t-top {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: var(--muted);
-  font-size: 0.72rem;
 }
 
-.mock-top b {
-  color: var(--text);
-  font-size: 0.82rem;
-}
-
-.mock-top small {
-  margin-left: auto;
-  font-family: var(--mono);
-  font-size: 0.66rem;
-}
-
-.mock-logo {
-  width: 18px;
-  height: 18px;
-  border-radius: 6px;
+.t-mark {
+  width: 22px;
+  height: 22px;
   background: linear-gradient(135deg, var(--accent), var(--extra));
 }
 
-.mock-title {
-  margin-top: 6px;
-  font-size: 1.12rem;
-  font-weight: 800;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-}
-
-.mock-muted {
+.t-kicker {
   color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
-.mock-chips {
-  display: flex;
-  gap: 6px;
-}
-
-.mock-chips span {
-  padding: 2px 9px;
-  border-radius: 999px;
+.t-chip,
+.t-note {
+  padding: 3px 10px;
   color: var(--on-soft);
   background: var(--soft);
-  font-size: 0.7rem;
+  font-size: 0.74rem;
   font-weight: 700;
 }
 
-.mock-card {
+.t-chip {
+  margin-left: auto;
+}
+
+.t-title {
+  margin: 0;
+}
+
+.t-body {
+  color: var(--muted);
+}
+
+.t-actions {
   display: flex;
-  margin-top: 4px;
-  padding: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+}
+
+.t-btn {
+  color: var(--on-accent);
+  background: var(--accent);
+  font-weight: 700;
+}
+
+.t-link {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Shown when the builder had to step in for the color you picked. */
+.t-note {
+  visibility: hidden;
+}
+
+.tcard[data-adjusted="true"] .t-note {
+  visibility: visible;
+}
+
+.t-panel {
+  display: flex;
+  margin-top: auto;
   flex-direction: column;
-  gap: 4px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
   color: var(--on-surface);
   background: var(--surface);
 }
 
-.mock-bar {
-  height: 6px;
-  margin: 6px 0;
+.t-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.t-row svg {
+  flex: none;
+  color: var(--accent);
+}
+
+.t-row span {
+  display: flex;
+  flex: 1;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.t-row small {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.t-meter {
   overflow: hidden;
-  border-radius: 3px;
   background: var(--border);
 }
 
-.mock-bar i {
+.t-meter i {
   display: block;
-  width: 62%;
+  width: 64%;
   height: 100%;
   background: linear-gradient(90deg, var(--accent), var(--extra));
 }
 
-.mock-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 2px;
+/* Soft: round, airy and glowing. Fredoka for anything that speaks up. */
+[data-theme="soft"] .tcard {
+  padding: 32px;
+  gap: 18px;
+  border-radius: 40px;
+  background:
+    radial-gradient(120% 70% at 100% 0%, var(--soft), transparent 62%),
+    var(--bg);
+  box-shadow: 0 34px 70px -30px var(--shadow), 0 0 0 1px var(--border);
+  font-family: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN",
+    Quicksand, system-ui, sans-serif;
 }
 
-.mock-actions span {
-  padding: 6px 10px;
-  border-radius: 8px;
-  color: var(--on-accent);
-  background: var(--accent);
-  font-size: 0.72rem;
-  font-weight: 700;
+[data-theme="soft"] .t-mark {
+  border-radius: 50%;
 }
 
-.mock-actions .mock-hover {
-  background: var(--accent-hover);
-}
-
-.mock-actions .mock-focus {
-  box-shadow: 0 0 0 3px var(--ring);
-}
-
-/* Each theme also has its own shapes, because color is only half of a look. */
-[data-theme="soft"] .mock {
-  border-radius: 26px;
-  box-shadow: 0 18px 40px -18px var(--ring);
-}
-
-[data-theme="soft"] .mock-card {
-  border-radius: 18px;
-}
-
-[data-theme="soft"] .mock-actions span {
+[data-theme="soft"] .t-chip,
+[data-theme="soft"] .t-note {
   border-radius: 999px;
 }
 
-[data-theme="serious"] .mock {
-  border-radius: 8px;
+[data-theme="soft"] .t-title,
+[data-theme="soft"] .t-btn,
+[data-theme="soft"] .t-row b {
+  font-family: "Fredoka", ui-rounded, "Arial Rounded MT Bold", system-ui,
+    sans-serif;
+  font-weight: 600;
 }
 
-[data-theme="serious"] .mock-card,
-[data-theme="serious"] .mock-actions span {
-  border-radius: 5px;
+[data-theme="soft"] .t-title {
+  margin-top: 10px;
+  font-size: 4.6rem;
+  line-height: 1;
+  letter-spacing: -0.02em;
 }
 
-[data-theme="serious"] .mock-chips span {
-  border-radius: 4px;
+[data-theme="soft"] .t-body {
+  font-size: 1.05rem;
+  line-height: 1.55;
 }
 
-[data-theme="bold"] .mock {
-  border-width: 3px;
-  border-radius: 0;
-  box-shadow: 8px 8px 0 var(--border);
+[data-theme="soft"] .t-btn {
+  padding: 13px 26px;
+  border-radius: 999px;
+  box-shadow: 0 14px 26px -12px var(--shadow);
+  font-size: 1.05rem;
 }
 
-[data-theme="bold"] .mock-card,
-[data-theme="bold"] .mock-chips span,
-[data-theme="bold"] .mock-actions span {
-  border-radius: 0;
+[data-theme="soft"] .t-panel {
+  padding: 20px 22px;
+  gap: 14px;
+  border-radius: 28px;
+  box-shadow: 0 18px 40px -24px var(--shadow);
 }
 
-[data-theme="bold"] .mock-title {
-  font-size: 1.3rem;
-  font-weight: 900;
+[data-theme="soft"] .t-meter {
+  height: 12px;
+  border-radius: 999px;
+}
+
+/* Serious: an editorial page. A serif for the headline, hairlines, square
+   corners, and no shadows at all. */
+[data-theme="serious"] .tcard {
+  padding: 30px 28px 28px;
+  gap: 16px;
+  border: 1px solid var(--border);
+  border-top: 4px solid var(--accent);
+  border-radius: 3px;
+  box-shadow: 0 1px 0 var(--shadow);
+}
+
+[data-theme="serious"] .t-mark {
+  width: 18px;
+  height: 18px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+[data-theme="serious"] .t-kicker,
+[data-theme="serious"] .t-chip,
+[data-theme="serious"] .t-note {
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
-.band-code {
-  min-width: 0;
-  border-radius: 14px;
-  background: var(--ink);
-  box-shadow: 10px 10px 0 rgb(0 0 0 / 0.28);
+[data-theme="serious"] .t-chip,
+[data-theme="serious"] .t-note {
+  border-radius: 2px;
 }
 
-.band-code pre {
-  max-height: 420px;
+[data-theme="serious"] .t-title {
+  margin-top: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Charter,
+    "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif;
+  font-size: 3.6rem;
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+[data-theme="serious"] .t-body {
+  font-size: 0.98rem;
+  line-height: 1.6;
+}
+
+[data-theme="serious"] .t-btn {
+  padding: 9px 16px;
+  border-radius: 3px;
+  font-size: 0.9rem;
+}
+
+[data-theme="serious"] .t-link {
+  color: var(--accent);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+[data-theme="serious"] .t-panel {
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+[data-theme="serious"] .t-row {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+
+[data-theme="serious"] .t-row svg {
+  width: 16px;
+  height: 16px;
+}
+
+[data-theme="serious"] .t-meter {
+  height: 3px;
+}
+
+/* Bold: a poster. One heavy condensed face in capitals, thick rules, square
+   corners and hard shadows. */
+[data-theme="bold"] .tcard {
+  padding: 24px;
+  gap: 14px;
+  border: 5px solid var(--border);
+  box-shadow: 14px 14px 0 var(--shadow);
+}
+
+[data-theme="bold"] .t-mark {
+  border: 3px solid var(--border);
+}
+
+[data-theme="bold"] .t-kicker,
+[data-theme="bold"] .t-chip,
+[data-theme="bold"] .t-note,
+[data-theme="bold"] .t-title,
+[data-theme="bold"] .t-btn,
+[data-theme="bold"] .t-row b {
+  font-family: "Anton", Impact, Haettenschweiler, "Arial Narrow Bold",
+    sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+[data-theme="bold"] .t-kicker {
+  color: var(--text);
+  font-size: 1rem;
+}
+
+[data-theme="bold"] .t-chip,
+[data-theme="bold"] .t-note {
+  padding: 4px 12px;
+  font-size: 0.95rem;
+  transform: rotate(-3deg);
+}
+
+[data-theme="bold"] .t-title {
+  font-size: 8.2rem;
+  line-height: 0.86;
+  letter-spacing: 0;
+}
+
+[data-theme="bold"] .t-body {
+  color: var(--text);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+[data-theme="bold"] .t-btn {
+  padding: 10px 22px;
+  border: 4px solid var(--border);
+  box-shadow: 6px 6px 0 var(--shadow);
+  font-size: 1.35rem;
+}
+
+[data-theme="bold"] .t-link {
+  font-weight: 800;
+  text-decoration-thickness: 3px;
+}
+
+[data-theme="bold"] .t-panel {
+  padding: 14px 16px;
+  gap: 8px;
+  border: 4px solid var(--border);
+}
+
+[data-theme="bold"] .t-row b {
+  font-size: 1.15rem;
+}
+
+[data-theme="bold"] .t-meter {
+  height: 16px;
+  border: 3px solid var(--on-surface);
+  background: transparent;
+}
+
+/* What the builder decided about your color, with the line that decided it. */
+.why {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 10px;
+  padding: 0;
   margin: 0;
-  padding: 18px 20px;
+  list-style: none;
+}
+
+.why li {
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  contain: layout paint;
+}
+
+.why p {
+  min-height: 2.9em;
+  margin: 0 0 8px;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.why code {
+  display: block;
+  overflow-x: auto;
+  color: var(--muted);
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.look-code {
+  border-radius: 12px;
+  color: #fff;
+  background: var(--ink);
+}
+
+.look-code summary {
+  padding: 12px 16px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.look-code pre {
+  max-height: 460px;
+  margin: 0;
+  padding: 4px 16px 18px;
   overflow: auto;
   background: transparent !important;
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   line-height: 1.6;
 }
 
@@ -1590,16 +1818,6 @@ h3 {
       animation-timeline: scroll(root);
     }
 
-    .band-mocks .mock:last-child {
-      animation: drift-up linear both;
-      animation-timeline: view();
-    }
-
-    .band-code {
-      animation: drift-down linear both;
-      animation-timeline: view();
-    }
-
     .size-big {
       animation: swell linear both;
       animation-timeline: view();
@@ -1637,16 +1855,6 @@ h3 {
   to { transform: translateX(-38%); }
 }
 
-@keyframes drift-up {
-  from { transform: translateY(36px); }
-  to { transform: translateY(-36px); }
-}
-
-@keyframes drift-down {
-  from { transform: translateY(-28px); }
-  to { transform: translateY(28px); }
-}
-
 @keyframes swell {
   from { opacity: 0.2; transform: scale(0.72); }
   to { opacity: 1; transform: none; }
@@ -1668,16 +1876,20 @@ h3 {
 }
 
 @media (max-width: 1100px) {
-  .studio-head {
-    grid-template-columns: minmax(0, 1fr);
+  .looks {
+    gap: 18px;
   }
 
-  .band-inner {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  [data-theme="bold"] .t-title {
+    font-size: 6.4rem;
   }
 
-  .band-code {
-    grid-column: 1 / -1;
+  [data-theme="soft"] .t-title {
+    font-size: 3.8rem;
+  }
+
+  [data-theme="serious"] .t-title {
+    font-size: 3rem;
   }
 
   .size-grid {
@@ -1754,17 +1966,46 @@ h3 {
   }
 
   .studio-head {
-    padding: 48px 0 28px;
+    padding: 48px 0 20px;
   }
 
-  .band-inner {
-    grid-template-columns: minmax(0, 1fr);
-    padding: 44px 0;
-    gap: 28px;
+  .studio-pad {
+    height: 60px;
   }
 
-  .band-mocks {
-    grid-template-columns: minmax(0, 1fr);
+  /* On phones the three looks sit in a row you swipe, still side by side. */
+  .looks {
+    display: flex;
+    width: auto;
+    margin-top: 28px;
+    padding: 0 16px 20px;
+    overflow-x: auto;
+    gap: 14px;
+    scroll-padding: 0 16px;
+    scroll-snap-type: x mandatory;
+  }
+
+  .look {
+    display: flex;
+    flex: 0 0 86%;
+    flex-direction: column;
+    scroll-snap-align: start;
+  }
+
+  .studio-row #studio-spin {
+    margin-left: 0;
+  }
+
+  /* One row you can swipe, so the bar stays short. */
+  .studio-row {
+    flex-wrap: nowrap;
+    margin-right: -16px;
+    padding-right: 16px;
+    overflow-x: auto;
+  }
+
+  .studio-row > * {
+    flex: none;
   }
 
   .size-inner,
