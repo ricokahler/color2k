@@ -39,3 +39,19 @@ test('output parses back', () => {
     204, 153, 102, 0.25,
   ]);
 });
+
+test('clamp finite weights to 0 to 1', () => {
+  expect(invert('#336699', 2)).toBe(invert('#336699', 1));
+  expect(invert('#336699', -1)).toBe('rgba(51, 102, 153, 1)');
+  expect(invert('rgba(10, 20, 30, 0.4)', 1.5)).toBe('rgba(245, 235, 225, 0.4)');
+});
+
+test('throw for weights that are not finite', () => {
+  expect(() => invert('red', NaN)).toThrow(RangeError);
+  expect(() => invert('red', Infinity)).toThrow(RangeError);
+  expect(() => invert('red', -Infinity)).toThrow(RangeError);
+});
+
+test('an undefined weight uses the default', () => {
+  expect(invert('red', undefined)).toBe('rgba(0, 255, 255, 1)');
+});

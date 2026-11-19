@@ -145,8 +145,11 @@ function complement(color: string): string
 ```
 
 Rotates a color's hue by 180 degrees and returns the result as an `hsla`
-string. This matches Sass's `complement`. Grays have no hue, so they come
-back as the same gray.
+string, like Sass's `complement`.
+
+Like `adjustHue`, the result is rounded to whole degrees and percents, so
+each channel can be up to 5 away from Sass's exact result. Grays have no hue
+and keep their color, but their channels can move by 1 from that rounding.
 
 ```js
 complement('red'); // 'hsla(180, 100%, 50%, 1)'
@@ -399,6 +402,8 @@ returns the result as an `rgba` string. This matches Sass's `invert`.
 
 `weight` controls how far to go toward the inverse: `1` (the default) fully
 inverts the color, `0` returns it unchanged, and `0.5` always gives gray.
+Weights outside 0 to 1 are clamped to that range. A weight that is not a
+finite number (`NaN` or `Infinity`) throws a `RangeError`.
 
 ```js
 invert('red'); // 'rgba(0, 255, 255, 1)'

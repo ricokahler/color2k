@@ -1,4 +1,5 @@
 import parseToRgba from './parseToRgba';
+import ColorError from './ColorError';
 
 describe('parseToRgb', () => {
   it('works for all named colors', () => {
@@ -411,6 +412,31 @@ describe('parseToRgb', () => {
       parseToRgba('notrealblue');
     }).toThrowErrorMatchingInlineSnapshot(
       `"Failed to parse color: "notrealblue""`
+    );
+  });
+});
+
+describe('malformed numbers', () => {
+  it.each([
+    'rgba(1, 2, 3, .)',
+    'rgba(1, 2, 3, 1.)',
+    'rgba(1, 2, 3, 0.5.5)',
+    'rgba(1, 2, 3, ..5)',
+    'rgba(1, 2, 3, )',
+    'hsla(0, 50%, 50%, .)',
+    'hsla(., 50%, 50%)',
+    'hsla(0, .%, 50%)',
+    'hsla(0, 50%, 1.2.3%)',
+  ])('throws for %s', (color) => {
+    expect(() => parseToRgba(color)).toThrow(ColorError);
+  });
+
+  it('still parses decimals with and without a leading zero', () => {
+    expect(parseToRgba('rgba(1, 2, 3, .5)')).toEqual([1, 2, 3, 0.5]);
+    expect(parseToRgba('rgba(1, 2, 3, 0.25)')).toEqual([1, 2, 3, 0.25]);
+    expect(parseToRgba('rgba(1, 2, 3, 1)')).toEqual([1, 2, 3, 1]);
+    expect(parseToRgba('hsla(120.5, 100%, 50.5%, .5)')).toEqual(
+      parseToRgba('hsla(120.5, 100.0%, 50.5%, 0.5)')
     );
   });
 });
