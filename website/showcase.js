@@ -156,6 +156,8 @@ var showcase = (function () {
   }
 
   var LIGHTNESS = { label: 'Lightness of the input', min: -0.4, max: 0.4, step: 0.01, value: 0 };
+  // The contrast demos start darker, so their sample text starts out readable.
+  var DARKER = { label: 'Lightness of the input', min: -0.4, max: 0.4, step: 0.01, value: -0.3 };
   var SCALE_ENDS = ['gold', 'midnightblue'];
   var BAD_INPUTS = ['rgb(1 2 3)', '#12345', 'oklch(70% 0.1 200)', 'hsl(0, 200%, 50%)', 'not a color'];
 
@@ -269,7 +271,7 @@ var showcase = (function () {
       },
     },
     getContrast: {
-      stage: 'text', slider: LIGHTNESS,
+      stage: 'text', slider: DARKER,
       view: function (c, color, v) {
         var x = shade(c, opaque(c, color), v);
         var out = c.getContrast(x, 'white');
@@ -291,7 +293,7 @@ var showcase = (function () {
       },
     },
     hasBadContrast: {
-      stage: 'text', slider: LIGHTNESS,
+      stage: 'text', slider: DARKER,
       view: function (c, color, v) {
         var x = shade(c, opaque(c, color), v);
         var out = c.hasBadContrast(x, 'aa');
@@ -482,7 +484,7 @@ var showcase = (function () {
     var swatchContext = swatch.getContext('2d');
     var columns = 0;
     var image = null;
-    var playing = !reduced.matches;
+    var playing = false;
     var running = false;
     var seconds = 0;
     var last = 0;
@@ -592,14 +594,6 @@ var showcase = (function () {
     }
 
     measure();
-    // A few frames straight away, so a paused page still shows real numbers
-    // (the first ones only warm the engine up).
-    draw();
-    draw();
-    frames = 0;
-    spent = 0;
-    report(draw(), performance.now(), true);
-    canvas.setAttribute('data-ready', '');
     watch(hero, sync);
     window.addEventListener('resize', function () {
       measure();
@@ -701,6 +695,7 @@ var showcase = (function () {
     }
 
     // The pad is drawn once, a pixel per swatch, and scaled up like the hero.
+    function drawPad() {
     var padContext = pad.getContext('2d');
     var padImage = padContext.createImageData(pad.width, pad.height);
     for (var py = 0; py < pad.height; py++) {
@@ -714,6 +709,7 @@ var showcase = (function () {
       }
     }
     padContext.putImageData(padImage, 0, 0);
+    }
 
     function paint(event) {
       var box = pad.getBoundingClientRect();
@@ -850,7 +846,24 @@ var showcase = (function () {
     }
 
     root.className += ' js';
-    setPlaying(playing);
+
+    // The controls above work at once. The drawing waits until the page has
+    // loaded and the browser has a spare moment, so it never delays either.
+    function begin() {
+      drawPad();
+      // A few frames first, so a paused page still shows real numbers (the
+      // first ones only warm the engine up).
+      draw();
+      draw();
+      frames = 0;
+      spent = 0;
+      report(draw(), performance.now(), true);
+      canvas.setAttribute('data-ready', '');
+      setPlaying(!reduced.matches);
+    }
+    var idle = window.requestIdleCallback || function (callback) { setTimeout(callback, 200); };
+    if (doc.readyState === 'complete') idle(begin);
+    else window.addEventListener('load', function () { idle(begin); });
   }
 
   return {

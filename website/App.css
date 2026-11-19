@@ -1257,8 +1257,12 @@ h3 {
 }
 
 .st-text span {
+  padding: 2px 9px;
+  border-radius: 999px;
+  color: #fff;
+  background: #10131f;
   font-family: var(--mono);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
 }
 
 .st-bars {
