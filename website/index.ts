@@ -329,8 +329,8 @@ function getComparison(markdown: string) {
 /**
  * The released version. `package.json` always says 2.0.0, because
  * semantic-release works the version out from the git tags when it
- * publishes. So this reads the newest `vX.Y.Z` tag, fetching tags first if
- * the checkout came without them.
+ * publishes. So this reads the newest `vX.Y.Z` tag, from GitHub when it can
+ * be reached and from the checkout when it cannot.
  */
 function getVersion() {
   const git = (...args: string[]) =>
@@ -342,13 +342,14 @@ function getVersion() {
       .filter((match): match is RegExpExecArray => Boolean(match))
       .map((match) => match.slice(1).map(Number))
       .sort((one, other) => other[0] - one[0] || other[1] - one[1] || other[2] - one[2])[0];
+  // The remote first: a cached checkout can hold tags that are out of date.
   const attempts = [
-    () => git('tag', '--list', 'v*'),
+    () => git('ls-remote', '--tags', '--refs', 'https://github.com/ricokahler/color2k.git', 'v*'),
     () => {
       git('fetch', '--tags', '--quiet');
       return git('tag', '--list', 'v*');
     },
-    () => git('ls-remote', '--tags', '--refs', 'https://github.com/ricokahler/color2k.git', 'v*'),
+    () => git('tag', '--list', 'v*'),
   ];
 
   for (const attempt of attempts) {
