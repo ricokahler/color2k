@@ -1,7 +1,7 @@
 // Generates the `colorMap` string used by `src/parseToRgba.ts`.
 //
-//   node scripts/color-map.js          # check that the source is up to date
-//   node scripts/color-map.js --write  # rewrite the string in the source
+//   npm run color-map             # check that the source is up to date
+//   npm run color-map -- --write  # rewrite the string in the source
 //
 // Format (see also the comment above `colorMap` in the source):
 //
@@ -10,25 +10,29 @@
 //   value `v` that is read back as `charCode % 95`, i.e. 0..31 are stored as
 //   `_` to `~` and 32..94 are stored as-is. That keeps the string on
 //   characters minified JS already uses a lot, which is what gzip likes.
-// - gap: this key minus the previous key, plus GAP_OFFSET.
+// - gap: this key minus the previous key.
 // - r, g, b: the low 6 bits of `BYTE_OFFSET - byte`.
 // - pages: three 2-bit values (r, g, b) holding what the low 6 bits lose, so
 //   that `byte = (BYTE_OFFSET - v + 64 * page) & 255`.
 //
-// SEED, MULT, MOD, GAP_OFFSET and BYTE_OFFSET were picked by a search for the
+// SEED, MULT, MOD and BYTE_OFFSET were picked by a search for the
 // smallest gzipped bundle. Any values that pass the checks below work, they
-// only have to match the constants in `src/parseToRgba.ts`. MOD sets how often
-// an unknown name is mistaken for a color (about 148 / MOD).
-const fs = require('fs');
-const path = require('path');
+// only have to match the constants in `src/parseToRgba.ts`.
+//
+// MOD sets how often an unknown name is mistaken for a color (148 / MOD, about
+// 3%). MULT must share no factor with MOD: every hash step is then reversible,
+// so a color name with one letter swapped for another can never hash to that
+// same color. A larger MOD rejects more but needs gaps above 94, which do not
+// fit in one character.
+import fs from 'fs';
+import path from 'path';
 
-const SEED = 47;
-const MULT = 65;
-const MOD = 2476;
-const GAP_OFFSET = 1;
+const SEED = 852;
+const MULT = 56;
+const MOD = 4701;
 const BYTE_OFFSET = 168;
 
-const colors = {
+const colors: Record<string, string> = {
   aliceblue: 'f0f8ff',
   antiquewhite: 'faebd7',
   aqua: '00ffff',
@@ -179,14 +183,14 @@ const colors = {
   yellowgreen: '9acd32',
 };
 
-function hash(name) {
+function hash(name: string) {
   let h = SEED;
   let i = name.length;
-  while (i) h = (((h * MULT) ^ name.charCodeAt(--i)) | 32) % MOD;
+  while (i) h = (h * MULT + (name.charCodeAt(--i) % 32)) % MOD;
   return h;
 }
 
-function char(value) {
+function char(value: number) {
   const code = value < 32 ? value + 95 : value;
   // no backslashes so the literal never needs an escape that changes meaning
   if (value < 0 || value > 94 || code === 92) {
@@ -204,7 +208,7 @@ function encode() {
   let previous = 0;
   for (const { name, key } of entries) {
     if (key === previous) throw new Error(`Hash collision at ${name}`);
-    result += char(key - previous + GAP_OFFSET);
+    result += char(key - previous);
     previous = key;
 
     let pages = 0;
@@ -220,10 +224,10 @@ function encode() {
 }
 
 // mirrors the lookup in src/parseToRgba.ts
-function decode(colorMap, name) {
+function decode(colorMap: string, name: string) {
   let h = hash(name);
   let i = 0;
-  for (; (h -= (colorMap.charCodeAt(i) % 95) - GAP_OFFSET) > 0; i += 5);
+  for (; (h -= colorMap.charCodeAt(i) % 95) > 0; i += 5);
   if (h !== 0) return null;
   return [1, 2, 3]
     .map(
@@ -249,7 +253,10 @@ const file = path.resolve(__dirname, '../src/parseToRgba.ts');
 const source = fs.readFileSync(file, 'utf8');
 const pattern = /(const colorMap =\s*)'(?:[^'\\\n]|\\.)*'/;
 if (!pattern.test(source)) throw new Error('colorMap not found in source');
-const updated = source.replace(pattern, (_, start) => start + literal);
+const updated = source.replace(
+  pattern,
+  (_: string, start: string) => start + literal,
+);
 
 if (process.argv.includes('--write')) {
   fs.writeFileSync(file, updated);

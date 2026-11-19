@@ -47,7 +47,8 @@
   "scripts": {
     "build": "./scripts/build",
     "audit:prod": "npm audit --omit=dev",
-    "check": "npm run lint && npm test -- --coverage && npm run build && npm run docs:check && npm run website && npm run website:check && npm run pack:check && npm run audit:prod",
+    "check": "npm run lint && npm run color-map && npm test -- --coverage && npm run build && npm run docs:check && npm run website && npm run website:check && npm run pack:check && npm run audit:prod",
+    "color-map": "node -r ./scripts/register.js ./scripts/color-map.ts",
     "docs:check": "CHECK_DOCS=1 node ./scripts/docs.js",
     "docs:generate": "node ./scripts/docs.js",
     "lint": "eslint src --ext .ts,.js",
