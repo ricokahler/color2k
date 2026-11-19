@@ -116,7 +116,7 @@ function renderBar(color: string, presets: Preset[]) {
         <div class="picker-rails">
           <label class="rail">
             <span class="rail-name">Hue <b id="pick-hue-value"></b></span>
-            <span class="rail-track"><span class="rail-fill" aria-hidden="true" style="--track:linear-gradient(90deg,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)"></span><input type="range" id="pick-hue" min="0" max="360" step="1" value="0" /></span>
+            <span class="rail-track"><span class="rail-fill" aria-hidden="true" style="--track:linear-gradient(90deg,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)"></span><input type="range" id="pick-hue" min="0" max="359" step="1" value="0" /></span>
           </label>
           <label class="rail">
             <span class="rail-name">Alpha <b id="pick-alpha-value"></b></span>
@@ -339,7 +339,8 @@ export function renderHero({ wheel, size }: HomeOptions) {
         <h1 id="hero-title">Fully dynamic colors in&nbsp;${size}&nbsp;kB</h1>
         <p class="hero-sub">
           Hand color2k a color while your app runs. It gives back the hover
-          state and the text color that reads on top. Full sRGB coverage, no
+          state and the text color that reads on top. It covers every 8-bit
+          sRGB color, written as hex, rgb(a), hsl(a) or a CSS name. No
           dependencies.
         </p>
         <div class="hero-actions">

@@ -322,6 +322,12 @@ export function generateLlmsTxt(
     `- [Full documentation](${SITE_URL}/llms-full.txt): install, recipes and the complete API in one Markdown file`,
     `- [Website](${SITE_URL}/): the same documentation as HTML, with a live demo of every function on its own anchor`,
     `- [README](${REPO_URL}/blob/main/README.md): the source of all of the above`,
+    `- [Quickstart](${SITE_URL}/quickstart/): install, first calls, and use without a bundler`,
+    `- [Themes](${SITE_URL}/themes/): three theme builders that turn one color into fourteen tokens, for light or dark`,
+    `- [Recipes](${SITE_URL}/recipes/): hover states, readable text, contrast checks, scales and palettes`,
+    `- [Supported colors](${SITE_URL}/colors/): what the parser reads, what each function returns, and known edges`,
+    `- [Size](${SITE_URL}/size/): what each import costs and where the bytes go`,
+    `- [Project](${SITE_URL}/project/): publishing, contributing and credits`,
     '',
     ...getGroupedDocs(docs).flatMap(({ title, docs: groupDocs }) => [
       `## API: ${title}`,

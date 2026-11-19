@@ -36,7 +36,7 @@ var store = {
 
 var stored = store.get('color');
 var state = {
-  color: stored && models.tryParse(stored) ? stored : models.DEFAULT,
+  color: stored && models.usable(stored) ? stored : models.DEFAULT,
   mode: store.get('mode') === 'light' || store.get('mode') === 'dark' ? store.get('mode') : 'system',
 };
 var isDark = function () {
@@ -185,6 +185,47 @@ var hexSlots = $$('[data-site="hex"]');
 var saveTimer;
 var queued = false;
 var source = '';
+var SAMPLE_ROOT = ':root:root:root:root ';
+
+// Kept for `theme.js`, which paints these before anything else loads.
+function save() {
+  clearTimeout(saveTimer);
+  var custom = state.color !== models.DEFAULT;
+  var vars = function (dark) {
+    return styleText(models.tokenVars(models.site(state.color, dark))) + ';--pick:' + state.color;
+  };
+  store.set('color', custom ? state.color : null);
+  store.set(
+    'vars',
+    custom
+      ? JSON.stringify({
+          light: vars(false),
+          dark: vars(true),
+          lightSamples: models.sampleCss(state.color, false, SAMPLE_ROOT),
+          darkSamples: models.sampleCss(state.color, true, SAMPLE_ROOT),
+        })
+      : null
+  );
+}
+
+/** The elements inside `element` that Tab stops on, in order. */
+function tabStops(element) {
+  return $$('a[href], button, input, [tabindex="0"]', element).filter(function (node) {
+    return !node.disabled && node.getClientRects().length;
+  });
+}
+
+/** Keeps Tab inside `stops` by wrapping at both ends. */
+function wrapTab(event, stops) {
+  if (event.key !== 'Tab' || !stops.length) return;
+  var first = stops[0];
+  var last = stops[stops.length - 1];
+  var inside = stops.indexOf(document.activeElement) !== -1;
+  if (event.shiftKey ? document.activeElement === first || !inside : document.activeElement === last || !inside) {
+    event.preventDefault();
+    (event.shiftKey ? last : first).focus();
+  }
+}
 
 function paintSite() {
   var light = models.tokenVars(models.site(state.color, false));
@@ -194,21 +235,9 @@ function paintSite() {
   root.style.setProperty('--pick', state.color);
   context = { bg: active['--bg'], dark: isDark() };
 
-  // Kept for `theme.js`, which paints these before anything else loads.
+  // A drag changes the color every frame, so the save waits for it to settle.
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(function () {
-    var custom = state.color !== models.DEFAULT;
-    store.set('color', custom ? state.color : null);
-    store.set(
-      'vars',
-      custom
-        ? JSON.stringify({
-            light: styleText(light) + ';--pick:' + state.color,
-            dark: styleText(dark) + ';--pick:' + state.color,
-          })
-        : null
-    );
-  }, 250);
+  saveTimer = setTimeout(save, 250);
 }
 
 function render() {
@@ -241,9 +270,12 @@ function refresh() {
 
 /** Makes `color` the visitor's color. Returns false if color2k cannot read it. */
 function setColor(color, from) {
-  if (!models.tryParse(color)) return false;
+  if (!models.usable(color)) return false;
   state.color = color;
   source = from || '';
+  // A preset or a typed color is saved at once, so a link followed straight
+  // after it carries the color to the next page.
+  if (from !== 'wheel' && from !== 'picker') save();
   if (pickError) pickError.textContent = '';
   if (pickText) pickText.removeAttribute('aria-invalid');
   refresh();
@@ -337,16 +369,21 @@ function fromPicker() {
   setColor(hsvToColor(hsv), 'picker');
 }
 
+// Docked at the bottom of the first screen, the bar opens upward. Once it
+// has scrolled to the top, there is only room below it.
+function placePicker() {
+  bar.classList.toggle('opens-up', bar.getBoundingClientRect().top > window.innerHeight / 2);
+}
+
 function togglePicker(open) {
   if (!picker) return;
   picker.hidden = !open;
   pickOpen.setAttribute('aria-expanded', String(open));
   if (open) {
-    // Docked at the bottom of the first screen, the bar opens upward.
-    var box = bar.getBoundingClientRect();
-    bar.classList.toggle('opens-up', box.top > window.innerHeight / 2);
+    placePicker();
     readPicker();
     paintPicker();
+    sv.focus();
   }
 }
 
@@ -386,7 +423,7 @@ if (picker) {
     fromPicker();
   });
   hueInput.addEventListener('input', function () {
-    hsv.h = Number(hueInput.value) % 360;
+    hsv.h = Number(hueInput.value);
     fromPicker();
   });
   alphaInput.addEventListener('input', function () {
@@ -395,6 +432,18 @@ if (picker) {
   });
   document.addEventListener('pointerdown', function (event) {
     if (!picker.hidden && !bar.contains(event.target)) togglePicker(false);
+  });
+  window.addEventListener(
+    'scroll',
+    function () {
+      if (!picker.hidden) placePicker();
+    },
+    { passive: true }
+  );
+  // While the picker is open, Tab stays in the color bar: the swatch that
+  // opened it, the text field, the presets and the picker itself.
+  bar.addEventListener('keydown', function (event) {
+    if (!picker.hidden) wrapTab(event, tabStops(bar));
   });
 }
 
@@ -617,10 +666,13 @@ darkMedia.addEventListener('change', refresh);
 
 var menu = $('#menu');
 var menuOpen = $('[data-menu-open]');
-var page = $('.main');
+var behind = $$('.main, .brand, .skip');
 function toggleMenu(open) {
   root.classList.toggle('menu-open', open);
-  page.inert = open;
+  // Everything but the sheet is out of reach while it is open.
+  behind.forEach(function (element) {
+    element.inert = open;
+  });
   menuOpen.setAttribute('aria-expanded', String(open));
   if (open) $('[data-menu-close]').focus();
   else menuOpen.focus();
@@ -639,6 +691,9 @@ if (menu && menuOpen) {
       event.preventDefault();
       menuOpen.click();
     }
+  });
+  menu.addEventListener('keydown', function (event) {
+    if (root.classList.contains('menu-open')) wrapTab(event, tabStops(menu));
   });
   menu.addEventListener('click', function (event) {
     if (!root.classList.contains('menu-open')) return;
@@ -667,6 +722,10 @@ if (moved && hash && !document.getElementById(hash)) {
   var target = JSON.parse(moved)[hash];
   if (target) location.replace(target);
 }
+
+window.addEventListener('pagehide', function () {
+  if (saveTimer) save();
+});
 
 paintMode();
 render();

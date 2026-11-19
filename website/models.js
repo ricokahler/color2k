@@ -38,6 +38,21 @@ var c2kModels = function (c, builders) {
       return null;
     }
   };
+  /**
+   * Whether the site can be painted from this string. The parser lets a
+   * malformed alpha such as `rgba(255, 0, 0, .)` through as `NaN`, and a
+   * color like that cannot be mixed or measured.
+   */
+  var usable = function (value) {
+    var parsed = tryParse(value);
+    if (!parsed || !parsed.every(isFinite)) return false;
+    try {
+      site(value, false);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
 
   // ------------------------------------------------------------------ site
 
@@ -786,6 +801,28 @@ var c2kModels = function (c, builders) {
     start: start,
     tokenVars: tokenVars,
     tryParse: tryParse,
+    usable: usable,
+    /**
+     * The theme samples' colors as CSS rules. `root` is put in front of each
+     * selector, to scope the rules to a color mode or to outrank them.
+     */
+    sampleCss: function (color, dark, root) {
+      return Object.keys(WHY)
+        .map(function (key) {
+          var vars = demos['theme-' + key](color, {}, { bg: '#ffffff', dark: dark }).vars;
+          return (
+            root +
+            '[data-demo="theme-' + key + '"]{' +
+            Object.keys(vars)
+              .map(function (name) {
+                return name + ':' + vars[name];
+              })
+              .join(';') +
+            '}'
+          );
+        })
+        .join('');
+    },
     wheel: wheel,
   };
 };

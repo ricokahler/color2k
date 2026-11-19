@@ -273,7 +273,9 @@ assert(
 );
 for (const theme of ['soft', 'serious', 'bold']) {
   assert(
-    new RegExp(`data-demo="theme-${theme}" style="--t-bg:#`).test(everyPage),
+    everyPage.includes(`data-demo="theme-${theme}"`) &&
+      html.includes(`[data-demo="theme-${theme}"]{--t-bg:#`) &&
+      html.includes(`:root[data-theme="dark"] [data-demo="theme-${theme}"]{--t-bg:#`),
     `The ${theme} theme is not rendered with its tokens`
   );
 }
@@ -320,6 +322,8 @@ const sweep = [
   'rgba(255, 143, 184, 0.5)',
   'rgba(0, 0, 0, 0.5)',
   '#0d6efd80',
+  // A see-through lime: the label on the wheel's hub once dropped to 3.19:1.
+  'rgba(187, 255, 17, 0.5)',
   ...models.PRESETS.map(({ color }) => color),
 ];
 const variants = [[1, 0.5], [0.7, 0.6], [0.5, 0.3], [0.9, 0.85], [0.2, 0.5], [1, 0.15], [0.6, 0.93]];
@@ -352,6 +356,17 @@ for (const color of sweep) {
     }
   }
 }
+// The site refuses a color it cannot paint, such as one with a malformed alpha.
+assert(
+  !models.usable('rgba(255,0,0,.)') && !models.usable('nope') && models.usable(' Tomato '),
+  'models.usable should reject colors that parse to NaN'
+);
+// The label on the wheel's hub sits on the flattened color, never on the
+// see-through one.
+assert(
+  /\.wheel-hub \{[^}]*background: var\(--accent\);[^}]*color: var\(--on-accent\);/.test(html),
+  'The wheel hub must paint its label on the flattened color'
+);
 // The first paint uses the same theme, written into the CSS at build time.
 for (const dark of [false, true]) {
   const tokens = models.tokenVars(models.site(models.DEFAULT, dark));

@@ -12,6 +12,13 @@
         mode === 'dark' ||
         (mode !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
       root.style.cssText = vars[dark ? 'dark' : 'light'];
+      // The theme samples have their own colors, kept as CSS rules.
+      var samples = vars[dark ? 'darkSamples' : 'lightSamples'];
+      if (samples) {
+        var style = document.createElement('style');
+        style.textContent = samples;
+        document.head.appendChild(style);
+      }
     }
   } catch (error) {
     // No storage (private mode, blocked cookies). The defaults are fine.

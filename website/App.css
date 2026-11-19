@@ -270,7 +270,7 @@ p {
 
 .menu-groups {
   display: grid;
-  gap: 22px;
+  gap: 14px;
 }
 
 .menu-groups a {
@@ -308,7 +308,7 @@ p {
 }
 
 .menu-anchors a {
-  min-height: 36px;
+  min-height: 44px;
   margin-left: 6px;
   color: var(--muted);
   font: 500 13.5px var(--mono);
@@ -448,11 +448,7 @@ p {
   }
 
   .menu-groups a {
-    min-height: 38px;
-  }
-
-  .menu-anchors a {
-    min-height: 30px;
+    min-height: 44px;
   }
 }
 
@@ -1078,9 +1074,9 @@ p {
   padding: 6px;
   border: 1.5px solid var(--edge);
   border-radius: 50%;
-  background:
-    linear-gradient(var(--pick), var(--pick)),
-    var(--checks);
+  /* The color as it looks flattened onto the page, so the label on it can
+     hold its contrast when the color is see-through. */
+  background: var(--accent);
   color: var(--on-accent);
   font: 700 12px/1.2 var(--mono);
   text-align: center;

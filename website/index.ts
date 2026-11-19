@@ -374,11 +374,19 @@ function getTokenCss(models: any) {
     `color-scheme:${dark ? 'dark' : 'light'};${styleOf(
       models.tokenVars(models.site(models.DEFAULT, dark))
     )};--light:${dark ? ' ' : 'initial'};--dark:${dark ? 'initial' : ' '}`;
+  // The theme samples are painted from CSS too, so a dark page never shows
+  // a light sample while the script loads.
+  const samples = (dark: boolean, root: string) => models.sampleCss(models.DEFAULT, dark, root);
 
   return [
     `:root{${block(false)}}`,
-    `@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){${block(true)}}}`,
+    samples(false, ''),
+    `@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){${block(true)}}${samples(
+      true,
+      ':root:not([data-theme="light"]) '
+    )}}`,
     `:root[data-theme="dark"]{${block(true)}}`,
+    samples(true, ':root[data-theme="dark"] '),
   ].join('\n');
 }
 
@@ -597,9 +605,9 @@ async function render() {
     heading: 'Small on purpose',
     lede: `color2k is ${sizes.all.toLocaleString(
       'en-US'
-    )} bytes, minified and gzipped. That is every function on this site. Most apps import a handful and ship about ${(
-      sizes.typical.size / 1000
-    ).toFixed(0)} kB.`,
+    )} bytes, minified and gzipped. That is every function on this site. Import six common ones and you ship ${sizes.typical.size.toLocaleString(
+      'en-US'
+    )} bytes.`,
     anchors: [
       { id: 'treemap', title: 'Where the bytes go' },
       { id: 'boring-on-purpose', title: 'Boring on purpose' },

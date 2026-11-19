@@ -87,6 +87,10 @@ export interface Sizes {
   typical: { imports: string[]; size: number; files: string[] };
 }
 
+/** What the filled tiles add up to inside the full bundle. */
+const getTypicalBytes = (sizes: Sizes) =>
+  sizes.typical.files.reduce((sum, name) => sum + sizes.files[name], 0);
+
 const fileLabel = (name: string) =>
   name === 'exports' ? 'export list' : name === 'named colors' ? name : `${name}.ts`;
 
@@ -156,9 +160,9 @@ export function renderTreemap(sizes: Sizes, mini = false) {
           ${renderTiles(sizes, 358, 540, 'map-tall', false)}
           <figcaption>
             <p class="map-readout" id="map-readout" role="status">Tap or hover a tile to read it.</p>
-            <p class="map-key"><span><i class="tile-typical"></i>What a typical app imports, ${formatBytes(
-              sizes.typical.size
-            )}</span><span><i></i>The rest</span></p>
+            <p class="map-key"><span><i class="tile-typical"></i>What six common imports keep, ${getTypicalBytes(
+              sizes
+            ).toLocaleString('en-US')} B</span><span><i></i>What tree shaking drops</span></p>
           </figcaption>
         </figure>`;
 }
@@ -197,9 +201,7 @@ export function renderThemeTeaser(themes: Theme[], models: any, color: string) {
   return themes
     .map((theme) => {
       const model = models.demos[`theme-${theme.key}`](color, {}, { bg: '#ffffff', dark: false });
-      return `<a class="card card-theme" href="/themes/#${theme.key}" data-demo="theme-${theme.key}" style="${escapeHtml(
-        styleOf(model.vars)
-      )}">
+      return `<a class="card card-theme" href="/themes/#${theme.key}" data-demo="theme-${theme.key}">
           ${renderSample(theme, model.text, true)}
           <span class="card-foot"><b>${theme.name}</b>${icons.arrow}</span>
         </a>`;
@@ -218,7 +220,7 @@ export function renderThemes(themes: Theme[], models: any, color: string, closin
             <h2 id="${theme.key}-title"><a href="#${theme.key}">${theme.name}</a></h2>
             <div class="fn-sum">${theme.about}</div>
           </header>
-          <div class="demo demo-theme" data-demo="theme-${theme.key}" style="${escapeHtml(styleOf(model.vars))}">
+          <div class="demo demo-theme" data-demo="theme-${theme.key}">
             <div class="theme-top">
               ${renderSample(theme, model.text, false)}
               <div class="theme-side">
@@ -412,7 +414,7 @@ export function renderOverview({
             <h2 id="size-title">Small on purpose</h2>
             <p>
               Everything on this site is ${sizes.all.toLocaleString('en-US')} bytes, minified and gzipped.
-              The filled part is what a typical app imports.
+              The filled part is what six common imports keep.
             </p>
             <a class="btn btn-quiet" href="/size/">See where the bytes go${icons.arrow}</a>
           </header>
@@ -448,14 +450,17 @@ export function renderSize({ sizes, comparison, costsHtml, othersHtml, smallHtml
           ${renderTreemap(sizes)}
           <p class="note">
             One tile for each source file, sized by the gzipped bytes it adds to the bundle.
-            The filled tiles are what stays after tree shaking when an app imports
+            The filled tiles are the files that stay after tree shaking when an app imports
             ${sizes.typical.imports.map((name) => `<code>${name}</code>`).join(', ')}.
-            Bundled alone, those come to ${sizes.typical.size.toLocaleString('en-US')} bytes.
+            Inside the full bundle those tiles add up to ${getTypicalBytes(sizes).toLocaleString('en-US')} bytes.
+            Bundled on their own, the same six imports come to ${sizes.typical.size.toLocaleString(
+              'en-US'
+            )} bytes, because the bundle then needs its own export list and gzip has less to share.
           </p>
           <details class="more">
             <summary>The same numbers as a table</summary>
             <div class="table-scroll"><table>
-              <thead><tr><th scope="col">File</th><th scope="col">Gzipped bytes it adds</th><th scope="col">In a typical app</th></tr></thead>
+              <thead><tr><th scope="col">File</th><th scope="col">Gzipped bytes it adds</th><th scope="col">Kept by the six imports</th></tr></thead>
               <tbody>
                 ${files
                   .map(
