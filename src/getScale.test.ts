@@ -1,4 +1,5 @@
 import getScale from './getScale';
+import ColorError from './ColorError';
 
 test('red, green, blue', () => {
   const scale = getScale('red', 'yellow', 'green');
@@ -115,6 +116,7 @@ test('a single color always returns that color', () => {
   }
 });
 
-test('no colors throws', () => {
-  expect(() => getScale()).toThrow(RangeError);
+test('no colors throws a ColorError when the scale is called', () => {
+  const scale = getScale();
+  expect(() => scale(0.5)).toThrow(ColorError);
 });

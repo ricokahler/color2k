@@ -20,7 +20,9 @@ function hsla(
   lightness: number,
   alpha: number
 ): string {
-  return `hsla(${(((hue % 360) + 360) % 360).toFixed()}, ${guard(
+  // wrap negative hues once; positive hues are left exactly as `hue % 360`
+  const wrapped = hue % 360;
+  return `hsla(${(wrapped < 0 ? wrapped + 360 : wrapped).toFixed()}, ${guard(
     0,
     100,
     saturation * 100

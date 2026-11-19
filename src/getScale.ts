@@ -14,8 +14,7 @@ import guard from './guard';
  * console.log(scale(1)); // rgba(0, 128, 0, 1)
  * ```
  *
- * With a single color, the scale always returns that color. Calling `getScale`
- * with no colors throws a `RangeError`.
+ * With a single color, the scale always returns that color.
  *
  * If you'd like to limit the domain and range like chroma-js, we recommend
  * wrapping scale again.
@@ -33,17 +32,19 @@ import guard from './guard';
  * @returns A function that maps a decimal percentage to an `rgba` color.
  */
 function getScale(...colors: string[]): (n: number) => string {
-  if (!colors.length) throw new RangeError('getScale needs a color');
-  const lastIndex = colors.length - 1;
   return (n) => {
+    const lastIndex = colors.length - 1;
     const lowIndex = guard(0, lastIndex, Math.floor(n * lastIndex));
     const highIndex = guard(0, lastIndex, Math.ceil(n * lastIndex));
 
     const color1 = colors[lowIndex];
     const color2 = colors[highIndex];
 
-    // the position between the two colors; always 0 for a single color
-    return mix(color1, color2, n * lastIndex - lowIndex);
+    const unit = 1 / lastIndex;
+    // a single color has no second color to move toward
+    const weight = lastIndex ? (n - unit * lowIndex) / unit : 0;
+
+    return mix(color1, color2, weight);
   };
 }
 

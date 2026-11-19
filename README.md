@@ -285,8 +285,7 @@ console.log(scale(0.5)); // rgba(255, 255, 0, 1)
 console.log(scale(1)); // rgba(0, 128, 0, 1)
 ```
 
-With a single color, the scale always returns that color. Calling `getScale`
-with no colors throws a `RangeError`.
+With a single color, the scale always returns that color.
 
 If you'd like to limit the domain and range like chroma-js, we recommend
 wrapping scale again.
@@ -512,7 +511,7 @@ opacify('rgba(255, 255, 255, 0.5)', 0.1); // 'rgba(255, 255, 255, 0.6)'
 ### parseToHsla(color)
 
 ```ts
-function parseToHsla(color: string): [hue: number, saturation: number, lightness: number, alpha: number]
+function parseToHsla(color: string): [number, number, number, number]
 ```
 
 Parses a color into hue, saturation, lightness, and alpha channel values.
@@ -532,14 +531,14 @@ parseToHsla('red'); // [0, 1, 0.5, 1]
 
 #### Returns
 
-`[hue: number, saturation: number, lightness: number, alpha: number]` - A tuple of hue, saturation, lightness, and alpha values.
+`[number, number, number, number]` - A tuple in the order `[hue, saturation, lightness, alpha]`.
 
 [Source](https://github.com/ricokahler/color2k/blob/main/src/parseToHsla.ts)
 
 ### parseToRgba(color)
 
 ```ts
-function parseToRgba(color: string): [red: number, green: number, blue: number, alpha: number]
+function parseToRgba(color: string): [number, number, number, number]
 ```
 
 Parses a color into red, green, blue, and alpha channel values.
@@ -558,7 +557,7 @@ parseToRgba('rgba(255, 0, 0, 0.5)'); // [255, 0, 0, 0.5]
 
 #### Returns
 
-`[red: number, green: number, blue: number, alpha: number]` - A tuple of red, green, blue, and alpha channel values.
+`[number, number, number, number]` - A tuple in the order `[red, green, blue, alpha]`.
 
 [Source](https://github.com/ricokahler/color2k/blob/main/src/parseToRgba.ts)
 
