@@ -822,11 +822,7 @@ code {
   color: var(--accent);
 }
 
-/* The docs start below the fold. Until they scroll into view the browser
-   skips them, which keeps the demos above cheap to repaint. */
 .markdown-body {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 1500rem;
   max-width: 820px;
   color: var(--text);
   font-size: 16px;
