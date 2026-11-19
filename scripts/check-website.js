@@ -476,6 +476,12 @@ for (const builder of ['softTheme', 'seriousTheme', 'boldTheme']) {
     }
   }
 }
+// A button's label and background swap at once. A fade between them would
+// pass through colors the sweep above never sees.
+assert(
+  !/\.tp-btn[^{]*\{[^}]*transition:[^;]*(color|background)/.test(html),
+  'Theme sample buttons may not transition their colors'
+);
 // The site refuses a color it cannot paint, such as one with a malformed alpha.
 assert(
   !models.usable('rgba(255,0,0,.)') && !models.usable('nope') && models.usable(' Tomato '),
@@ -633,6 +639,7 @@ for (const [from, to, anchor] of [
   ['colors', 'supported-colors', 'known-edges'],
   ['supported-colors', 'supported-colors', 'known-edges'],
   ['size', 'size', 'what-it-costs'],
+  ['size', 'size', 'treemap'],
   ['project', 'project', 'credits'],
 ]) {
   const stub = read(`${from}/index.html`);

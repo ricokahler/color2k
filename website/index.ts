@@ -678,10 +678,10 @@ async function render() {
   for (const entry of sections) {
     const name = entry.file.replace(/\.md$/, '');
     const old = Object.keys(LEGACY_PATHS).find((key) => LEGACY_PATHS[key] === entry.id);
-    const anchors = Array.from(
-      entry.body.matchAll(/<(?:section|h[34])[^>]* id="([^"]+)"/g),
-      ([, id]) => id
-    ).filter((id) => !id.endsWith('-title'));
+    // Every anchor the section has, so any old deep link finds its new home.
+    const anchors = Array.from(entry.body.matchAll(/\sid="([^"]+)"/g), ([, id]) => id).filter(
+      (id) => !id.endsWith('-title')
+    );
     for (const folder of old ? [old, name] : [name]) {
       await write(`${folder}/index.html`, moved(css, entry, anchors));
     }

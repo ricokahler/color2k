@@ -2545,10 +2545,9 @@ button.sw:focus-visible::after {
   color: var(--t-on-accent);
   font: inherit;
   font-weight: 700;
+  /* The label and its background change together, at once. Fading either
+     would pass through a moment where the label cannot be read. */
   transition:
-    background-color 0.12s,
-    border-color 0.12s,
-    color 0.12s,
     box-shadow 0.12s,
     transform 0.12s var(--ease);
 }
