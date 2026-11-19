@@ -133,7 +133,7 @@ export function getGroupedDocs(docs: DocInfo[] = getAllDocs()) {
 
 function renderIndex(docs: DocInfo[]) {
   return [
-    '| | Function | What it does |',
+    '| Group | Function | What it does |',
     '| --- | --- | --- |',
     ...getGroupedDocs(docs).flatMap(({ title, docs: groupDocs }) =>
       groupDocs.map((doc, index) => {

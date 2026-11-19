@@ -52,7 +52,6 @@ var showcase = (function () {
       ratio: c.getContrast(base, readable).toFixed(2) + ':1',
       aa: !c.hasBadContrast(readable, 'aa', base),
       aaa: !c.hasBadContrast(readable, 'aaa', base),
-      glow: c.transparentize(base, 0.5),
       cells: ROWS.map(function (row) {
         var cells = [];
         for (var i = 0; i < 9; i++) cells.push(row[1](c, base, i));
@@ -65,7 +64,7 @@ var showcase = (function () {
     var state = hero(c, 0);
 
     return (
-      '<div class="live" id="live" style="--glow:' + state.glow + '">' +
+      '<div class="live" id="live">' +
       '<div class="live-banner" style="background:' + state.base + ';color:' + state.readable + '">' +
       '<div><strong>Always readable</strong>' +
       '<code>readableColor(<span data-live="base">' + quote(state.base) + '</span>) // ' +
@@ -353,7 +352,7 @@ var showcase = (function () {
       '<li class="demo" data-demo="' + name + '" data-group="' + escapeHtml(group) + '" style="' + escapeHtml(style) + '">' +
       '<h3><a href="' + link + '">' + name + '</a></h3>' +
       '<div class="st st-' + demo.stage + '" aria-hidden="true">' + stage + '</div>' +
-      '<input type="range" hidden aria-label="' + escapeHtml(demo.slider.label) +
+      '<input type="range" class="needs-js" aria-label="' + escapeHtml(demo.slider.label) +
       '" min="' + demo.slider.min + '" max="' + demo.slider.max + '" step="' + demo.slider.step +
       '" value="' + demo.slider.value + '" />' +
       '<code class="demo-code" data-slot="code">' + escapeHtml(texts.code) + '</code>' +
@@ -416,7 +415,6 @@ var showcase = (function () {
       var index = 0;
       banner.style.background = state.base;
       banner.style.color = state.readable;
-      live.style.setProperty('--glow', state.glow);
       liveSlots.base.textContent = quote(state.base);
       liveSlots.readable.textContent = quote(state.readable);
       liveSlots.ratio.textContent = state.ratio;
@@ -441,7 +439,6 @@ var showcase = (function () {
       element.querySelectorAll('[data-slot]').forEach(function (slot) {
         card.slots[slot.getAttribute('data-slot')] = slot;
       });
-      card.slider.hidden = false;
       card.slider.addEventListener('input', function () {
         card.auto = false;
         drawCard(card);
@@ -483,7 +480,6 @@ var showcase = (function () {
       cards.forEach(drawCard);
     }
 
-    controls.hidden = false;
     text.addEventListener('input', function () { setColor(text.value, text); });
     picker.addEventListener('input', function () { setColor(picker.value, picker); });
     controls.addEventListener('click', function (event) {
@@ -501,26 +497,46 @@ var showcase = (function () {
     });
 
     function setPlaying(next) {
+      var wasPlaying = playing && started;
       playing = next;
       toggles.forEach(function (toggle) {
-        toggle.hidden = false;
         toggle.setAttribute('aria-pressed', !playing);
         toggle.textContent = playing ? 'Pause motion' : 'Play motion';
       });
-      if (playing) requestAnimationFrame(frame);
+      if (playing && started && !wasPlaying) requestAnimationFrame(frame);
     }
     toggles.forEach(function (toggle) {
       toggle.addEventListener('click', function () { setPlaying(!playing); });
     });
 
-    // One loop drives everything, and only what is on screen is redrawn.
+    // One loop drives everything. It only redraws what is on screen, and about
+    // ten times a second rather than on every frame: the colors move so little
+    // per step that it reads as continuous, and the page stays mostly idle.
+    var HERO_MS = 100;
+    var CARD_MS = 100;
+    var started = false;
     var clock = 0;
     var last = 0;
+    var heroAt = 0;
+    var cardsAt = 0;
     function frame(now) {
-      if (!playing) return;
-      if (!doc.hidden) {
-        clock += Math.min(now - (last || now), 100) / 1000;
-        if (live.onScreen) drawHero(clock);
+      if (!playing) {
+        last = 0;
+        return;
+      }
+      requestAnimationFrame(frame);
+      if (doc.hidden) {
+        last = 0;
+        return;
+      }
+      clock += Math.min(now - (last || now), 100) / 1000;
+      last = now;
+      if (live.onScreen && now - heroAt >= HERO_MS) {
+        heroAt = now;
+        drawHero(clock);
+      }
+      if (now - cardsAt >= CARD_MS) {
+        cardsAt = now;
         cards.forEach(function (card) {
           if (!card.auto || !card.element.onScreen || card.element.hidden) return;
           var slider = card.demo.slider;
@@ -533,16 +549,22 @@ var showcase = (function () {
           }
         });
       }
-      last = now;
-      requestAnimationFrame(frame);
     }
 
+    // The controls work right away. Motion waits until the page has loaded.
+    doc.documentElement.className += ' js';
     setPlaying(playing);
+    function begin() {
+      started = true;
+      if (playing) requestAnimationFrame(frame);
+    }
+    var idle = window.requestIdleCallback || function (callback) { setTimeout(callback, 200); };
+    if (doc.readyState === 'complete') idle(begin);
+    else window.addEventListener('load', function () { idle(begin); });
     reduced.addEventListener('change', function () { setPlaying(!reduced.matches); });
 
     var copy = doc.getElementById('copy-install');
     if (copy && navigator.clipboard) {
-      copy.hidden = false;
       copy.addEventListener('click', function () {
         navigator.clipboard.writeText('npm i color2k').then(function () {
           copy.textContent = 'Copied';

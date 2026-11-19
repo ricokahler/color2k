@@ -543,7 +543,7 @@ See everyone on the [contributors graph](https://github.com/ricokahler/color2k/g
 
 This section is generated from the JSDoc comments in `src/*.ts`.
 
-| | Function | What it does |
+| Group | Function | What it does |
 | --- | --- | --- |
 | **Parse** | [`parseToRgba(color)`](#parsetorgbacolor) | Parses a color into red, green, blue, and alpha channel values. |
 |  | [`parseToHsla(color)`](#parsetohslacolor) | Parses a color into hue, saturation, lightness, and alpha channel values. |

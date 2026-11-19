@@ -76,10 +76,15 @@ function getLanguage(lang: string) {
   return aliases[normalized] || normalized || 'text';
 }
 
-// The themes' comment gray is too faint for our backgrounds, and comments are
-// where the examples show their results.
+// A few of the themes' colors are too faint for our backgrounds (below 4.5:1),
+// including the comment gray, and comments are where examples show results.
 const colorReplacements = {
-  'github-light': { '#6a737d': '#59616e' },
+  'github-light': {
+    '#6a737d': '#59616e',
+    '#d73a49': '#c2273a',
+    '#22863a': '#1a6f2e',
+    '#e36209': '#b34e04',
+  },
   'github-dark': { '#6a737d': '#9aa3b2' },
 };
 

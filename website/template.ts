@@ -157,7 +157,7 @@ function template({
         <div class="hero-actions">
           <div class="hero-install">
             <code>npm i color2k</code>
-            <button type="button" id="copy-install" hidden>Copy</button>
+            <button type="button" id="copy-install" class="needs-js">Copy</button>
           </div>
           <a class="hero-button" href="#quickstart">Quickstart</a>
           <a class="hero-link" href="#api">API reference</a>
@@ -173,7 +173,7 @@ function template({
           ${heroHtml}
           <p class="hero-live-note">
             <span>Every color here is computed by color2k as you watch.</span>
-            <button type="button" class="motion-toggle" data-motion hidden>Pause motion</button>
+            <button type="button" class="motion-toggle needs-js" data-motion>Pause motion</button>
           </p>
         </div>
       </div>
@@ -188,7 +188,7 @@ function template({
             pick a color, or open your console and call <code>color2k</code>.
           </p>
         </div>
-        <div class="gallery-controls" id="gallery-controls" hidden>
+        <div class="gallery-controls needs-js" id="gallery-controls">
           <div class="gallery-color">
             <input type="color" id="gallery-picker" value="${escapeHtml(
               galleryColor
@@ -222,7 +222,7 @@ function template({
                   )}" aria-pressed="false">${escapeHtml(group)}</button>`
               )
               .join('\n            ')}
-            <button type="button" class="motion-toggle" data-motion hidden>Pause motion</button>
+            <button type="button" class="motion-toggle needs-js" data-motion>Pause motion</button>
           </div>
         </div>
         <p class="gallery-error" id="gallery-error" role="status"></p>

@@ -51,6 +51,10 @@ html {
   html {
     scroll-behavior: auto;
   }
+
+  * {
+    transition: none !important;
+  }
 }
 
 body {
@@ -76,6 +80,16 @@ a:hover {
 
 code {
   font-family: var(--mono);
+}
+
+/* Controls that need JavaScript keep their space, so nothing jumps when the
+   script starts, but stay out of sight (and out of reach) until it does. */
+.needs-js {
+  visibility: hidden;
+}
+
+.js .needs-js {
+  visibility: visible;
 }
 
 .skip-link {
@@ -195,7 +209,15 @@ code {
   border: 1px solid rgb(255 255 255 / 0.16);
   border-radius: 20px;
   background: rgb(8 10 18 / 0.78);
-  box-shadow: 0 0 110px 10px var(--glow), 10px 10px 0 rgb(0 0 0 / 0.35);
+  box-shadow: 0 0 110px 10px rgb(94 96 206 / 0.35), 10px 10px 0 rgb(0 0 0 / 0.35);
+}
+
+/* Their own layers, so a color change repaints flat squares and not the
+   hero's gradients underneath. */
+.live-banner,
+.live-rows {
+  contain: layout paint style;
+  will-change: transform;
 }
 
 .live-banner {
@@ -569,6 +591,7 @@ code {
 
 .demo {
   display: flex;
+  contain: layout paint style;
   min-width: 0;
   flex-direction: column;
   gap: 8px;
@@ -832,7 +855,14 @@ code {
   text-transform: uppercase;
 }
 
+.markdown-body a {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
 .heading-anchor {
+  text-decoration: none !important;
   margin-left: 0.45rem;
   color: var(--muted);
   font-style: normal;
@@ -902,10 +932,6 @@ code {
 
 .markdown-body td:last-child {
   min-width: 15rem;
-}
-
-.markdown-body th:empty {
-  padding: 0;
 }
 
 .markdown-body img,
