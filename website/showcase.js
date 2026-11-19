@@ -737,6 +737,7 @@ var showcase = (function () {
         ratios: {},
         rows: [],
         tokens: null,
+        stale: false,
         decided: '',
       };
       element.querySelectorAll('[data-ratio]').forEach(function (node) {
@@ -744,6 +745,9 @@ var showcase = (function () {
       });
       element.querySelectorAll('[data-why]').forEach(function (node) {
         look.rows.push(node.firstChild);
+      });
+      watch(look.card, function (onScreen) {
+        if (onScreen && look.stale) paintLook(look);
       });
       looks.push(look);
     });
@@ -769,24 +773,31 @@ var showcase = (function () {
       slider.setAttribute('aria-valuenow', String(Math.round(spot.x * 360)));
     }
 
+    function paintLook(look) {
+      var tokens = look.tokens;
+      var decided = JSON.stringify(tokens.why);
+      look.stale = false;
+      look.card.style.cssText = tokenStyle(tokens);
+      if (decided !== look.decided) {
+        look.decided = decided;
+        look.card.setAttribute('data-adjusted', String(adjusted(tokens.why)));
+        whyRows(look.key, tokens.why).forEach(function (row, i) {
+          setText(look.rows[i], row.text);
+        });
+      }
+    }
+
     // Runs at most once a frame, however fast the pointer moves. Each card
-    // gets one style write, and nothing here causes layout.
+    // on screen gets one style write, and nothing here causes layout.
     function apply() {
       pending = false;
       looks.forEach(function (look, index) {
-        var tokens = look.build(color, dark);
-        var decided = JSON.stringify(tokens.why);
-        look.tokens = tokens;
-        look.card.style.cssText = tokenStyle(tokens);
-        if (decided !== look.decided) {
-          look.decided = decided;
-          look.card.setAttribute('data-adjusted', String(adjusted(tokens.why)));
-          whyRows(look.key, tokens.why).forEach(function (row, i) {
-            setText(look.rows[i], row.text);
-          });
-        }
+        look.tokens = look.build(color, dark);
+        // A card that is off screen (swiped away on a phone, say) waits.
+        if (look.card.onScreen) paintLook(look);
+        else look.stale = true;
         // The section behind the cards takes the first theme's page color.
-        if (index === 0) wash.style.background = tokens.bg;
+        if (index === 0) wash.style.background = look.tokens.bg;
       });
       if (performance.now() - labelled >= 120) label();
       else if (!labelTimer) labelTimer = setTimeout(label, 130);
