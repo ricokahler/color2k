@@ -534,9 +534,8 @@ var showcase = (function () {
       return now;
     }
 
-    function report(now, time) {
-      var elapsed = time - since;
-      var fps = (frames * 1000) / elapsed;
+    function report(now, time, still) {
+      var fps = still ? 0 : (frames * 1000) / (time - since);
       setText(slot.base, quote(now.base));
       setText(slot.readable, quote(now.readable));
       setText(slot.ratio, now.ratio);
@@ -593,9 +592,13 @@ var showcase = (function () {
     }
 
     measure();
-    // One frame straight away, so a paused page still shows real numbers.
-    since = performance.now() - 1000 / 60;
-    report(draw(), performance.now());
+    // A few frames straight away, so a paused page still shows real numbers
+    // (the first ones only warm the engine up).
+    draw();
+    draw();
+    frames = 0;
+    spent = 0;
+    report(draw(), performance.now(), true);
     canvas.setAttribute('data-ready', '');
     watch(hero, sync);
     window.addEventListener('resize', function () {
