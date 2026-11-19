@@ -1,9 +1,14 @@
-// The live demos on the home page: the hero palette and the function gallery.
+// The live parts of the home page: the hero's color field, the theme studio
+// and the function gallery.
 //
-// This one file runs in two places. The website build calls `heroHtml` and
-// `galleryHtml` with the library to render the page's starting state, so it
-// works without JavaScript. The page then inlines this file and calls `start`
-// to animate the same markup. Keep it plain browser JavaScript, no imports.
+// This one file runs in two places. The website build calls the `...Html`
+// functions with the library to render the page's starting state, so it works
+// without JavaScript. The page then loads this file and calls `start`.
+// Keep it plain browser JavaScript, no imports.
+//
+// The rule for motion here: nothing touches the DOM on every frame. The hero
+// is one small canvas (a pixel per tile, scaled up by the GPU), and everything
+// else that moves is a CSS transform or opacity.
 var showcase = (function () {
   function escapeHtml(value) {
     return String(value)
@@ -26,66 +31,112 @@ var showcase = (function () {
     return String(value);
   }
 
-  // ---------------------------------------------------------------- hero ---
 
-  // One row of the hero palette per function, nine cells each.
-  var ROWS = [
-    ['getScale', function (c, x, i) { return c.getScale('#fff', x, '#000')((i + 1) / 10); }],
-    ['lighten', function (c, x, i) { return c.lighten(x, (8 - i) * 0.045); }],
-    ['darken', function (c, x, i) { return c.darken(x, i * 0.045); }],
-    ['desaturate', function (c, x, i) { return c.desaturate(x, i * 0.1); }],
-    ['adjustHue', function (c, x, i) { return c.adjustHue(x, i * 40); }],
-    ['mix', function (c, x, i) { return c.mix(x, 'gold', i / 8); }],
-    ['transparentize', function (c, x, i) { return c.transparentize(x, i / 9); }],
+  // --------------------------------------------------------------- field ---
+
+  // The hero is a wall of tiles, one row per function. `w` is a wave from 0 to
+  // 1 that rolls across the row, and `u` is how far along the row the tile is.
+  var FIELD = [
+    ['lighten', function (k, x, w) { return k.lighten(x.base, w * 0.34); }],
+    ['getScale', function (k, x, w) { return x.scale(0.1 + w * 0.8); }],
+    ['desaturate', function (k, x, w) { return k.desaturate(x.base, w * 0.85); }],
+    ['adjustHue', function (k, x, w, u) { return k.adjustHue(x.base, u * 300 + w * 60); }],
+    ['mix', function (k, x, w) { return k.mix(x.base, x.opposite, w); }],
+    ['saturate', function (k, x, w) { return k.saturate(x.dull, w * 0.75); }],
+    ['darken', function (k, x, w) { return k.darken(x.base, w * 0.44); }],
+    ['transparentize', function (k, x, w) { return k.transparentize(x.base, w * 0.94); }],
   ];
+  var INK = '#10131f';
+  var TAU = Math.PI * 2;
 
-  // Everything the hero shows, `seconds` into its drift around the color wheel.
-  function hero(c, seconds) {
-    var base = c.toHex(
-      c.hsla((232 + seconds * 14) % 360, 0.82, 0.56 + 0.2 * Math.sin(seconds * 0.45), 1)
+  // Where the hero's color is `seconds` into its drift around the wheel.
+  function drift(seconds) {
+    return {
+      hue: (228 + seconds * 10) % 360,
+      light: 0.6 + 0.06 * Math.sin(seconds * 0.3),
+    };
+  }
+
+  // Computes one frame: every tile's color, straight from color2k. `put` gets
+  // each tile as (row, column, red, green, blue, alpha).
+  function paintField(k, seconds, columns, at, put) {
+    var base = k.toHex(k.hsla(at.hue, 0.85, at.light, 1));
+    var x = {
+      base: base,
+      opposite: k.adjustHue(base, 180),
+      dull: k.desaturate(base, 0.75),
+      scale: k.getScale('#fff', base, INK),
+    };
+
+    for (var row = 0; row < FIELD.length; row++) {
+      for (var column = 0; column < columns; column++) {
+        var u = column / (columns - 1);
+        var w = 0.5 + 0.5 * Math.sin(TAU * (u * 1.3 - seconds * 0.12 + row * 0.11));
+        var rgb = k.parseToRgba(FIELD[row][1](k, x, w, u));
+        put(row, column, rgb[0], rgb[1], rgb[2], rgb[3]);
+      }
+    }
+
+    return base;
+  }
+
+  // The first frame as SVG, for the moment before the script runs (and for
+  // when it never does).
+  function fieldSvg(c, columns) {
+    var rects = '';
+    paintField(c, 0, columns, drift(0), function (row, column, r, g, b, a) {
+      rects +=
+        '<rect x="' + column + '" y="' + row + '" width="1.02" height="1.02" fill="' +
+        c.toHex(c.rgba(r, g, b, 1)) + '"' + (a < 1 ? ' fill-opacity="' + +a.toFixed(2) + '"' : '') + '/>';
+    });
+    return (
+      '<svg class="field-still" viewBox="0 0 ' + columns + ' ' + FIELD.length +
+      '" preserveAspectRatio="none" aria-hidden="true">' + rects + '</svg>'
     );
-    var readable = c.readableColor(base);
+  }
 
+  function fieldRows() {
+    return FIELD.map(function (row) { return row[0]; });
+  }
+
+  // What the chip under the hero says about the current color.
+  function chip(c, base) {
+    var readable = c.readableColor(base);
     return {
       base: base,
       readable: readable,
       ratio: c.getContrast(base, readable).toFixed(2) + ':1',
-      aa: !c.hasBadContrast(readable, 'aa', base),
-      aaa: !c.hasBadContrast(readable, 'aaa', base),
-      cells: ROWS.map(function (row) {
-        var cells = [];
-        for (var i = 0; i < 9; i++) cells.push(row[1](c, base, i));
-        return cells;
-      }),
     };
   }
 
-  function heroHtml(c) {
-    var state = hero(c, 0);
+  function heroChip(c) {
+    var at = drift(0);
+    return chip(c, c.toHex(c.hsla(at.hue, 0.85, at.light, 1)));
+  }
 
-    return (
-      '<div class="live" id="live">' +
-      '<div class="live-banner" style="background:' + state.base + ';color:' + state.readable + '">' +
-      '<div><strong>Always readable</strong>' +
-      '<code>readableColor(<span data-live="base">' + quote(state.base) + '</span>) // ' +
-      '<span data-live="readable">' + quote(state.readable) + '</span></code></div>' +
-      '<p class="live-badges"><b data-live="ratio">' + state.ratio + '</b>' +
-      '<span data-live="aa" data-pass="' + state.aa + '">AA</span>' +
-      '<span data-live="aaa" data-pass="' + state.aaa + '">AAA</span></p>' +
-      '</div>' +
-      '<ul class="live-rows">' +
-      ROWS.map(function (row, index) {
-        return (
-          '<li><code>' + row[0] + '</code><span class="live-cells">' +
-          state.cells[index]
-            .map(function (color) { return '<i style="background:' + color + '"></i>'; })
-            .join('') +
-          '</span></li>'
-        );
-      }).join('') +
-      '</ul>' +
-      '</div>'
-    );
+  // -------------------------------------------------------------- themes ---
+
+  // `accentHover` becomes `--accent-hover`.
+  function tokenStyle(tokens) {
+    return Object.keys(tokens)
+      .map(function (name) {
+        return '--' + name.replace(/[A-Z]/g, function (letter) { return '-' + letter.toLowerCase(); }) + ':' + tokens[name];
+      })
+      .join(';');
+  }
+
+  // The three contrast figures shown next to each theme.
+  function themeRatios(c, tokens) {
+    return {
+      text: c.getContrast(tokens.text, tokens.bg).toFixed(1) + ':1',
+      button: c.getContrast(tokens.onAccent, tokens.accent).toFixed(1) + ':1',
+      chip: c.getContrast(tokens.onSoft, tokens.soft).toFixed(1) + ':1',
+    };
+  }
+
+  // The pad you paint on: hue across, lightness down.
+  function padColor(c, x, y) {
+    return c.toHex(c.hsla(Math.round(x * 360) % 360, 0.9, 0.88 - y * 0.5, 1));
   }
 
   // ------------------------------------------------------------- gallery ---
@@ -336,7 +387,7 @@ var showcase = (function () {
     return texts;
   }
 
-  function cardHtml(c, name, group, color, link) {
+  function cardHtml(c, name, group, color, link, size) {
     var demo = DEMOS[name];
     var view = demo.view(c, color, demo.slider.value);
     var vars = variables(view);
@@ -350,7 +401,7 @@ var showcase = (function () {
 
     return (
       '<li class="demo" data-demo="' + name + '" data-group="' + escapeHtml(group) + '" style="' + escapeHtml(style) + '">' +
-      '<h3><a href="' + link + '">' + name + '</a></h3>' +
+      '<h3><a href="' + link + '">' + name + '</a><span>' + escapeHtml(size) + '</span></h3>' +
       '<div class="st st-' + demo.stage + '" aria-hidden="true">' + stage + '</div>' +
       '<input type="range" class="needs-js" aria-label="' + escapeHtml(demo.slider.label) +
       '" min="' + demo.slider.min + '" max="' + demo.slider.max + '" step="' + demo.slider.step +
@@ -361,141 +412,265 @@ var showcase = (function () {
     );
   }
 
-  // `groups` is `[{ title, items: [{ name, link }] }]`, from the API docs.
+  // `groups` is `[{ title, items: [{ name, link, size }] }]`, from the API docs.
   function galleryHtml(c, groups, color) {
     return groups
       .map(function (group) {
         return group.items
           .map(function (item) {
             if (!DEMOS[item.name]) throw new Error('Add a demo for ' + item.name + ' to website/showcase.js');
-            return cardHtml(c, item.name, group.title, color, item.link);
+            return cardHtml(c, item.name, group.title, color, item.link, item.size);
           })
           .join('');
       })
       .join('');
   }
 
+
   // ------------------------------------------------------------- browser ---
 
-  function start(c) {
+  function start(c, themes) {
     var doc = document;
+    var root = doc.documentElement;
     var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
-    var playing = !reduced.matches;
-    var live = doc.getElementById('live');
-    var gallery = doc.getElementById('gallery');
-    var toggles = doc.querySelectorAll('[data-motion]');
-    var text = doc.getElementById('gallery-text');
-    var picker = doc.getElementById('gallery-picker');
-    var error = doc.getElementById('gallery-error');
-    var controls = doc.getElementById('gallery-controls');
-    var color = text.value;
-    var visible = typeof IntersectionObserver === 'undefined';
-    var watcher = visible
-      ? null
-      : new IntersectionObserver(function (entries) {
-          entries.forEach(function (entry) { entry.target.onScreen = entry.isIntersecting; });
-        });
+    var hasObserver = typeof IntersectionObserver !== 'undefined';
 
-    function watch(element) {
-      element.onScreen = visible;
-      if (watcher) watcher.observe(element);
+    function watch(element, onChange) {
+      element.onScreen = !hasObserver;
+      if (!hasObserver) return;
+      new IntersectionObserver(function (entries) {
+        element.onScreen = entries[entries.length - 1].isIntersecting;
+        if (onChange) onChange(element.onScreen);
+      }).observe(element);
     }
 
-    // Hero: look up the elements once, then only touch what changes.
-    var banner = live.querySelector('.live-banner');
-    var cells = live.querySelectorAll('.live-cells i');
-    var liveSlots = {};
-    live.querySelectorAll('[data-live]').forEach(function (element) {
-      liveSlots[element.getAttribute('data-live')] = element;
-    });
-    watch(live);
-
-    function drawHero(seconds) {
-      var state = hero(c, seconds);
-      var index = 0;
-      banner.style.background = state.base;
-      banner.style.color = state.readable;
-      liveSlots.base.textContent = quote(state.base);
-      liveSlots.readable.textContent = quote(state.readable);
-      liveSlots.ratio.textContent = state.ratio;
-      liveSlots.aa.setAttribute('data-pass', state.aa);
-      liveSlots.aaa.setAttribute('data-pass', state.aaa);
-      state.cells.forEach(function (row) {
-        row.forEach(function (cell) { cells[index++].style.background = cell; });
-      });
+    function setText(node, value) {
+      if (node && node.nodeValue !== value) node.nodeValue = value;
     }
 
-    // Gallery: each card keeps its slider, and animates it until you take over.
-    var cards = [];
-    gallery.querySelectorAll('.demo').forEach(function (element, index) {
-      var card = {
-        element: element,
-        demo: DEMOS[element.getAttribute('data-demo')],
-        slider: element.querySelector('input'),
-        stage: element.querySelector('.st'),
-        parts: element.querySelectorAll('.st i'),
-        slots: {},
-        last: {},
-        auto: true,
-        phase: (index * 0.37) % 1,
+    // Counts every color2k call the hero makes, so the scoreboard is honest.
+    var calls = 0;
+    var counted = {};
+    Object.keys(c).forEach(function (name) {
+      counted[name] = function (a, b, d, e) {
+        calls++;
+        return c[name](a, b, d, e);
       };
-      element.querySelectorAll('[data-slot]').forEach(function (slot) {
-        card.slots[slot.getAttribute('data-slot')] = slot.firstChild;
-      });
-      card.slider.addEventListener('input', function () {
-        card.auto = false;
-        drawCard(card);
-      });
-      watch(element);
-      cards.push(card);
+    });
+    // getScale takes any number of colors and hands back a function.
+    counted.getScale = function (a, b, d) {
+      calls++;
+      var scale = c.getScale(a, b, d);
+      return function (n) {
+        calls++;
+        return scale(n);
+      };
+    };
+
+    // ---- hero: one canvas, one pixel per tile -----------------------------
+    var hero = doc.getElementById('hero');
+    var canvas = doc.getElementById('field');
+    var swatch = doc.getElementById('chip-swatch');
+    var chipBox = doc.getElementById('chip');
+    var toggle = doc.getElementById('motion');
+    var slot = {};
+    hero.querySelectorAll('[data-live]').forEach(function (element) {
+      slot[element.getAttribute('data-live')] = element.firstChild;
     });
 
-    // Writes one style on one element, and only when it changed. (Updating
-    // the card's custom properties instead would restyle the whole card.)
-    function put(card, key, element, property, value) {
-      if (card.last[key] === value) return;
-      card.last[key] = value;
-      element.style[property] = value;
+    var context = canvas.getContext('2d');
+    var swatchContext = swatch.getContext('2d');
+    var columns = 0;
+    var image = null;
+    var playing = !reduced.matches;
+    var running = false;
+    var seconds = 0;
+    var last = 0;
+    var at = drift(0);
+    var pointer = null;
+    var base = '';
+    var ink = '';
+    // Rolling numbers for the scoreboard, refreshed twice a second.
+    var frames = 0;
+    var spent = 0;
+    var since = 0;
+
+    function measure() {
+      // About one tile per 52 pixels, so a phone computes fewer than a desktop.
+      var next = Math.max(10, Math.min(40, Math.round(hero.clientWidth / 52)));
+      if (next === columns) return;
+      columns = next;
+      // The grid of gaps drawn over the canvas has to match it.
+      hero.style.setProperty('--columns', columns);
+      canvas.width = columns;
+      canvas.height = FIELD.length;
+      image = context.createImageData(columns, FIELD.length);
     }
 
-    function at(position) {
-      return 'calc(' + position + ' * (100% - 28px) + 6px)';
+    function put(row, column, r, g, b, a) {
+      var i = (row * columns + column) * 4;
+      image.data[i] = r;
+      image.data[i + 1] = g;
+      image.data[i + 2] = b;
+      image.data[i + 3] = a * 255;
     }
 
-    function drawCard(card) {
-      var view = card.demo.view(c, color, +card.slider.value);
-      var texts = slots(view);
-      var parts = card.parts;
-      var key;
+    function draw() {
+      calls = 0;
+      var began = performance.now();
+      base = paintField(counted, seconds, columns, at, put);
+      var now = chip(counted, base);
+      spent += performance.now() - began;
+      frames++;
 
-      switch (card.demo.stage) {
-        case 'text':
-          put(card, 'a', card.stage, 'background', view.a);
-          put(card, 'b', card.stage, 'color', view.b);
-          break;
-        case 'meter':
-          put(card, 'g', card.stage, 'backgroundImage', view.g);
-          put(card, 'q', parts[0], 'left', at(view.q));
-          put(card, 'p', parts[1], 'left', at(view.p));
-          put(card, 'b', parts[1], 'background', view.b);
-          break;
-        case 'bars':
-          view.bars.forEach(function (bar, i) {
-            put(card, 'w' + i, parts[i], 'width', +(bar * 100).toFixed(1) + '%');
-            put(card, 'a' + i, parts[i], 'background', view.a);
-          });
-          break;
-        default:
-          put(card, 'a', parts[0], 'background', view.a);
-          put(card, 'b', parts[1], 'background', view.b);
-          if (parts[2]) put(card, 'c', parts[2], 'background', view.c);
+      context.putImageData(image, 0, 0);
+      swatchContext.fillStyle = base;
+      swatchContext.fillRect(0, 0, 1, 1);
+      if (now.readable !== ink) {
+        // Switch at once, so the text is never caught on the wrong side.
+        ink = now.readable;
+        chipBox.style.color = ink;
+      }
+      return now;
+    }
+
+    function report(now, time) {
+      var elapsed = time - since;
+      var fps = (frames * 1000) / elapsed;
+      setText(slot.base, quote(now.base));
+      setText(slot.readable, quote(now.readable));
+      setText(slot.ratio, now.ratio);
+      setText(slot.calls, String(calls));
+      setText(slot.ms, (spent / frames).toFixed(2));
+      setText(slot.rate, (Math.round((calls * fps) / 100) * 100).toLocaleString('en-US'));
+      setText(slot.fps, String(Math.round(fps)));
+      frames = 0;
+      spent = 0;
+      since = time;
+    }
+
+    function frame(time) {
+      if (!running) return;
+      var delta = Math.min(time - (last || time), 100) / 1000;
+      last = time;
+      seconds += delta;
+
+      if (pointer) {
+        // Ease toward the pointer the short way around the wheel.
+        var turn = ((pointer.hue - at.hue + 540) % 360) - 180;
+        var pull = 1 - Math.exp(-delta * 6);
+        at.hue = (at.hue + turn * pull + 360) % 360;
+        at.light += (pointer.light - at.light) * pull;
+      } else {
+        at.hue = (at.hue + delta * 10) % 360;
+        at.light += (0.6 + 0.06 * Math.sin(seconds * 0.3) - at.light) * (1 - Math.exp(-delta * 2));
       }
 
-      for (key in texts) {
-        if (card.slots[key] && card.slots[key].nodeValue !== texts[key]) {
-          card.slots[key].nodeValue = texts[key];
-        }
+      var now = draw();
+      if (time - since >= 500) report(now, time);
+      requestAnimationFrame(frame);
+    }
+
+    function sync() {
+      var should = playing && hero.onScreen;
+      if (should && !running) {
+        running = true;
+        last = 0;
+        since = performance.now();
+        frames = 0;
+        spent = 0;
+        requestAnimationFrame(frame);
+      } else if (!should) {
+        running = false;
       }
+    }
+
+    function setPlaying(next) {
+      playing = next;
+      toggle.setAttribute('aria-pressed', String(!playing));
+      setText(toggle.firstChild, playing ? 'Pause' : 'Play');
+      sync();
+    }
+
+    measure();
+    // One frame straight away, so a paused page still shows real numbers.
+    since = performance.now() - 1000 / 60;
+    report(draw(), performance.now());
+    canvas.setAttribute('data-ready', '');
+    watch(hero, sync);
+    window.addEventListener('resize', function () {
+      measure();
+      if (!running) draw();
+    });
+    hero.addEventListener('pointermove', function (event) {
+      if (event.pointerType === 'touch') return;
+      var box = hero.getBoundingClientRect();
+      pointer = {
+        hue: ((event.clientX - box.left) / box.width) * 360,
+        light: 0.72 - ((event.clientY - box.top) / box.height) * 0.28,
+      };
+    });
+    hero.addEventListener('pointerleave', function () { pointer = null; });
+    toggle.addEventListener('click', function () { setPlaying(!playing); });
+    reduced.addEventListener('change', function () { setPlaying(!reduced.matches); });
+
+    // ---- studio: one color in, three themes out ---------------------------
+    var studio = doc.getElementById('themes');
+    var text = doc.getElementById('studio-text');
+    var picker = doc.getElementById('studio-picker');
+    var error = doc.getElementById('studio-error');
+    var pad = doc.getElementById('studio-pad');
+    var thumb = doc.getElementById('studio-thumb');
+    var color = text.value;
+    var pending = false;
+    var bands = [];
+    studio.querySelectorAll('[data-theme]').forEach(function (element) {
+      var ratios = {};
+      element.querySelectorAll('[data-ratio]').forEach(function (node) {
+        ratios[node.getAttribute('data-ratio')] = node.firstChild;
+      });
+      var band = {
+        element: element,
+        stale: false,
+        build: themes[element.getAttribute('data-theme')],
+        light: element.querySelectorAll('[data-tokens="light"]'),
+        dark: element.querySelectorAll('[data-tokens="dark"]'),
+        ratios: ratios,
+      };
+      // A theme that is off screen waits until you scroll to it.
+      watch(element, function (onScreen) {
+        if (onScreen && band.stale) paintBand(band);
+      });
+      bands.push(band);
+    });
+
+    function setTokens(elements, tokens) {
+      var style = tokenStyle(tokens);
+      for (var i = 0; i < elements.length; i++) elements[i].style.cssText = style;
+    }
+
+    function paintBand(band) {
+      var light = band.build(color, false);
+      var ratios = themeRatios(c, light);
+      band.stale = false;
+      setTokens(band.light, light);
+      setTokens(band.dark, band.build(color, true));
+      setText(band.ratios.text, ratios.text);
+      setText(band.ratios.button, ratios.button);
+      setText(band.ratios.chip, ratios.chip);
+    }
+
+    // Runs at most once a frame, however fast the pointer moves.
+    function apply() {
+      pending = false;
+      bands.forEach(function (band) {
+        if (band.element.onScreen) paintBand(band);
+        else band.stale = true;
+      });
+      cards.forEach(function (card) {
+        card.stale = true;
+        if (card.element.onScreen) drawCard(card);
+      });
     }
 
     function setColor(value, from) {
@@ -511,94 +686,155 @@ var showcase = (function () {
         return;
       }
       color = value.trim();
-      error.textContent = '';
+      if (error.textContent) error.textContent = '';
       text.removeAttribute('aria-invalid');
       if (from !== text) text.value = color;
       if (from !== picker) picker.value = c.toHex(color).slice(0, 7);
-      cards.forEach(drawCard);
+      if (from !== pad) thumb.hidden = true;
+      if (!pending) {
+        pending = true;
+        requestAnimationFrame(apply);
+      }
     }
 
+    // The pad is drawn once, a pixel per swatch, and scaled up like the hero.
+    var padContext = pad.getContext('2d');
+    var padImage = padContext.createImageData(pad.width, pad.height);
+    for (var py = 0; py < pad.height; py++) {
+      for (var px = 0; px < pad.width; px++) {
+        var swatchRgb = c.parseToRgba(padColor(c, px / pad.width, py / (pad.height - 1)));
+        var offset = (py * pad.width + px) * 4;
+        padImage.data[offset] = swatchRgb[0];
+        padImage.data[offset + 1] = swatchRgb[1];
+        padImage.data[offset + 2] = swatchRgb[2];
+        padImage.data[offset + 3] = 255;
+      }
+    }
+    padContext.putImageData(padImage, 0, 0);
+
+    function paint(event) {
+      var box = pad.getBoundingClientRect();
+      var x = Math.max(0, Math.min(1, (event.clientX - box.left) / box.width));
+      var y = Math.max(0, Math.min(1, (event.clientY - box.top) / box.height));
+      thumb.hidden = false;
+      thumb.style.transform = 'translate(' + x * box.width + 'px,' + y * box.height + 'px)';
+      setColor(padColor(c, x, y), pad);
+    }
+    pad.addEventListener('pointerdown', function (event) {
+      pad.setPointerCapture(event.pointerId);
+      paint(event);
+    });
+    pad.addEventListener('pointermove', function (event) {
+      if (pad.hasPointerCapture(event.pointerId)) paint(event);
+    });
     text.addEventListener('input', function () { setColor(text.value, text); });
     picker.addEventListener('input', function () { setColor(picker.value, picker); });
-    controls.addEventListener('click', function (event) {
-      var preset = event.target.getAttribute('data-color');
-      var group = event.target.getAttribute('data-filter');
+    studio.addEventListener('click', function (event) {
+      var preset = event.target.getAttribute && event.target.getAttribute('data-color');
       if (preset) setColor(preset);
-      if (group !== null) {
-        controls.querySelectorAll('[data-filter]').forEach(function (button) {
-          button.setAttribute('aria-pressed', button === event.target);
-        });
-        cards.forEach(function (card) {
-          card.element.hidden = group !== '' && card.element.getAttribute('data-group') !== group;
-        });
+    });
+    doc.getElementById('use-color').addEventListener('click', function () {
+      setColor(base);
+    });
+
+    // ---- gallery: every function on your color -----------------------------
+    var gallery = doc.getElementById('gallery');
+    var filters = doc.getElementById('gallery-filters');
+    var cards = [];
+    gallery.querySelectorAll('.demo').forEach(function (element) {
+      var card = {
+        element: element,
+        demo: DEMOS[element.getAttribute('data-demo')],
+        slider: element.querySelector('input'),
+        stage: element.querySelector('.st'),
+        parts: element.querySelectorAll('.st i'),
+        slots: {},
+        last: {},
+        stale: false,
+      };
+      element.querySelectorAll('[data-slot]').forEach(function (node) {
+        card.slots[node.getAttribute('data-slot')] = node.firstChild;
+      });
+      card.slider.addEventListener('input', function () { drawCard(card); });
+      watch(element, function (onScreen) {
+        if (onScreen && card.stale) drawCard(card);
+      });
+      cards.push(card);
+    });
+
+    // Writes one style on one element, and only when it changed. (Updating
+    // the card's custom properties instead would restyle the whole card.)
+    function place(card, key, element, property, value) {
+      if (card.last[key] === value) return;
+      card.last[key] = value;
+      element.style[property] = value;
+    }
+
+    function along(position) {
+      return 'calc(' + position + ' * (100% - 28px) + 6px)';
+    }
+
+    function drawCard(card) {
+      var view = card.demo.view(c, color, +card.slider.value);
+      var texts = slots(view);
+      var parts = card.parts;
+      var key;
+      card.stale = false;
+
+      switch (card.demo.stage) {
+        case 'text':
+          place(card, 'a', card.stage, 'background', view.a);
+          place(card, 'b', card.stage, 'color', view.b);
+          break;
+        case 'meter':
+          place(card, 'g', card.stage, 'backgroundImage', view.g);
+          place(card, 'q', parts[0], 'left', along(view.q));
+          place(card, 'p', parts[1], 'left', along(view.p));
+          place(card, 'b', parts[1], 'background', view.b);
+          break;
+        case 'bars':
+          view.bars.forEach(function (bar, i) {
+            place(card, 'w' + i, parts[i], 'width', +(bar * 100).toFixed(1) + '%');
+            place(card, 'a' + i, parts[i], 'background', view.a);
+          });
+          break;
+        default:
+          place(card, 'a', parts[0], 'background', view.a);
+          place(card, 'b', parts[1], 'background', view.b);
+          if (parts[2]) place(card, 'c', parts[2], 'background', view.c);
       }
-    });
 
-    function setPlaying(next) {
-      var wasPlaying = playing && started;
-      playing = next;
-      toggles.forEach(function (toggle) {
-        toggle.setAttribute('aria-pressed', !playing);
-        toggle.textContent = playing ? 'Pause motion' : 'Play motion';
+      for (key in texts) setText(card.slots[key], texts[key]);
+    }
+
+    filters.addEventListener('click', function (event) {
+      var group = event.target.getAttribute('data-filter');
+      if (group === null) return;
+      filters.querySelectorAll('[data-filter]').forEach(function (button) {
+        button.setAttribute('aria-pressed', String(button === event.target));
       });
-      if (playing && started && !wasPlaying) run();
-    }
-    toggles.forEach(function (toggle) {
-      toggle.addEventListener('click', function () { setPlaying(!playing); });
-    });
-
-    // One loop drives everything. It only redraws what is on screen, and about
-    // ten times a second rather than on every frame: the colors move so little
-    // per step that it reads as continuous, and the page stays mostly idle.
-    var TICK_MS = 100;
-    var started = false;
-    var clock = 0;
-    var last = 0;
-    var loop = 0;
-    function run() {
-      var id = ++loop;
-      last = 0;
-      requestAnimationFrame(function (now) { frame(now, id); });
-    }
-    function frame(now, id) {
-      // Stop when paused, or when a newer loop has taken over.
-      if (!playing || id !== loop) return;
-      clock += Math.min(now - (last || now), 250) / 1000;
-      last = now;
-      if (live.onScreen) drawHero(clock);
       cards.forEach(function (card) {
-        if (!card.auto || !card.element.onScreen || card.element.hidden) return;
-        // Cards take turns: each sweeps its slider up, down and back to where
-        // it started, then rests while its neighbors go.
-        var turn = (clock / 6 + card.phase * 3) % 3;
-        if (turn >= 1) return;
-        var slider = card.demo.slider;
-        var wave = Math.sin(turn * 2 * Math.PI);
-        var value = slider.value + wave * (wave > 0 ? slider.max - slider.value : slider.value - slider.min);
-        value = String(+(Math.round(value / slider.step) * slider.step).toFixed(2));
-        if (value !== card.slider.value) {
-          card.slider.value = value;
-          drawCard(card);
-        }
+        card.element.hidden = group !== '' && card.element.getAttribute('data-group') !== group;
       });
-      // A timer between frames, so the browser is not asked for 60 frames a
-      // second when 10 will do. (It also stops by itself in a hidden tab.)
-      setTimeout(function () {
-        requestAnimationFrame(function (next) { frame(next, id); });
-      }, TICK_MS);
-    }
+    });
 
-    // The controls work right away. Motion waits until the page has loaded.
-    doc.documentElement.className += ' js';
-    setPlaying(playing);
-    function begin() {
-      started = true;
-      if (playing) run();
+    // ---- the rest ----------------------------------------------------------
+    // Sections slide in with CSS scroll-driven animations where the browser has
+    // them. Elsewhere, an observer adds a class and a transition does the same.
+    if (!(window.CSS && CSS.supports('animation-timeline: view()')) && hasObserver && !reduced.matches) {
+      root.className += ' io';
+      var reveal = new IntersectionObserver(
+        function (entries) {
+          entries.forEach(function (entry) {
+            if (!entry.isIntersecting) return;
+            entry.target.className += ' in';
+            reveal.unobserve(entry.target);
+          });
+        },
+        { rootMargin: '0px 0px -10% 0px' }
+      );
+      doc.querySelectorAll('.reveal').forEach(function (element) { reveal.observe(element); });
     }
-    var idle = window.requestIdleCallback || function (callback) { setTimeout(callback, 200); };
-    if (doc.readyState === 'complete') idle(begin);
-    else window.addEventListener('load', function () { idle(begin); });
-    reduced.addEventListener('change', function () { setPlaying(!reduced.matches); });
 
     var copy = doc.getElementById('copy-install');
     if (copy && navigator.clipboard) {
@@ -609,9 +845,21 @@ var showcase = (function () {
         });
       });
     }
+
+    root.className += ' js';
+    setPlaying(playing);
   }
 
-  return { galleryHtml: galleryHtml, heroHtml: heroHtml, start: start };
+  return {
+    fieldRows: fieldRows,
+    fieldSvg: fieldSvg,
+    galleryHtml: galleryHtml,
+    heroChip: heroChip,
+    padColor: padColor,
+    themeRatios: themeRatios,
+    tokenStyle: tokenStyle,
+    start: start,
+  };
 })();
 
 if (typeof module !== 'undefined') module.exports = showcase;

@@ -1,7 +1,7 @@
 {
   "name": "color2k",
   "version": "2.0.0",
-  "description": "Color parsing and manipulation for JavaScript and TypeScript in 2.4 kB. Zero dependencies, tree-shakeable, sRGB.",
+  "description": "Every color job your UI needs, in 2.4 kB. Parse, convert, adjust and mix colors and check contrast. No dependencies.",
   "homepage": "https://color2k.com",
   "repository": {
     "type": "git",
@@ -66,8 +66,8 @@
     "check": "npm run lint && npm run color-map && npm test -- --coverage && npm run build && npm run compat:check && npm run docs:check && npm run examples:check && npm run website && npm run website:check && npm run pack:check && npm run audit:prod",
     "color-map": "node -r ./scripts/register.js ./scripts/color-map.ts",
     "compat:check": "node ./scripts/check-es2015.js && node ./scripts/check-node6.js",
-    "docs:check": "CHECK_DOCS=1 node ./scripts/docs.js && node ./scripts/readme-assets.js --check",
-    "docs:generate": "node ./scripts/docs.js && node ./scripts/readme-assets.js",
+    "docs:check": "CHECK_DOCS=1 node ./scripts/docs.js && node ./scripts/sizes.js --check && node ./scripts/readme-assets.js --check",
+    "docs:generate": "node ./scripts/docs.js && node ./scripts/sizes.js && node ./scripts/readme-assets.js",
     "examples:check": "node ./scripts/check-examples.js",
     "lint": "eslint src --ext .ts,.js",
     "pack:check": "npm run build && node ./scripts/check-package.js",
@@ -94,6 +94,7 @@
     "rollup": "4.62.2",
     "semantic-release": "25.0.5",
     "shiki": "4.3.1",
+    "terser": "5.51.2",
     "typescript": "6.0.3"
   }
 }

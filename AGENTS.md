@@ -13,7 +13,7 @@ every byte in `dist` as expensive.
 npm ci              # install (also builds dist)
 npm test            # jest
 npm run check       # everything CI runs; must pass before you open a PR
-npm run docs:generate   # rewrite the README's API section and pictures
+npm run docs:generate   # rewrite the README's API section, sizes and pictures
 npm run website     # build the site and llms files into ./build
 ```
 
@@ -24,8 +24,10 @@ npm run website     # build the site and llms files into ./build
 - `website/docs.ts`: turns the JSDoc in `src` into the README API section,
   `llms.txt` and `llms-full.txt`.
 - `website/`: the static generator for color2k.com (`index.ts`, `template.ts`,
-  `App.css`, `showcase.js` for the live demos, and `static/` for the logo and
-  icons).
+  `App.css`, `showcase.js` for the hero, theme studio and gallery, and
+  `static/` for the logo and icons).
+- `scripts/sizes.js` measures the bundle (everything, and each export alone)
+  into `docs/sizes.json`. The README table and the website read that file.
 - `scripts/`: build and check scripts. `scripts/color-map.ts` generates the
   compressed named-color table in `src/parseToRgba.ts`.
   `scripts/readme-assets.js` draws `docs/readme/*.svg` (the animated banner and
@@ -54,10 +56,24 @@ npm run website     # build the site and llms files into ./build
   variable from the recipe instead of repeating its math. Never edit
   `docs/readme/*.svg` or the lines between the `RESULT` markers by hand; run
   `npm run docs:generate` (after `npm run build`).
+- The three theme builders (`softTheme`, `seriousTheme`, `boldTheme`) live in
+  the README as recipes. The website lifts those exact functions out of the
+  README, shows them and runs them, so change them there and nowhere else.
+  The generator sweeps each one through a few hundred colors and fails if a
+  text pair drops below WCAG AA.
+- Every "2.4 kB" is held to `docs/sizes.json`. If the bundle rounds to
+  something else, the docs build fails until the copy is updated.
 - The list between `<!-- AGENT-NOTES-START -->` and `<!-- AGENT-NOTES-END -->`
   in README.md is copied into `llms.txt`. Keep it short and true.
 - New exports must be added to `API_GROUPS` in `website/docs.ts` and need a
   demo in `website/showcase.js`.
+- Nothing on the website may touch the DOM on every frame. The hero is one
+  small canvas (a pixel per tile, scaled up by the compositor), scroll effects
+  are CSS transforms and opacity, and DOM text updates are throttled into
+  boxes that never change size. Keep it that way.
+- Copy follows the maintainer's guidelines: a sharp colleague talking. Plain
+  words, real numbers, short sentences, no italics, no exclamation marks, no
+  em-dash asides, and no claim you have not run.
 - The website stays static: no frameworks, no external requests, no inline
   scripts (the Content-Security-Policy written by `website/index.ts` only allows
   the site's own two script files), and it must work with JavaScript turned

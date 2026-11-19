@@ -111,8 +111,21 @@ assert(
 );
 assert(html.includes('class="hero"'), 'Missing hero');
 assert(
-  html.includes('id="live"') && html.includes('class="live-cells"'),
-  'Missing server-rendered hero palette'
+  html.includes('<svg class="field-still"') && html.includes('<canvas id="field"'),
+  'Missing the hero field and its server-rendered first frame'
+);
+for (const theme of ['soft', 'serious', 'bold']) {
+  assert(
+    new RegExp(`data-theme="${theme}"[\\s\\S]*?style="--bg:#`).test(html),
+    `The ${theme} theme is not rendered with its tokens`
+  );
+}
+// The page says "2.4 kB" a lot. Hold it to the measured size.
+const sizes = require('../docs/sizes.json');
+assert(
+  (sizes.all / 1000).toFixed(1) === '2.4' &&
+    html.includes(`${sizes.all.toLocaleString('en-US')} bytes`),
+  'The size on the page does not match docs/sizes.json'
 );
 for (const name of exportNames) {
   assert(
@@ -181,7 +194,7 @@ assert(
 const site = read('site.js');
 new vm.Script(site);
 assert(
-  site.trimEnd().endsWith('showcase.start(color2k);') &&
+  /\.start\(color2k,/.test(site) &&
     !/\b(eval|fetch|XMLHttpRequest|import)\s*\(|new Function|innerHTML/.test(site),
   'site.js should only start the demos'
 );

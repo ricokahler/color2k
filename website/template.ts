@@ -4,21 +4,44 @@ interface TocItem {
   children: Array<{ slug: string; title: string }>;
 }
 
+interface Theme {
+  key: string;
+  name: string;
+  how: string;
+  uses: string[];
+  codeHtml: string;
+  lightStyle: string;
+  darkStyle: string;
+  ratios: { text: string; button: string; chip: string };
+  tokens: string[];
+}
+
 interface Params {
   bodyHtml: string;
+  chip: { base: string; readable: string; ratio: string };
+  comparison: Array<{ name: string; size: number }>;
   css: string;
   description: string;
   exportCount: number;
-  galleryColor: string;
+  fieldColumns: number;
+  fieldRows: string[];
+  fieldSvg: string;
   galleryGroups: string[];
   galleryHtml: string;
-  galleryPresets: string[];
-  heroHtml: string;
+  sizes: {
+    all: string;
+    bytes: string;
+    rounded: string;
+    exports: Array<{ name: string; size: string }>;
+  };
   structuredData: object;
+  studioColor: string;
+  studioPresets: Array<{ name: string; color: string }>;
+  themes: Theme[];
   toc: TocItem[];
 }
 
-const title = 'color2k: color parsing and manipulation in 2.4 kB';
+const title = 'color2k: every color job your UI needs, in 2.4 kB';
 
 function escapeJsonForHtml(value: object) {
   return JSON.stringify(value).replace(/</g, '\\u003c');
@@ -54,20 +77,72 @@ function renderToc(toc: TocItem[]) {
     .join('\n          ');
 }
 
+// A small made-up invoice screen, painted entirely with a theme's tokens.
+function renderMock(mode: 'light' | 'dark', style: string) {
+  return `<div class="mock" data-tokens="${mode}" style="${escapeHtml(style)}">
+              <div class="mock-top"><i class="mock-logo"></i><b>Ledger</b><span>Invoices</span><small>${mode}</small></div>
+              <strong class="mock-title">3 invoices are due this week</strong>
+              <span class="mock-muted">Two were sent on Monday. One is still a draft.</span>
+              <div class="mock-chips"><span>Draft</span><span>Sent</span><span>Paid</span></div>
+              <div class="mock-card">
+                <b>Northwind Studio</b>
+                <span>Due Friday, $2,400</span>
+                <div class="mock-bar"><i></i></div>
+                <div class="mock-actions"><span class="mock-primary">Send reminder</span><span class="mock-hover">Hover</span><span class="mock-focus">Focus</span></div>
+              </div>
+            </div>`;
+}
+
+function renderTheme(theme: Theme) {
+  return `<article class="band" data-theme="${theme.key}">
+          <div class="band-skin" data-tokens="light" style="${escapeHtml(theme.lightStyle)}"></div>
+          <div class="band-inner">
+            <div class="band-copy reveal" data-tokens="light" style="${escapeHtml(theme.lightStyle)}">
+              <h3>${theme.name}</h3>
+              <p>${escapeHtml(theme.how)}</p>
+              <ul class="band-swatches" aria-hidden="true">
+                ${theme.tokens.map((token) => `<li style="background:var(--${token.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)})" title="${token}"></li>`).join('')}
+              </ul>
+              <dl class="band-ratios">
+                <div><dt>Text</dt><dd data-ratio="text">${theme.ratios.text}</dd></div>
+                <div><dt>Button</dt><dd data-ratio="button">${theme.ratios.button}</dd></div>
+                <div><dt>Chip</dt><dd data-ratio="chip">${theme.ratios.chip}</dd></div>
+              </dl>
+              <p class="band-uses">Made with ${theme.uses.map((name) => `<code>${name}</code>`).join(' ')}</p>
+            </div>
+            <div class="band-mocks reveal" aria-hidden="true">
+              ${renderMock('light', theme.lightStyle)}
+              ${renderMock('dark', theme.darkStyle)}
+            </div>
+            <div class="band-code reveal">${theme.codeHtml}</div>
+          </div>
+        </article>`;
+}
+
 function template({
   bodyHtml,
+  chip,
+  comparison,
   css,
   description,
   exportCount,
-  galleryColor,
+  fieldColumns,
+  fieldRows,
+  fieldSvg,
   galleryGroups,
   galleryHtml,
-  galleryPresets,
-  heroHtml,
+  sizes,
   structuredData,
+  studioColor,
+  studioPresets,
+  themes,
   toc,
 }: Params) {
   const safeDescription = escapeHtml(description);
+  const largest = Math.max(...comparison.map(({ size }) => size));
+  const ticker = Array(4)
+    .fill('parse · convert · lighten · darken · saturate · mix · scale · contrast · ')
+    .join('');
 
   return `<!doctype html>
 <html lang="en">
@@ -78,7 +153,7 @@ function template({
     <meta name="description" content="${safeDescription}" />
     <meta
       name="keywords"
-      content="color, parsing, css, css-in-js, tinycolor, polished, chroma-js, npm, javascript, typescript"
+      content="color, parsing, css, css-in-js, theming, contrast, tinycolor, polished, chroma-js, npm, javascript, typescript"
     />
     <link rel="canonical" href="https://color2k.com/" />
     <meta property="og:title" content="${title}" />
@@ -89,7 +164,7 @@ function template({
     <meta property="og:image" content="https://color2k.com/og.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="color2k: color parsing and manipulation in 2.4 kB" />
+    <meta property="og:image:alt" content="color2k. Every color job your UI needs, in 2.4 kB." />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="${title}" />
     <meta name="twitter:description" content="${safeDescription}" />
@@ -112,16 +187,18 @@ function template({
   </head>
   <body>
     <a class="skip-link" href="#content">Skip to content</a>
+    <div class="progress" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
     <header class="site-header">
       <div class="site-header-inner">
         <a class="site-brand" href="/" aria-label="color2k home">
-          <img src="/logo.svg" alt="color2k" width="115" height="30" />
+          <img src="/logo.svg" alt="color2k" width="131" height="34" />
         </a>
         <nav class="site-nav" aria-label="Primary">
-          <a class="site-nav-text" href="#recipes">Recipes</a>
-          <a class="site-nav-text" href="#api">API</a>
-          <a class="site-nav-text" href="/llms.txt">llms.txt</a>
-          <a class="site-nav-text site-nav-rico" href="https://rico.codes">rico.codes</a>
+          <a class="site-nav-text" href="#themes">Themes</a>
+          <a class="site-nav-text" href="#functions">Functions</a>
+          <a class="site-nav-text" href="#quickstart">Docs</a>
+          <a class="site-nav-text site-nav-extra" href="/llms.txt">llms.txt</a>
+          <a class="site-nav-text site-nav-extra" href="https://rico.codes">rico.codes</a>
           <a
             class="site-icon-link site-icon-link-npm"
             href="https://www.npmjs.com/package/color2k"
@@ -145,87 +222,162 @@ function template({
         </nav>
       </div>
     </header>
-    <div class="hero">
+    <section class="hero" id="hero" style="--columns:${fieldColumns}">
+      <div class="field" aria-hidden="true">
+        ${fieldSvg}
+        <canvas id="field" width="${fieldColumns}" height="${fieldRows.length}"></canvas>
+        <div class="field-grid"></div>
+        <ul class="field-rows">
+          ${fieldRows.map((name) => `<li><code>${name}</code></li>`).join('')}
+        </ul>
+      </div>
+      <div class="hero-scrim" aria-hidden="true"></div>
       <div class="hero-inner">
         <div class="hero-copy">
-        <img class="hero-logo" src="/logo.svg" alt="" width="460" height="120" />
-        <h1>Color parsing and manipulation in&nbsp;2.4&nbsp;kB.</h1>
-        <p class="hero-lead">
-          Darken, lighten, mix, convert and check contrast with plain
-          functions. Zero dependencies, tree-shakeable, TypeScript included.
-        </p>
-        <div class="hero-actions">
-          <div class="hero-install">
-            <code>npm i color2k</code>
-            <button type="button" id="copy-install" class="needs-js">Copy</button>
+          <img class="hero-logo" src="/logo.svg" alt="" width="459" height="119" />
+          <h1>Every color job your UI needs, in&nbsp;2.4&nbsp;kB.</h1>
+          <p class="hero-lead">
+            Darken a brand color for its hover state. Find out whether the
+            text on top should be black or white. color2k is ${exportCount - 1}
+            small functions for work like that, and it has no dependencies.
+          </p>
+          <div class="hero-actions">
+            <div class="hero-install">
+              <code>npm i color2k</code>
+              <button type="button" id="copy-install" class="needs-js">Copy</button>
+            </div>
+            <a class="hero-button" href="#themes">Build a theme</a>
+            <a class="hero-link" href="#quickstart">Read the docs</a>
           </div>
-          <a class="hero-button" href="#quickstart">Quickstart</a>
-          <a class="hero-link" href="#api">API reference</a>
         </div>
-        <dl class="hero-stats">
-          <div><dt>min + gzip</dt><dd>2.4 kB</dd></div>
-          <div><dt>dependencies</dt><dd>0</dd></div>
-          <div><dt>functions</dt><dd>${exportCount}</dd></div>
-          <div><dt>types</dt><dd>built in</dd></div>
-        </dl>
-        </div>
-        <div class="hero-live">
-          ${heroHtml}
-          <p class="hero-live-note">
-            <span>Every color here is computed by color2k as you watch.</span>
-            <button type="button" class="motion-toggle needs-js" data-motion>Pause motion</button>
+        <div class="board">
+          <div class="board-chip" id="chip" style="color:${chip.readable}">
+            <canvas id="chip-swatch" width="1" height="1" style="background:${chip.base}" aria-hidden="true"></canvas>
+            <code>readableColor(<span data-live="base">'${chip.base}'</span>) is <span data-live="readable">'${chip.readable}'</span></code>
+            <b><span data-live="ratio">${chip.ratio}</span></b>
+          </div>
+          <dl class="board-stats needs-js">
+            <div><dd data-live="calls">0</dd><dt>color2k calls a frame</dt></div>
+            <div><dd><span data-live="ms">0.00</span><small> ms</small></dd><dt>to make all of them</dt></div>
+            <div><dd data-live="rate">0</dd><dt>calls a second, at <span data-live="fps">60</span> fps</dt></div>
+            <div><dd>${sizes.all.replace(' kB', '')}<small> kB</small></dd><dt>of library doing it</dt></div>
+          </dl>
+          <p class="board-note needs-js">
+            <span>Every tile is a color2k call. Move your mouse to steer.</span>
+            <button type="button" id="motion" aria-pressed="false">Pause</button>
+            <a class="board-use" id="use-color" href="#themes">Theme this color</a>
           </p>
         </div>
       </div>
-      <div class="hero-stripes" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
-    </div>
-    <section class="gallery" aria-labelledby="gallery-title">
-      <div class="gallery-inner">
-        <div class="gallery-head">
-          <h2 id="gallery-title">Every function, live</h2>
+    </section>
+    <div class="ticker" aria-hidden="true"><div class="ticker-track">${ticker}</div></div>
+    <section class="studio" id="themes" aria-labelledby="themes-title">
+      <div class="studio-head">
+        <div class="studio-intro reveal">
+          <h2 id="themes-title">Pick a color. Get a theme.</h2>
           <p>
-            The real 2.4 kB library is running on this page. Drag a slider,
-            pick a color, or open your console and call <code>color2k</code>.
+            Paint on the strip, or drop in your brand color. Each theme below
+            is about 25 lines of color2k, and its text holds WCAG AA whatever
+            you pick.
           </p>
         </div>
-        <div class="gallery-controls needs-js" id="gallery-controls">
-          <div class="gallery-color">
-            <input type="color" id="gallery-picker" value="${escapeHtml(
-              galleryColor
+        <div class="studio-pad needs-js reveal">
+          <canvas id="studio-pad" width="72" height="9" role="img" aria-label="Color strip. Drag across it to paint a color."></canvas>
+          <i id="studio-thumb" hidden></i>
+        </div>
+      </div>
+      <div class="studio-bar needs-js">
+        <div class="studio-bar-inner">
+          <div class="studio-row">
+            <input type="color" id="studio-picker" value="${escapeHtml(
+              studioColor
             )}" aria-label="Pick a color" />
             <input
               type="text"
-              id="gallery-text"
-              value="${escapeHtml(galleryColor)}"
+              id="studio-text"
+              value="${escapeHtml(studioColor)}"
               aria-label="Any color string color2k can parse"
-              aria-describedby="gallery-error"
+              aria-describedby="studio-error"
               autocomplete="off"
               autocapitalize="off"
               spellcheck="false"
             />
-            ${galleryPresets
+            ${studioPresets
               .map(
-                (preset) =>
+                ({ name, color }) =>
                   `<button type="button" data-color="${escapeHtml(
-                    preset
-                  )}">${escapeHtml(preset)}</button>`
+                    color
+                  )}" style="--dot:${escapeHtml(color)}">${escapeHtml(name)}</button>`
               )
               .join('\n            ')}
           </div>
-          <div class="gallery-filters" role="group" aria-label="Show functions">
-            <button type="button" data-filter="" aria-pressed="true">All</button>
-            ${galleryGroups
-              .map(
-                (group) =>
-                  `<button type="button" data-filter="${escapeHtml(
-                    group
-                  )}" aria-pressed="false">${escapeHtml(group)}</button>`
-              )
-              .join('\n            ')}
-            <button type="button" class="motion-toggle needs-js" data-motion>Pause motion</button>
+          <p class="studio-error" id="studio-error" role="status"></p>
+        </div>
+      </div>
+      ${themes.map(renderTheme).join('\n      ')}
+    </section>
+    <section class="size" id="size" aria-labelledby="size-title">
+      <div class="size-inner">
+        <div class="size-head reveal">
+          <p class="size-big" aria-hidden="true">${sizes.rounded}<small>kB</small></p>
+          <div>
+            <h2 id="size-title">${sizes.rounded} kB is the whole thing.</h2>
+            <p>
+              That is all ${exportCount} exports, minified and gzipped:
+              ${sizes.bytes} bytes. Every color on this page is computed by
+              it, live, in your browser. Import a single function and you
+              ship about 1.6 kB, because nearly all of them share one parser.
+            </p>
           </div>
         </div>
-        <p class="gallery-error" id="gallery-error" role="status"></p>
+        <div class="size-grid">
+          <div class="size-bars reveal">
+            <h3>Next to the others</h3>
+            <ul>
+              ${comparison
+                .map(
+                  ({ name, size }) =>
+                    `<li${name === 'color2k' ? ' class="size-us"' : ''}><span>${escapeHtml(
+                      name
+                    )}</span><b>${size.toFixed(1)} kB</b><i style="--w:${(
+                      size / largest
+                    ).toFixed(3)}"></i></li>`
+                )
+                .join('\n              ')}
+            </ul>
+          </div>
+          <div class="size-each reveal">
+            <h3>One import, on its own</h3>
+            <ul>
+              ${sizes.exports
+                .map(({ name, size }) => `<li><code>${name}</code><span>${size}</span></li>`)
+                .join('\n              ')}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="gallery" id="functions" aria-labelledby="gallery-title">
+      <div class="gallery-inner">
+        <div class="gallery-head reveal">
+          <h2 id="gallery-title">All ${exportCount}, on your color.</h2>
+          <p>
+            These run on the color you picked above. Drag a slider to see what
+            each one returns. The library is in your console too, as
+            <code>color2k</code>.
+          </p>
+        </div>
+        <div class="gallery-filters needs-js" id="gallery-filters" role="group" aria-label="Show functions">
+          <button type="button" data-filter="" aria-pressed="true">All</button>
+          ${galleryGroups
+            .map(
+              (group) =>
+                `<button type="button" data-filter="${escapeHtml(
+                  group
+                )}" aria-pressed="false">${escapeHtml(group)}</button>`
+            )
+            .join('\n          ')}
+        </div>
         <ul class="demos" id="gallery">${galleryHtml}</ul>
       </div>
     </section>

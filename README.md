@@ -1,12 +1,12 @@
 <p align="center">
   <a href="https://color2k.com">
-    <img src="./docs/readme/banner.svg" alt="color2k: color parsing and manipulation in 2.4 kB. An animated palette, computed by color2k, drifts around the color wheel." width="100%" />
+    <img src="./docs/readme/banner.svg" alt="color2k. Every color job your UI needs, in 2.4 kB. A palette computed by color2k drifts around the color wheel." width="100%" />
   </a>
 </p>
 
 <p align="center">
-  <strong>Color parsing and manipulation in 2.4 kB.</strong><br />
-  Zero dependencies. Tree-shakeable. TypeScript included.
+  <strong>Every color job your UI needs, in 2.4 kB.</strong><br />
+  No dependencies. Types included.
 </p>
 
 <p align="center">
@@ -27,12 +27,33 @@
 
 ## Why color2k
 
-Most apps need a handful of color jobs: darken a brand color for a hover state, fade it for a focus ring, pick black or white text, check contrast. color2k does those jobs and nothing else, so it costs almost nothing to ship.
+You have a brand color. You need its hover state, a faded version for the focus ring, and to know whether the text on top should be black or white. That is most of what an app does with color, and color2k does it in 2.4 kB.
 
-- **Tiny.** 2.4 kB for everything, about 1.6 kB if you only import `darken`.
-- **Plain functions.** CSS color strings go in, CSS color strings come out. No classes, no chaining, no plugins.
-- **Everything you reach for.** Parse, convert, lighten, darken, saturate, fade, mix, build scales and check WCAG contrast.
-- **Safe to depend on.** Zero dependencies, a thorough test suite, TypeScript types and npm provenance.
+- **It's small.** All 23 exports come to 2.4 kB. Import only `darken` and you ship 1.6 kB.
+- **It's just functions.** Pass a CSS color string and get one back. There is nothing to set up or chain.
+- **It covers the daily work.** Parse and convert colors, lighten or darken them, mix them, build scales and check WCAG contrast.
+- **It's boring to depend on.** No dependencies, a test file for every function, TypeScript types and npm provenance. The build still runs on Node 6.
+
+### What it costs
+
+<!-- SIZES-START -->
+All 23 exports together are **2.36 kB**, minified and gzipped. Import one and this is what lands in your bundle:
+
+| Import | Alone | Import | Alone | Import | Alone |
+| --- | --- | --- | --- | --- | --- |
+| `getScale` | 1.68 kB | `mix` | 1.62 kB | `transparentize` | 1.52 kB |
+| `saturate` | 1.66 kB | `getContrast` | 1.57 kB | `toRgba` | 1.51 kB |
+| `lighten` | 1.66 kB | `parseToHsla` | 1.57 kB | `parseToRgba` | 1.45 kB |
+| `adjustHue` | 1.65 kB | `readableColor` | 1.57 kB | `hsla` | 288 B |
+| `desaturate` | 1.65 kB | `readableColorIsBlack` | 1.56 kB | `rgba` | 277 B |
+| `darken` | 1.64 kB | `getLuminance` | 1.54 kB | `ColorError` | 244 B |
+| `toHsla` | 1.64 kB | `opacify` | 1.53 kB | `guard` | 221 B |
+| `hasBadContrast` | 1.63 kB | `toHex` | 1.52 kB |  |  |
+
+The parser is about 1.4 kB and nearly every function needs it. So the first import costs the most, and each one after it adds very little. `scripts/sizes.js` measures these with Rollup, Terser and gzip, and CI fails if they change without the table.
+<!-- SIZES-END -->
+
+### Next to the others
 
 | Library | Size (min + gzip) |
 | --- | --- |
@@ -43,7 +64,7 @@ Most apps need a handful of color jobs: darken a brand color for a hover state, 
 | [colord](https://github.com/omgovich/colord) with the names, mix and a11y plugins | 4.9 kB |
 | **color2k** | [**2.4 kB**](https://bundlephobia.com/package/color2k) |
 
-Sizes are from Bundlephobia in November 2026. colord's 2.3 kB core has no named colors, mixing or contrast checks, so it is measured (with esbuild) with the plugins that match what color2k does.
+These come from Bundlephobia, November 2026. colord's core is 2.3 kB without named colors, mixing or contrast checks, so its row is measured (with esbuild) with the plugins that cover what color2k does.
 
 ## Quickstart
 
@@ -60,9 +81,9 @@ readableColor('gold'); // '#000'
 toHex('rgb(102, 51, 153)'); // '#663399'
 ```
 
-That is the whole idea. Every function takes a color as a CSS string and every amount is a decimal between 0 and 1.
+Colors go in as CSS strings. Amounts are decimals from 0 to 1.
 
-color2k ships ES modules, CommonJS and a UMD build, so it also works without a bundler.
+color2k ships ES modules, CommonJS and a UMD build, so it works without a bundler too.
 
 In Node.js with `require`:
 
@@ -88,11 +109,173 @@ Or as a global named `color2k`:
 
 ## Recipes
 
-Every example here runs against the built package in CI, and the picture under each one is drawn from the values that code produced. What you copy is what works.
+Every example here runs against the built package in CI. The picture under each one is drawn from what that code returned, so the two can't disagree.
 
-### Theme from one brand color
+### A whole theme from one color
 
-Derive hover, active, subtle and focus colors instead of hard-coding them.
+Pick a color and let color2k work out the rest. These are the three themes on [color2k.com](https://color2k.com), where you can paint with them. Each one takes a color and returns the same thirteen tokens, for light or dark.
+
+**Soft** keeps the hue and throws away the rest. Every token is that hue at a chosen lightness, so the page reads as one pastel wash. The second color is its neighbor on the wheel, 40 degrees along.
+
+```js
+import {
+  adjustHue,
+  hsla,
+  mix,
+  parseToHsla,
+  readableColor,
+  toHex,
+  transparentize,
+} from 'color2k';
+
+function softTheme(color, dark = false) {
+  const [hue] = parseToHsla(color);
+  const tone = (lightness, saturation) => toHex(hsla(hue, saturation, lightness, 1));
+  const bg = dark ? tone(0.13, 0.3) : tone(0.97, 0.8);
+  const text = dark ? tone(0.93, 0.6) : tone(0.2, 0.4);
+  const accent = dark ? tone(0.78, 0.75) : tone(0.74, 0.85);
+  const onAccent = dark ? tone(0.15, 0.4) : tone(0.2, 0.4);
+
+  return {
+    bg,
+    surface: dark ? tone(0.18, 0.3) : '#ffffff',
+    border: dark ? tone(0.28, 0.3) : tone(0.9, 0.6),
+    text,
+    muted: dark ? tone(0.74, 0.35) : tone(0.36, 0.3),
+    onSurface: text,
+    accent,
+    accentHover: toHex(mix(accent, readableColor(onAccent), 0.15)),
+    onAccent,
+    soft: toHex(mix(accent, bg, 0.72)),
+    onSoft: text,
+    ring: transparentize(accent, 0.45),
+    extra: toHex(adjustHue(accent, 40)),
+  };
+}
+
+const light = softTheme('#ff8fb8');
+const dark = softTheme('#ff8fb8', true);
+
+light.accent; // '#f584ae'
+light.text; // '#471f2e'
+```
+
+<!-- RESULT: theme { light, dark, build: softTheme } -->
+<p><img src="./docs/readme/a-whole-theme-from-one-color.svg" width="840" alt="light bg: #fdf1f6; light surface: #ffffff; light border: #f5d6e1; light text: #471f2e; light muted: #774054; light onSurface: #471f2e; light accent: #f584ae; light accentHover: #f796ba; light onAccent: #471f2e; light soft: #fbd2e2; light onSoft: #471f2e; light ring: rgba(245, 132, 174, 0.55); light extra: #f5a684; dark bg: #2b171e; dark surface: #3c202a; dark border: #5d3242; dark text: #f8e2ea; dark muted: #d4a5b7; dark onSurface: #f8e2ea; dark accent: #f19dbc; dark accentHover: #f3acc6; dark onAccent: #361722; dark soft: #623d4a; dark onSoft: #f8e2ea; dark ring: rgba(241, 157, 188, 0.55); dark extra: #f1b69d" /></p>
+<!-- RESULT-END -->
+
+**Serious** drains the color out. The page is built from grays that keep 8% of the hue, and the color itself shows up once, on the thing you want clicked.
+
+```js
+import {
+  desaturate,
+  hsla,
+  mix,
+  parseToHsla,
+  readableColor,
+  toHex,
+  transparentize,
+} from 'color2k';
+
+function seriousTheme(color, dark = false) {
+  const [hue] = parseToHsla(color);
+  const gray = (lightness) => toHex(desaturate(hsla(hue, 1, lightness, 1), 0.92));
+  const bg = dark ? gray(0.1) : gray(0.98);
+  const text = dark ? gray(0.93) : gray(0.13);
+  const accent = toHex(hsla(hue, 0.7, dark ? 0.66 : 0.42, 1));
+  const onAccent = readableColor(accent);
+
+  return {
+    bg,
+    surface: dark ? gray(0.14) : '#ffffff',
+    border: dark ? gray(0.24) : gray(0.88),
+    text,
+    muted: dark ? gray(0.68) : gray(0.4),
+    onSurface: text,
+    accent,
+    accentHover: toHex(mix(accent, readableColor(onAccent), 0.15)),
+    onAccent,
+    soft: toHex(mix(accent, bg, 0.86)),
+    onSoft: text,
+    ring: transparentize(accent, 0.6),
+    extra: dark ? gray(0.3) : gray(0.8),
+  };
+}
+
+const light = seriousTheme('#3b5bdb');
+const dark = seriousTheme('#3b5bdb', true);
+
+light.accent; // '#203eb6'
+light.bg; // '#f9fafa'
+```
+
+<!-- RESULT: theme { light, dark, build: seriousTheme } -->
+<p><img src="./docs/readme/a-whole-theme-from-one-color-2.svg" width="840" alt="light bg: #f9fafa; light surface: #ffffff; light border: #dedfe3; light text: #1e2024; light muted: #5e616e; light onSurface: #1e2024; light accent: #203eb6; light accentHover: #1b359b; light onAccent: #fff; light soft: #dbe0f0; light onSoft: #1e2024; light ring: rgba(32, 62, 182, 0.4); light extra: #c8cad0; dark bg: #17181c; dark surface: #212227; dark border: #383a42; dark text: #ececef; dark muted: #a7a9b4; dark onSurface: #ececef; dark accent: #6c84e5; dark accentHover: #8296e9; dark onAccent: #000; dark soft: #232738; dark onSoft: #ececef; dark ring: rgba(108, 132, 229, 0.4); dark extra: #464953" /></p>
+<!-- RESULT-END -->
+
+**Bold** uses your color as the page. Text is whichever of black or white reads on it, and the button is the color on the opposite side of the wheel.
+
+```js
+import {
+  adjustHue,
+  mix,
+  readableColor,
+  saturate,
+  toHex,
+  transparentize,
+} from 'color2k';
+
+function boldTheme(color, dark = false) {
+  const brand = toHex(saturate(color, 0.15));
+  const bg = dark ? toHex(mix(brand, 'black', 0.82)) : brand;
+  const text = readableColor(bg);
+  const surface = dark ? brand : text;
+  const accent = toHex(adjustHue(brand, 180));
+  const onAccent = readableColor(accent);
+
+  return {
+    bg,
+    surface,
+    border: text,
+    text,
+    muted: text,
+    onSurface: dark ? readableColor(brand) : brand,
+    accent,
+    accentHover: toHex(mix(accent, readableColor(onAccent), 0.15)),
+    onAccent,
+    soft: text,
+    onSoft: bg,
+    ring: transparentize(accent, 0.4),
+    extra: toHex(adjustHue(brand, 90)),
+  };
+}
+
+const light = boldTheme('#ffd60a');
+const dark = boldTheme('#ffd60a', true);
+
+light.accent; // '#0a33ff'
+light.text; // '#000'
+```
+
+<!-- RESULT: theme { light, dark, build: boldTheme } -->
+<p><img src="./docs/readme/a-whole-theme-from-one-color-3.svg" width="840" alt="light bg: #ffd60a; light surface: #000; light border: #000; light text: #000; light muted: #000; light onSurface: #ffd60a; light accent: #0a33ff; light accentHover: #092bd9; light onAccent: #fff; light soft: #000; light onSoft: #ffd60a; light ring: rgba(10, 51, 255, 0.6); light extra: #0aff5c; dark bg: #2e2702; dark surface: #ffd60a; dark border: #fff; dark text: #fff; dark muted: #fff; dark onSurface: #000; dark accent: #0a33ff; dark accentHover: #092bd9; dark onAccent: #fff; dark soft: #fff; dark onSoft: #2e2702; dark ring: rgba(10, 51, 255, 0.6); dark extra: #0aff5c" /></p>
+<!-- RESULT-END -->
+
+The text pairs in all three (text on background, text on a card, the button label, the chip) hold WCAG AA for any color you pass. The build sweeps a few hundred colors through each one to check.
+
+A theme is a plain object of strings, so putting it on the page is a loop:
+
+```js
+const tokens = { bg: '#fdf1f6', text: '#471f2e', accent: '#f584ae' };
+
+for (const [name, value] of Object.entries(tokens)) {
+  globalThis.document?.documentElement.style.setProperty(`--${name}`, value);
+}
+```
+
+### Hover, active and focus states
+
+Work them out from the brand color so you never hard-code them again.
 
 ```js
 import { darken, readableColor, transparentize } from 'color2k';
@@ -116,30 +299,12 @@ theme.onBrand; // '#fff'
 ```
 
 <!-- RESULT: swatches theme -->
-<p><img src="./docs/readme/theme-from-one-brand-color.svg" width="748" alt="brand: rebeccapurple; brandHover: hsla(270, 50%, 34%, 1); brandActive: hsla(270, 50%, 28%, 1); brandSubtle: rgba(102, 51, 153, 0.12); focusRing: rgba(102, 51, 153, 0.4); onBrand: #fff" /></p>
-<!-- RESULT-END -->
-
-Turn a theme into CSS custom properties:
-
-```js
-import { darken, transparentize } from 'color2k';
-
-const variables = {
-  '--brand': 'tomato',
-  '--brand-hover': darken('tomato', 0.06),
-  '--focus-ring': transparentize('tomato', 0.6),
-};
-
-for (const [name, value] of Object.entries(variables)) {
-  globalThis.document?.documentElement.style.setProperty(name, value);
-}
-```
-
-<!-- RESULT: swatches variables -->
-<p><img src="./docs/readme/theme-from-one-brand-color-2.svg" width="520" alt="--brand: tomato; --brand-hover: hsla(9, 100%, 58%, 1); --focus-ring: rgba(255, 99, 71, 0.4)" /></p>
+<p><img src="./docs/readme/hover-active-and-focus-states.svg" width="748" alt="brand: rebeccapurple; brandHover: hsla(270, 50%, 34%, 1); brandActive: hsla(270, 50%, 28%, 1); brandSubtle: rgba(102, 51, 153, 0.12); focusRing: rgba(102, 51, 153, 0.4); onBrand: #fff" /></p>
 <!-- RESULT-END -->
 
 ### Readable text on any background
+
+`readableColor` answers black or white. `readableColorIsBlack` gives you the same answer as a boolean, for when you have your own ink and paper colors.
 
 ```js
 import { readableColor, readableColorIsBlack } from 'color2k';
@@ -188,9 +353,9 @@ hasBadContrast('gold', 'aa', 'midnightblue'); // false
 <p><img src="./docs/readme/contrast-checks.svg" width="624" alt="Aa Text: #767676 on white, contrast 4.54:1 (AA); Aa Text: #999 on white, contrast 2.85:1 (fails AA); Aa Text: gold on midnightblue, contrast 10.59:1 (AAA)" /></p>
 <!-- RESULT-END -->
 
-Both functions ignore alpha and do not clamp, so give them opaque, in-range colors. A see-through color has no contrast ratio of its own (it depends on what is behind it), and `getContrast('rgb(999, 0, 0)', 'black')` is a meaningless 103.
+Both functions ignore alpha and do not clamp, so give them opaque, in-range colors. A see-through color has no contrast ratio of its own, because it depends on what is behind it. `getContrast('rgb(999, 0, 0)', 'black')` is a meaningless 103.
 
-Nudge a color until it passes AA on its background. The color is flattened onto the (opaque) background first, so a see-through color is measured as it will be seen:
+To nudge a color until it passes AA, flatten it onto the background first. Then a see-through color is measured the way it will be seen:
 
 ```js
 import {
@@ -236,7 +401,7 @@ const fromGlass = accessible('rgba(77, 171, 247, 0.5)'); // '#0b75cb'
 
 ### Color scales
 
-`getScale` takes two or more colors and returns a function. Give it a number from 0 to 1 and it gives you the color at that point.
+`getScale` takes two or more colors and hands back a function. Give that function a number from 0 to 1 and you get the color at that point.
 
 ```js
 import { getScale, toHex } from 'color2k';
@@ -276,7 +441,7 @@ const shade = toHex(mix(base, 'black', 0.4)); // '#3d1f5c'
 
 ### Tailwind palette
 
-Generate a 50 to 950 palette from one color, then use it in a Tailwind config or as `@theme` variables.
+One color in, a 50 to 950 palette out. Use it in a Tailwind config or paste it into `@theme`.
 
 ```js
 import { getScale, toHex } from 'color2k';
@@ -311,7 +476,7 @@ const variables = Object.entries(brand)
 
 ### CSS-in-JS
 
-color2k was built for this. The functions that adjust, mix and convert colors return plain CSS color strings, so their results drop straight into a template.
+This is what color2k was written for. The functions that adjust, mix and convert colors return plain CSS strings, so they drop straight into a template.
 
 ```jsx
 import styled from 'styled-components';
@@ -385,7 +550,7 @@ parseToHsla('tomato'); // [9.130434782608695, 1, 0.6392156862745098, 1]
 <p><img src="./docs/readme/convert-between-formats.svg" width="541" alt="hex: #0080ff; rgb: rgba(0, 128, 255, 1); hsl: hsla(210, 100%, 50%, 1)" /></p>
 <!-- RESULT-END -->
 
-Build a color string from numbers with `rgba` and `hsla`:
+Going the other way, `rgba` and `hsla` build a color string from numbers:
 
 ```js
 import { hsla, rgba } from 'color2k';
@@ -400,7 +565,7 @@ const sky = hsla(210, 1, 0.5, 1); // 'hsla(210, 100%, 50%, 1)'
 
 ### Check what color2k accepts
 
-color2k throws a `ColorError` when it can't parse a string, so a `try` tells you whether color2k will take it:
+color2k throws a `ColorError` when it can't parse a string, so a `try` tells you whether it will take one:
 
 ```js
 import { ColorError, parseToRgba } from 'color2k';
@@ -429,12 +594,12 @@ canParse('rgb(999, 0, 0)'); // true
 <p><img src="./docs/readme/check-what-color2k-accepts.svg" width="772" alt="#0d6efd: parses; rgb(13, 110, 253): parses; rgb(13 110 253): throws; #12345: throws" /></p>
 <!-- RESULT-END -->
 
-This is not a CSS validator. The parser is small and loose on purpose:
+Don't use this as a CSS validator. The parser is small and loose on purpose:
 
 - Channel and alpha values are not range-checked. `rgb(999, 0, 0)` parses as it is written, and a malformed alpha such as `rgba(1, 2, 3, .)` parses to `NaN`.
 - Named colors are stored as hashes to save bytes, so about 3% of made-up words are accepted as if they were a color name.
 
-If you need real validation, do it with your own rules or an allow-list before calling color2k. `CSS.supports('color', value)` is not a substitute: browsers accept forms color2k rejects, such as `rgb(13 110 253)`, so a string can pass there and still throw here.
+If you need real validation, do it with your own rules or an allow-list before calling color2k. `CSS.supports('color', value)` won't do it either. Browsers accept forms color2k rejects, such as `rgb(13 110 253)`, so a string can pass there and still throw here.
 
 ### Invert and complement
 
@@ -459,7 +624,7 @@ const complement = adjustHue(original, 180); // 'hsla(36, 98%, 52%, 1)'
 
 ## Supported colors
 
-color2k works in sRGB and parses the color syntax that every browser has supported for years.
+color2k works in sRGB and reads the color syntax every browser has understood for years.
 
 | Input | Examples |
 | --- | --- |
@@ -469,16 +634,16 @@ color2k works in sRGB and parses the color syntax that every browser has support
 | Named colors, in any letter case | `red`, `rebeccapurple`, `PapayaWhip` |
 | `transparent` | `transparent` |
 
-Whitespace around a color is ignored. A string in none of these forms throws a `ColorError`, with two caveats: about 3% of made-up names are read as some color, and the numbers inside `rgb()` are not range-checked or clamped. See [Check what color2k accepts](#check-what-color2k-accepts).
+Whitespace around a color is ignored. A string in none of these forms throws a `ColorError`, with two caveats. About 3% of made-up names are read as some color, and the numbers inside `rgb()` are not range-checked or clamped. See [Check what color2k accepts](#check-what-color2k-accepts).
 
 | Output | Returned by |
 | --- | --- |
 | `hsla()` string | `darken`, `lighten`, `saturate`, `desaturate`, `adjustHue`, `toHsla`, `hsla` |
-| `rgba()` string | `transparentize`, `opacify`, `mix`, `getScale`, `toRgba`, `rgba` |
+| `rgba()` string | `transparentize`, `opacify`, `mix`, `toRgba`, `rgba`, and the function `getScale` returns |
 | Hex string | `toHex` |
 | `'#000'` or `'#fff'` | `readableColor` |
 
-These strings can be passed back in, so wrap one in `toHex`, `toRgba` or `toHsla` to get the format you want. The one exception is an `adjustHue` result with a negative hue; see [Known edges](#known-edges). The other functions return numbers, tuples, booleans or, for `getScale`, a function.
+You can pass these strings back in, so wrap one in `toHex`, `toRgba` or `toHsla` to get the format you want. The one exception is an `adjustHue` result with a negative hue, covered under [Known edges](#known-edges). The other functions return numbers, tuples or booleans.
 
 Not supported yet:
 
@@ -488,7 +653,7 @@ Not supported yet:
 
 ### Known edges
 
-- `hsla()` output is rounded to whole degrees and percents, so converting to HSL and back can move a channel by a step or two. `toHex(lighten('#ffb537', 0))` is `#ffb638`. Keep the original string when you need the exact color back.
+- `hsla()` output is rounded to whole degrees and percents, so a trip to HSL and back can move a channel by a step or two. `toHex(lighten('#ffb537', 0))` is `#ffb638`. Keep the original string when you need the exact color back.
 - `adjustHue` does not wrap a hue that goes below 0. When the color's own hue plus the degrees is negative, the result has a negative hue: `adjustHue('red', -120)` is `hsla(-120, 100%, 50%, 1)`. Browsers accept that, but color2k throws a `ColorError` if you pass it back in. `adjustHue('blue', -120)` is fine, because blue's hue is 240. This is a known bug. Until it is fixed, add 360 to a negative angle: `adjustHue('red', 240)`.
 - Out-of-range numbers are not clamped on the way in. `rgb(999, 0, 0)` parses as written, and `getContrast` or `getLuminance` on it return numbers outside their normal range.
 - Contrast functions ignore alpha. Flatten a see-through color onto its background first, as the `accessible` recipe does.
@@ -497,12 +662,12 @@ Not supported yet:
 
 ## For AI agents
 
-The docs are published as plain Markdown for language models and coding agents:
+If you're a model, or you're pointing one at this library, the docs come as plain Markdown:
 
 - [color2k.com/llms.txt](https://color2k.com/llms.txt) is a short index in the [llms.txt](https://llmstxt.org) format.
-- [color2k.com/llms-full.txt](https://color2k.com/llms-full.txt) is all of these docs, recipes and API included, in one file.
+- [color2k.com/llms-full.txt](https://color2k.com/llms-full.txt) is everything on this page in one file, with each recipe's result written out as text.
 
-Both are generated from the README and the JSDoc comments in `src`, and the same JSDoc ships in the package's type definitions, so your editor shows it too. The rules that matter when writing code with color2k:
+Both are built from this README and the JSDoc in `src`. The same JSDoc ships in the type definitions, so it shows up in your editor. These are the rules that matter when you write code with color2k:
 
 <!-- AGENT-NOTES-START -->
 - Install with `npm i color2k`. Use named imports: `import { darken, toHex } from 'color2k'`. There is no default export and no chaining.
@@ -521,30 +686,30 @@ Both are generated from the README and the JSDoc comments in `src`, and the same
 
 ## How it stays small
 
-- **It does less.** Only the color functions that apps use every day, in sRGB.
-- **Two output formats.** Results are `rgba()` or `hsla()` strings, which every browser understands, plus `toHex` when you need hex. That removes the code other libraries spend on optional alpha channels and extra color models.
-- **A compressed color-name table.** The 148 CSS named colors are stored as a hashed string instead of a lookup object.
-- **No shared state.** Each function is its own module, so bundlers drop what you don't import.
+- **It does less.** color2k has the color functions apps use every day, in sRGB, and stops there.
+- **Two output formats.** Results come back as `rgba()` or `hsla()` strings, which every browser reads, and `toHex` covers the rest. That skips the code other libraries spend on optional alpha channels and extra color models.
+- **A squeezed color-name table.** The 148 CSS color names are stored as one hashed string of 740 characters. A plain lookup object would be several times that.
+- **One function per file.** Nothing is shared but the parser, so your bundler drops whatever you don't import.
 
-Missing something? [Open an issue](https://github.com/ricokahler/color2k/issues/new/choose).
+Missing something you need? [Open an issue](https://github.com/ricokahler/color2k/issues/new/choose).
 
 ## Trust and publishing
 
-- Zero runtime dependencies.
-- The published package contains only `dist`, `README.md`, `LICENSE` and `package.json`.
-- Releases are published from GitHub Actions with npm provenance through trusted publishing.
-- The README, website and llms files are generated from the JSDoc comments in `src`, and CI fails if they drift.
-- Report security issues through the process in [SECURITY.md](https://github.com/ricokahler/color2k/blob/main/SECURITY.md).
+- No runtime dependencies.
+- The published package holds `dist`, `README.md`, `LICENSE` and `package.json`.
+- Releases go out from GitHub Actions with npm provenance, through trusted publishing.
+- The README, the website and the llms files are built from the JSDoc in `src`. CI fails if they drift.
+- Found a security problem? [SECURITY.md](https://github.com/ricokahler/color2k/blob/main/SECURITY.md) says how to report it.
 
 ## Contributing
 
-Issues and pull requests are welcome. [CONTRIBUTING.md](https://github.com/ricokahler/color2k/blob/main/CONTRIBUTING.md) covers the setup, and [AGENTS.md](https://github.com/ricokahler/color2k/blob/main/AGENTS.md) has the same rules for coding agents.
+Issues and pull requests are welcome. [CONTRIBUTING.md](https://github.com/ricokahler/color2k/blob/main/CONTRIBUTING.md) gets you set up, and [AGENTS.md](https://github.com/ricokahler/color2k/blob/main/AGENTS.md) has the same rules for coding agents.
 
 ## Credits
 
-Heavy credit goes to [polished](https://github.com/styled-components/polished) and [Sass](https://sass-lang.com). Much of the implementation of this lib is copied from polished.
+color2k owes a lot to [polished](https://github.com/styled-components/polished) and [Sass](https://sass-lang.com). Much of the implementation is copied from polished.
 
-Thanks to everyone who has contributed:
+Thanks to everyone who has pitched in:
 
 - [@delucis](https://github.com/delucis) (Chris Swithinbank) made `mix` return valid colors when one side is transparent at the ends of the weight range ([#409](https://github.com/ricokahler/color2k/pull/409)).
 - [@Myndex](https://github.com/Myndex) corrected the luminance threshold that `readableColor` uses to pick black or white ([#472](https://github.com/ricokahler/color2k/pull/472)).

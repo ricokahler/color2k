@@ -25,14 +25,43 @@ interface Heading {
   level: number;
 }
 
-const GALLERY_COLOR = '#5e60ce';
-const GALLERY_PRESETS = [
-  'tomato',
-  'gold',
-  '#2ec4b6',
-  'rebeccapurple',
-  'hsl(210, 100%, 50%)',
+const { minify } = require('terser');
+
+// The color the page opens on, and the favorites next to the picker.
+const STUDIO_COLOR = '#ff8fb8';
+const STUDIO_PRESETS = [
+  { name: 'Blush', color: '#ff8fb8' },
+  { name: 'Lilac', color: '#b69cff' },
+  { name: 'Butter', color: '#ffd966' },
+  { name: 'Mint', color: '#6fe0c0' },
+  { name: 'Sky', color: '#6cb8ff' },
+  { name: 'Tomato', color: 'tomato' },
+  { name: 'Ink', color: '#1f2a44' },
 ];
+const THEMES = [
+  {
+    key: 'soft',
+    name: 'Soft',
+    builder: 'softTheme',
+    how: 'One hue, many lightnesses. The page reads as a single pastel wash, and the second color is its neighbor on the wheel.',
+    uses: ['hsla', 'mix', 'adjustHue'],
+  },
+  {
+    key: 'serious',
+    name: 'Serious',
+    builder: 'seriousTheme',
+    how: 'Grays that keep 8% of your hue, so the page feels like yours without shouting. The color shows up once, on the button.',
+    uses: ['desaturate', 'readableColor', 'transparentize'],
+  },
+  {
+    key: 'bold',
+    name: 'Bold',
+    builder: 'boldTheme',
+    how: 'Your color is the page. Text is black or white, whichever reads, and the button comes from the far side of the wheel.',
+    uses: ['saturate', 'adjustHue', 'readableColor'],
+  },
+];
+const FIELD_COLUMNS = 24;
 
 function repoPath(...parts: string[]) {
   return path.resolve(__dirname, '..', ...parts);
@@ -172,7 +201,15 @@ async function renderMarkdown(markdown: string) {
   md.renderer.rules.table_open = () => '<div class="table-scroll"><table>\n';
   md.renderer.rules.table_close = () => '</table></div>\n';
 
-  return { html: md.render(markdown) as string, headings };
+  // The theme code on the home page sits on dark cards in both color schemes.
+  const highlight = (code: string) =>
+    highlighter.codeToHtml(code, {
+      lang: 'javascript',
+      theme: 'github-dark',
+      colorReplacements,
+    }) as string;
+
+  return { html: md.render(markdown) as string, headings, highlight };
 }
 
 /** Sections, with the recipes and API entries nested under theirs. */
@@ -240,28 +277,91 @@ function getHeaders() {
   ].join('\n');
 }
 
-/** The page's script: the demos, started with the library's global. */
-function getSiteScript() {
-  return fs
+/**
+ * The theme builders, lifted out of the README recipes that define them. The
+ * site shows this exact text and runs it, so the page, the README and the
+ * tests are all looking at one piece of code.
+ */
+function getThemeSources(readme: string) {
+  return THEMES.map((theme) => {
+    const match = new RegExp(
+      `^function ${theme.builder}\\([\\s\\S]*?^}$`,
+      'm'
+    ).exec(readme);
+    if (!match) throw new Error(`README.md has no ${theme.builder} recipe`);
+    return { ...theme, source: match[0] };
+  });
+}
+
+/** `var darken = color2k.darken, ...` for code written with imports. */
+const scope = `var ${Object.keys(color2k)
+  .map((name) => `${name} = color2k.${name}`)
+  .join(', ')};`;
+
+function buildTheme(source: string, builder: string) {
+  return new Function('color2k', `${scope}\n${source}\nreturn ${builder};`)(
+    color2k
+  ) as (color: string, dark?: boolean) => { [token: string]: string };
+}
+
+async function minifyScript(code: string) {
+  const result = await minify(code, { compress: { passes: 2 }, mangle: true });
+  return `${result.code}\n`;
+}
+
+/** The page's script: the themes, the demos, and one call to start them. */
+function getSiteScript(themes: Array<{ key: string; builder: string; source: string }>) {
+  const showcaseSource = fs
     .readFileSync(path.resolve(__dirname, './showcase.js'), {
       encoding: 'utf8',
     })
-    .replace(
-      /\nif \(typeof module[^\n]*\n?$/,
-      '\nshowcase.start(color2k);\n'
-    );
+    .replace(/\nif \(typeof module[^\n]*\n?$/, '\n');
+
+  return minifyScript(
+    [
+      '(function () {',
+      scope,
+      ...themes.map(({ source }) => source),
+      showcaseSource,
+      `showcase.start(color2k, { ${themes
+        .map(({ key, builder }) => `${key}: ${builder}`)
+        .join(', ')} });`,
+      '})();',
+    ].join('\n')
+  );
 }
 
-/** The UMD build, served as `/color2k.js` for the demos. */
+/** The UMD build, minified, served as `/color2k.js`. It runs the whole page. */
 function getBrowserBundle() {
   const bundle = repoPath('dist/index.unpkg.umd.js');
   if (!fs.existsSync(bundle)) {
     execFileSync(repoPath('scripts/build'), { cwd: repoPath(), stdio: 'inherit' });
   }
-  return fs
-    .readFileSync(bundle, { encoding: 'utf8' })
-    .replace(/\n\/\/# sourceMappingURL=.*\n?$/, '\n');
+  return minifyScript(
+    fs
+      .readFileSync(bundle, { encoding: 'utf8' })
+      .replace(/\n\/\/# sourceMappingURL=.*\n?$/, '\n')
+  );
 }
+
+/** The "Next to the others" table in the README, as numbers. */
+function getComparison(readme: string) {
+  const start = readme.indexOf('### Next to the others');
+  const rows = Array.from(
+    readme
+      .slice(start, readme.indexOf('\n## ', start))
+      .matchAll(/^\| (.+?) \| .*?([\d.]+) kB.*\|$/gm),
+    ([, label, size]) => ({
+      name: label.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/\*\*/g, ''),
+      size: Number(size),
+    })
+  );
+  if (rows.length < 4) throw new Error('Could not read the size comparison');
+  return rows;
+}
+
+const formatBytes = (bytes: number) =>
+  bytes < 1000 ? `${bytes} B` : `${(bytes / 1000).toFixed(2)} kB`;
 
 function getStructuredData() {
   const pkg = JSON.parse(
@@ -305,10 +405,15 @@ async function render() {
     fs.readFileSync(repoPath('package.json'), { encoding: 'utf8' })
   );
   // The README's logo and badges are for GitHub and npm; the site has a hero.
-  const { html: bodyHtml, headings } = await renderMarkdown(
+  const { html: bodyHtml, headings, highlight } = await renderMarkdown(
     inlineResults(getReadmeBody(readme))
   );
   const groups = getGroupedDocs();
+  const sizes = JSON.parse(
+    fs.readFileSync(repoPath('docs/sizes.json'), { encoding: 'utf8' })
+  );
+  const themes = getThemeSources(readme);
+  const browserBundle = await getBrowserBundle();
   const buildFolder = repoPath('build');
 
   await fs.promises.rm(buildFolder, { recursive: true, force: true });
@@ -321,10 +426,14 @@ async function render() {
     'index.html',
     template({
       bodyHtml,
+      chip: showcase.heroChip(color2k),
+      comparison: getComparison(readme),
       css,
       description: pkg.description,
-      exportCount: getAllDocs().filter(({ kind }) => kind === 'function').length,
-      galleryColor: GALLERY_COLOR,
+      exportCount: getAllDocs().length,
+      fieldColumns: FIELD_COLUMNS,
+      fieldRows: showcase.fieldRows(),
+      fieldSvg: showcase.fieldSvg(color2k, FIELD_COLUMNS),
       galleryGroups: groups.map(({ title }) => title),
       galleryHtml: showcase.galleryHtml(
         color2k,
@@ -333,19 +442,40 @@ async function render() {
           items: docs.map((doc) => ({
             name: doc.functionName,
             link: `#${slugify(getDisplayName(doc))}`,
+            size: formatBytes(sizes.exports[doc.functionName]),
           })),
         })),
-        GALLERY_COLOR
+        STUDIO_COLOR
       ),
-      galleryPresets: GALLERY_PRESETS,
-      heroHtml: showcase.heroHtml(color2k),
+      sizes: {
+        all: formatBytes(sizes.all),
+        bytes: sizes.all.toLocaleString('en-US'),
+        rounded: (sizes.all / 1000).toFixed(1),
+        exports: Object.entries(sizes.exports as { [name: string]: number })
+          .sort((one, other) => other[1] - one[1])
+          .map(([name, bytes]) => ({ name, size: formatBytes(bytes) })),
+      },
       structuredData: getStructuredData(),
+      studioColor: STUDIO_COLOR,
+      studioPresets: STUDIO_PRESETS,
+      themes: themes.map((theme) => {
+        const build = buildTheme(theme.source, theme.builder);
+        const light = build(STUDIO_COLOR, false);
+        return {
+          ...theme,
+          codeHtml: highlight(theme.source),
+          lightStyle: showcase.tokenStyle(light),
+          darkStyle: showcase.tokenStyle(build(STUDIO_COLOR, true)),
+          ratios: showcase.themeRatios(color2k, light),
+          tokens: Object.keys(light),
+        };
+      }),
       toc: getToc(headings),
     })
   );
   await write('_headers', getHeaders());
-  await write('color2k.js', getBrowserBundle());
-  await write('site.js', getSiteScript());
+  await write('color2k.js', browserBundle);
+  await write('site.js', await getSiteScript(themes));
   await write('llms.txt', generateLlmsTxt(readme, pkg));
   await write('llms-full.txt', generateLlmsFullTxt(readme, pkg));
 

@@ -22,7 +22,7 @@ example, builds and checks the website, and inspects the npm package contents.
 | --- | --- |
 | `npm test` | Runs the Jest tests. Add `-- --watch` while you work. |
 | `npm run build` | Builds `dist` with Rollup and emits type declarations. |
-| `npm run docs:generate` | Rewrites the README's API section from JSDoc, and its banner and recipe pictures (needs a build). |
+| `npm run docs:generate` | Rewrites the README's API section from JSDoc, its size table, and its banner and recipe pictures (needs a build). |
 | `npm run examples:check` | Runs the README code blocks against `dist`. |
 | `npm run website` | Builds color2k.com, `llms.txt` and `llms-full.txt` into `build`. |
 | `npm run check` | All of the above, plus lint and package checks. |
@@ -66,6 +66,16 @@ live in `docs/readme` and are drawn by `scripts/readme-assets.js` using
 color2k. A `<!-- RESULT: kind expression -->` marker under a code block draws
 that block's result, with the expression evaluated in the block's scope. Run
 `npm run docs:generate` after changing a recipe, and commit the SVGs.
+
+**Sizes are measured.** `scripts/sizes.js` bundles each export with Rollup,
+minifies it with Terser and gzips it, and writes `docs/sizes.json`. The README
+table and the website read that file, and the docs build fails if the total no
+longer rounds to the 2.4 kB the copy claims.
+
+**Write like a person.** Docs and site copy should sound like a sharp
+colleague explaining something: plain words, real numbers, short sentences.
+No italics, exclamation marks or em-dash asides, and no claim you have not
+run.
 
 **Test behavior.** Add or update tests next to the code you change.
 

@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="color2k">
-<defs><g id="b"><path transform="translate(0 0)" d="M10 0L48 0L58 10L58 38L30 64L58 64L58 84L0 84L0 58L38 30L38 20L20 20L20 30L0 30L0 10Z"/><path transform="translate(66 0)" d="M0 6L6 0L20 0L20 84L0 84ZM19 40L33 24L60 24L19 74ZM33 84L60 84L39 45L19 62Z"/></g><clipPath id="k"><path transform="translate(0 0)" d="M10 0L48 0L58 10L58 38L30 64L58 64L58 84L0 84L0 58L38 30L38 20L20 20L20 30L0 30L0 10Z"/><path transform="translate(66 0)" d="M0 6L6 0L20 0L20 84L0 84ZM19 40L33 24L60 24L19 74ZM33 84L60 84L39 45L19 62Z"/></clipPath></defs>
+<defs><g id="b"><path d="M10 0L48 0L58 10L58 38L30 64L58 64L58 84L0 84L0 58L38 30L38 20L20 20L20 30L0 30L0 10Z"/><path transform="translate(66 0)" d="M0 6L6 0L20 0L20 84L0 84ZM19 40L33 24L60 24L19 74ZM33 84L60 84L39 45L19 62Z"/></g><clipPath id="k"><path d="M10 0L48 0L58 10L58 38L30 64L58 64L58 84L0 84L0 58L38 30L38 20L20 20L20 30L0 30L0 10Z"/><path transform="translate(66 0)" d="M0 6L6 0L20 0L20 84L0 84ZM19 40L33 24L60 24L19 74ZM33 84L60 84L39 45L19 62Z"/></clipPath></defs>
 <rect width="160" height="160" rx="34" fill="#10131f"/>
-<g transform="translate(22.8 35.2) scale(1.02) skewX(-12)">
-<use href="#b" transform="translate(6 6)" fill="#000" opacity=".55"/>
-<g clip-path="url(#k)"><rect x="-10" y="0.0" width="146" height="17.3" fill="#ff3b5c"/><rect x="-10" y="16.8" width="146" height="17.3" fill="#ff9f1c"/><rect x="-10" y="33.6" width="146" height="17.3" fill="#ffd60a"/><rect x="-10" y="50.4" width="146" height="17.3" fill="#2ec4b6"/><rect x="-10" y="67.2" width="146" height="17.3" fill="#5e60ce"/></g>
+<g transform="translate(23.1 34.9) scale(0.98) skewX(-12)">
+<g fill="#4a35e8"><use href="#b" transform="translate(8 8)" /><use href="#b" transform="translate(7 7)" /><use href="#b" transform="translate(6 6)" /><use href="#b" transform="translate(5 5)" /><use href="#b" transform="translate(4 4)" /><use href="#b" transform="translate(3 3)" /><use href="#b" transform="translate(2 2)" /><use href="#b" transform="translate(1 1)" /></g>
+<g clip-path="url(#k)"><rect x="-10" y="0.0" width="146" height="17.3" fill="#ff2d6f"/><rect x="-10" y="16.8" width="146" height="17.3" fill="#ff9500"/><rect x="-10" y="33.6" width="146" height="17.3" fill="#ffe100"/><rect x="-10" y="50.4" width="146" height="17.3" fill="#00dcc0"/><rect x="-10" y="67.2" width="146" height="17.3" fill="#6a5cff"/></g>
 </g>
 </svg>

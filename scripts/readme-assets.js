@@ -21,7 +21,7 @@ const SANS =
 const MONO =
   "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace";
 const INK = '#10131f';
-const STRIPES = ['#ff3b5c', '#ff9f1c', '#ffd60a', '#2ec4b6', '#5e60ce'];
+const STRIPES = ['#ff2d6f', '#ff9500', '#ffe100', '#00dcc0', '#6a5cff'];
 
 const escapeXml = (value) =>
   String(value)
@@ -242,6 +242,78 @@ const renderers = {
     );
   },
 
+  // `{ light, dark, build }`: a theme in both modes, and the function that
+  // made it. The function is swept through a few hundred colors first, so the
+  // README can promise its text pairs always pass AA.
+  theme(value, id) {
+    const pairs = [
+      ['text', 'bg'],
+      ['muted', 'bg'],
+      ['onSurface', 'surface'],
+      ['onAccent', 'accent'],
+      ['onAccent', 'accentHover'],
+      ['onSoft', 'soft'],
+    ];
+    const sweep = ['white', 'black', '#808080', 'gold', 'tomato', '#ffd1e8'];
+    for (let hue = 0; hue < 360; hue += 2) {
+      for (const [saturation, lightness] of [[1, 0.5], [0.7, 0.6], [0.5, 0.3], [0.9, 0.85]]) {
+        sweep.push(c.toHex(c.hsla(hue, saturation, lightness, 1)));
+      }
+    }
+    for (const color of sweep) {
+      for (const dark of [false, true]) {
+        const tokens = value.build(color, dark);
+        Object.values(tokens).forEach((token) => c.parseToRgba(token));
+        for (const [front, back] of pairs) {
+          if (c.hasBadContrast(tokens[front], 'aa', tokens[back])) {
+            throw new Error(
+              `${id}: ${front} on ${back} fails AA for ${color}${dark ? ' (dark)' : ''}`
+            );
+          }
+        }
+      }
+    }
+
+    const width = 412;
+    const height = 168;
+    const gap = 16;
+    const panel = (tokens, x, name) =>
+      [
+        `<g transform="translate(${x} 0)">`,
+        `<rect x="0.5" y="0.5" width="${width - 1}" height="${height - 1}" rx="14" fill="${tokens.bg}" stroke="#808080" stroke-opacity="0.35"/>`,
+        `<circle cx="${width - 34}" cy="34" r="14" fill="${tokens.extra}"/>`,
+        `<circle cx="${width - 54}" cy="34" r="14" fill="${tokens.accent}"/>`,
+        `<text x="20" y="40" font-size="22" font-weight="800" fill="${tokens.text}">${name}</text>`,
+        `<text x="20" y="62" font-size="12" fill="${tokens.muted}">Muted text on the background</text>`,
+        `<rect x="20" y="78" width="62" height="24" rx="12" fill="${tokens.soft}"/>`,
+        `<text x="51" y="94" font-size="11" font-weight="700" text-anchor="middle" fill="${tokens.onSoft}">Chip</text>`,
+        `<rect x="20.5" y="114.5" width="${width - 41}" height="38" rx="9" fill="${tokens.surface}" stroke="${tokens.border}"/>`,
+        `<text x="34" y="138" font-size="12" font-weight="600" fill="${tokens.onSurface}">Text on a card</text>`,
+        `<rect x="${width - 196}" y="118" width="80" height="31" rx="8" fill="${escapeXml(tokens.ring)}"/>`,
+        `<rect x="${width - 193}" y="121" width="74" height="25" rx="6" fill="${tokens.accent}"/>`,
+        `<text x="${width - 156}" y="138" font-size="11" font-weight="700" text-anchor="middle" fill="${tokens.onAccent}">Focus</text>`,
+        `<rect x="${width - 106}" y="121" width="74" height="25" rx="6" fill="${tokens.accentHover}"/>`,
+        `<text x="${width - 69}" y="138" font-size="11" font-weight="700" text-anchor="middle" fill="${tokens.onAccent}">Hover</text>`,
+        '</g>',
+      ].join('');
+    const alt = ['light', 'dark']
+      .flatMap((mode) =>
+        Object.entries(value[mode]).map(([name, token]) => `${mode} ${name}: ${token}`)
+      )
+      .join('; ');
+
+    return {
+      alt,
+      svg: svg(
+        id,
+        width * 2 + gap,
+        height,
+        alt,
+        panel(value.light, 0, 'Light') + panel(value.dark, width + gap, 'Dark')
+      ),
+    };
+  },
+
   // An array of `[input, boolean]`.
   checks(value, id) {
     const cellHeight = 44;
@@ -274,6 +346,56 @@ const renderers = {
     return { alt, svg: svg(id, layout.width, layout.height, alt, body) };
   },
 };
+
+const SIZES_START = '<!-- SIZES-START -->';
+const SIZES_END = '<!-- SIZES-END -->';
+
+const formatBytes = (bytes) =>
+  bytes < 1000 ? `${bytes} B` : `${(bytes / 1000).toFixed(2)} kB`;
+
+/** The "What it costs" table, from the measurements in docs/sizes.json. */
+function generateSizes(readme) {
+  const start = readme.indexOf(SIZES_START);
+  const end = readme.indexOf(SIZES_END);
+  if (start === -1 || end < start) throw new Error(`README.md is missing ${SIZES_START}`);
+
+  const sizes = JSON.parse(
+    fs.readFileSync(path.resolve(root, 'docs/sizes.json'), 'utf8')
+  );
+  if ((sizes.all / 1000).toFixed(1) !== '2.4') {
+    throw new Error(
+      `The bundle is ${formatBytes(sizes.all)} now. Update every "2.4 kB" in the README, website and package.json.`
+    );
+  }
+
+  const entries = Object.entries(sizes.exports).sort(
+    (one, other) => other[1] - one[1] || one[0].localeCompare(other[0])
+  );
+  const columns = 3;
+  const rows = Math.ceil(entries.length / columns);
+  const table = [
+    `| ${Array(columns).fill('Import | Alone').join(' | ')} |`,
+    `| ${Array(columns).fill('--- | ---').join(' | ')} |`,
+    ...Array.from({ length: rows }, (_, row) => {
+      const cells = Array.from({ length: columns }, (_, column) => {
+        const entry = entries[column * rows + row];
+        return entry ? `\`${entry[0]}\` | ${formatBytes(entry[1])}` : ' | ';
+      });
+      return `| ${cells.join(' | ')} |`;
+    }),
+  ];
+  const block = [
+    SIZES_START,
+    `All ${entries.length} exports together are **${formatBytes(sizes.all)}**, minified and gzipped. Import one and this is what lands in your bundle:`,
+    '',
+    ...table,
+    '',
+    `The parser is about ${(sizes.exports.parseToRgba / 1000).toFixed(1)} kB and nearly every function needs it. So the first import costs the most, and each one after it adds very little. \`scripts/sizes.js\` measures these with Rollup, Terser and gzip, and CI fails if they change without the table.`,
+    SIZES_END,
+  ].join('\n');
+
+  return readme.slice(0, start) + block + readme.slice(end + SIZES_END.length);
+}
 
 const RESULT_START = /^<!-- RESULT: (\w+) (.+) -->$/;
 const RESULT_END = '<!-- RESULT-END -->';
@@ -479,7 +601,10 @@ function generateBanner() {
     .replace(/<title[^>]*>.*?<\/title>/, '')
     .replace(/<\/svg>\s*$/, '');
   const label =
-    'color2k: color parsing and manipulation in 2.4 kB. A palette generated by color2k shifts through the color wheel.';
+    'color2k. Every color job your UI needs, in 2.4 kB. A palette computed by color2k drifts around the color wheel.';
+  const [, logoWidth, logoHeight] = /viewBox="0 0 (\d+) (\d+)"/.exec(
+    fs.readFileSync(path.resolve(root, 'website/static/logo.svg'), 'utf8')
+  );
 
   return [
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeXml(
@@ -488,8 +613,8 @@ function generateBanner() {
     `<style>${keyframes.join('')}${rules.join('')}</style>`,
     '<defs>',
     `<clipPath id="card"><rect width="${width}" height="${height}" rx="28"/></clipPath>`,
-    '<radialGradient id="glow1" cx="0.9" cy="-0.1" r="0.8"><stop offset="0" stop-color="#5e60ce" stop-opacity="0.5"/><stop offset="1" stop-color="#5e60ce" stop-opacity="0"/></radialGradient>',
-    '<radialGradient id="glow2" cx="0" cy="1.1" r="0.7"><stop offset="0" stop-color="#ff3b5c" stop-opacity="0.3"/><stop offset="1" stop-color="#ff3b5c" stop-opacity="0"/></radialGradient>',
+    '<radialGradient id="glow1" cx="0.9" cy="-0.1" r="0.8"><stop offset="0" stop-color="#6a5cff" stop-opacity="0.5"/><stop offset="1" stop-color="#6a5cff" stop-opacity="0"/></radialGradient>',
+    '<radialGradient id="glow2" cx="0" cy="1.1" r="0.7"><stop offset="0" stop-color="#ff2d6f" stop-opacity="0.3"/><stop offset="1" stop-color="#ff2d6f" stop-opacity="0"/></radialGradient>',
     '</defs>',
     '<g clip-path="url(#card)">',
     `<rect width="${width}" height="${height}" fill="${INK}"/>`,
@@ -500,14 +625,16 @@ function generateBanner() {
         `<rect x="${(index * width) / 5}" y="${height - 12}" width="${width / 5}" height="12" fill="${stripe}"/>`
     ),
     '</g>',
-    `<svg x="46" y="52" width="414" height="108" viewBox="0 0 460 120">${logo}</svg>`,
-    '<text x="60" y="226" font-size="34" font-weight="800" font-style="italic" fill="#fff">Color parsing and</text>',
-    '<text x="60" y="270" font-size="34" font-weight="800" font-style="italic" fill="#fff">manipulation in 2.4 kB.</text>',
+    `<svg x="46" y="48" width="430" height="${Math.round(
+      (430 * logoHeight) / logoWidth
+    )}" viewBox="0 0 ${logoWidth} ${logoHeight}">${logo}</svg>`,
+    '<text x="60" y="228" font-size="35" font-weight="800" letter-spacing="-0.6" fill="#fff">Every color job your UI</text>',
+    '<text x="60" y="272" font-size="35" font-weight="800" letter-spacing="-0.6" fill="#fff">needs, in 2.4 kB.</text>',
     '<rect x="60" y="312" width="212" height="50" rx="11" fill="#fff" fill-opacity="0.08" stroke="#fff" stroke-opacity="0.2"/>',
     `<text x="80" y="343" font-family="${MONO}" font-size="18" fill="#fff"><tspan fill="#8d94aa">$ </tspan>npm i color2k</text>`,
-    '<text x="296" y="343" font-size="17" fill="#a2a9bd">Zero dependencies</text>',
+    '<text x="296" y="343" font-size="17" fill="#a2a9bd">No dependencies</text>',
     `<rect class="base" x="632" y="52" width="522" height="92" rx="14" fill="${bases[0]}"/>`,
-    `<text class="ink" x="656" y="96" font-size="26" font-weight="800" font-style="italic" fill="${inks[0]}">Always readable</text>`,
+    `<text class="ink" x="656" y="96" font-size="26" font-weight="800" letter-spacing="-0.4" fill="${inks[0]}">Always readable</text>`,
     `<text class="ink" x="656" y="123" font-family="${MONO}" font-size="14" fill="${inks[0]}">readableColor(background)</text>`,
     ...samples.map(
       ({ text }, second) =>
@@ -527,7 +654,7 @@ function main() {
   }
 
   const current = fs.readFileSync(readmePath, 'utf8');
-  const { files, readme } = generateResults(current);
+  const { files, readme } = generateResults(generateSizes(current));
   files['banner.svg'] = generateBanner();
 
   const existing = fs.existsSync(assetDir) ? fs.readdirSync(assetDir) : [];
