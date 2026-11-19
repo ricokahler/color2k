@@ -311,7 +311,7 @@ const variables = Object.entries(brand)
 
 ### CSS-in-JS
 
-color2k was built for this. Every function returns a plain CSS color string, so results drop straight into a template.
+color2k was built for this. The functions that adjust, mix and convert colors return plain CSS color strings, so their results drop straight into a template.
 
 ```jsx
 import styled from 'styled-components';
@@ -478,7 +478,7 @@ Whitespace around a color is ignored. A string in none of these forms throws a `
 | Hex string | `toHex` |
 | `'#000'` or `'#fff'` | `readableColor` |
 
-Results can be passed back in, so wrap one in `toHex`, `toRgba` or `toHsla` to get the format you want. The exception is `adjustHue` with negative degrees; see [Known edges](#known-edges).
+These strings can be passed back in, so wrap one in `toHex`, `toRgba` or `toHsla` to get the format you want. The one exception is an `adjustHue` result with a negative hue; see [Known edges](#known-edges). The other functions return numbers, tuples, booleans or, for `getScale`, a function.
 
 Not supported yet:
 
@@ -489,7 +489,7 @@ Not supported yet:
 ### Known edges
 
 - `hsla()` output is rounded to whole degrees and percents, so converting to HSL and back can move a channel by a step or two. `toHex(lighten('#ffb537', 0))` is `#ffb638`. Keep the original string when you need the exact color back.
-- `adjustHue` with negative degrees returns a negative hue, such as `hsla(-120, 100%, 50%, 1)`. Browsers accept that, but color2k throws a `ColorError` if you pass it back in, so the result does not round-trip. This is a known bug. Until it is fixed, use the positive angle: `adjustHue(color, 240)`.
+- `adjustHue` does not wrap a hue that goes below 0. When the color's own hue plus the degrees is negative, the result has a negative hue: `adjustHue('red', -120)` is `hsla(-120, 100%, 50%, 1)`. Browsers accept that, but color2k throws a `ColorError` if you pass it back in. `adjustHue('blue', -120)` is fine, because blue's hue is 240. This is a known bug. Until it is fixed, add 360 to a negative angle: `adjustHue('red', 240)`.
 - Out-of-range numbers are not clamped on the way in. `rgb(999, 0, 0)` parses as written, and `getContrast` or `getLuminance` on it return numbers outside their normal range.
 - Contrast functions ignore alpha. Flatten a see-through color onto its background first, as the `accessible` recipe does.
 - `mix` always returns an `rgba()` string, even at the ends. `mix('red', 'blue', 0)` is `'rgba(255, 0, 0, 1)'`, not `'red'`.
@@ -506,16 +506,16 @@ Both are generated from the README and the JSDoc comments in `src`, and the same
 
 <!-- AGENT-NOTES-START -->
 - Install with `npm i color2k`. Use named imports: `import { darken, toHex } from 'color2k'`. There is no default export and no chaining.
-- Colors are CSS strings, in and out. Inputs can be hex (3, 4, 6 or 8 digits), comma-separated `rgb()`, `rgba()`, `hsl()` or `hsla()`, a named color, or `transparent`.
+- Colors go in as CSS strings, and functions that produce a color return a CSS string. Inputs can be hex (3, 4, 6 or 8 digits), comma-separated `rgb()`, `rgba()`, `hsl()` or `hsla()`, a named color, or `transparent`.
 - Amounts are decimals from 0 to 1 and are absolute. `darken(color, 0.1)` lowers lightness by 10 percentage points. It is not a 10% relative change.
-- `darken`, `lighten`, `saturate`, `desaturate` and `adjustHue` return `hsla()` strings. `transparentize`, `opacify`, `mix` and `getScale` return `rgba()` strings. Wrap a result in `toHex` when you need hex.
+- `darken`, `lighten`, `saturate`, `desaturate` and `adjustHue` return `hsla()` strings. `transparentize`, `opacify` and `mix` return `rgba()` strings, and so does the function `getScale` gives you. Wrap a result in `toHex` when you need hex.
 - `mix(color1, color2, weight)`: weight 0 gives `color1` and weight 1 gives `color2`, always as an `rgba()` string.
-- `getScale('red', 'yellow', 'green')` takes colors as separate arguments, not an array, and returns a function of a number from 0 to 1.
+- `getScale('red', 'yellow', 'green')` takes colors as separate arguments, not an array, and returns a function, not a color: call it with a number from 0 to 1.
 - `readableColor(background)` returns `'#000'` or `'#fff'`. `hasBadContrast(color, standard = 'aa', background = '#fff')` returns `true` when contrast is too low.
 - A string color2k can't parse throws a `ColorError`. Space-separated `rgb(0 0 0 / 50%)`, percentage alpha, `oklch()`, `lab()` and `color()` are not supported.
 - Parsing is loose and is not validation: `rgb(999, 0, 0)` is accepted as written and not clamped, and about 3% of made-up color names parse as some color. Validate user input before passing it in.
 - `getContrast`, `hasBadContrast` and `readableColor` ignore alpha. Flatten a see-through color onto its background before measuring.
-- Pass positive degrees to `adjustHue` (240, not -120). With negative degrees the result has a negative hue, which color2k throws on if you pass it back in (a known bug).
+- `adjustHue` does not wrap hues below 0. If the color's hue plus the degrees is negative (`adjustHue('red', -120)`), the result is `hsla(-120, ...)`, which color2k throws on if you pass it back in (a known bug). Add 360 to a negative angle to avoid it.
 - sRGB only. There are no CMYK, LAB or wide-gamut conversions.
 <!-- AGENT-NOTES-END -->
 
@@ -596,9 +596,11 @@ function adjustHue(color: string, degrees: number): string
 Rotates a color's hue by the given number of degrees and returns the result
 as an `hsla` string.
 
-A hue past 360 wraps around the color wheel. A hue below 0 is not wrapped:
-`adjustHue('red', -120)` returns `hsla(-120, 100%, 50%, 1)`, which browsers
-understand but color2k cannot parse again, so prefer positive degrees.
+A hue past 360 wraps around the color wheel. A hue below 0 does not: when
+the color's own hue plus `degrees` is negative, the result has a negative
+hue. `adjustHue('red', -120)` returns `hsla(-120, 100%, 50%, 1)`, which
+browsers understand but color2k cannot parse again. `adjustHue('blue', -120)`
+is fine, because blue's hue is 240.
 
 ```js
 adjustHue('red', 180); // 'hsla(180, 100%, 50%, 1)'
@@ -983,10 +985,11 @@ Parses a color into red, green, blue, and alpha channel values.
 
 Reads hex (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`), comma-separated
 `rgb()`, `rgba()`, `hsl()` and `hsla()`, CSS named colors, and
-`transparent`. A string in none of these forms throws a `ColorError`.
+`transparent`.
 
-This is a lenient parser, not a validator. Color names are matched by hash,
-so about 3% of made-up names are read as some color instead of throwing.
+This is a lenient parser, not a validator. Most strings in none of these
+forms throw a `ColorError`, but not all: color names are matched by hash,
+so about 3% of made-up, letters-only names are read as some color instead.
 The numbers in `rgb()` and the alpha value are returned as written, without
 clamping: `rgb(999, 0, 0)` gives `[999, 0, 0, 1]`.
 
