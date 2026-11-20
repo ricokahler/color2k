@@ -17,6 +17,8 @@ import guard from './guard';
  * console.log(scale(1)); // rgba(0, 128, 0, 1)
  * ```
  *
+ * With a single color, the scale always returns that color.
+ *
  * If you'd like to limit the domain and range like chroma-js, we recommend
  * wrapping scale again.
  *
@@ -42,7 +44,8 @@ function getScale(...colors: string[]): (n: number) => string {
     const color2 = colors[highIndex];
 
     const unit = 1 / lastIndex;
-    const weight = (n - unit * lowIndex) / unit;
+    // a single color has no second color to move toward
+    const weight = lastIndex ? (n - unit * lowIndex) / unit : 0;
 
     return mix(color1, color2, weight);
   };

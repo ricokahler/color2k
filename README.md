@@ -45,19 +45,19 @@ You have a brand color. You need its hover state, a faded version for the focus 
 ### What it costs
 
 <!-- SIZES-START -->
-All 25 exports together are **2.46 kB**, minified and gzipped. Import one and this is what lands in your bundle:
+All 25 exports together are **2.48 kB**, minified and gzipped. Import one and this is what lands in your bundle:
 
 | Import | Alone | Import | Alone | Import | Alone |
 | --- | --- | --- | --- | --- | --- |
-| `getScale` | 1.69 kB | `mix` | 1.63 kB | `transparentize` | 1.53 kB |
-| `complement` | 1.68 kB | `getContrast` | 1.58 kB | `toRgba` | 1.52 kB |
-| `saturate` | 1.67 kB | `invert` | 1.58 kB | `parseToRgba` | 1.46 kB |
-| `lighten` | 1.67 kB | `parseToHsla` | 1.58 kB | `hsla` | 292 B |
-| `adjustHue` | 1.66 kB | `readableColor` | 1.58 kB | `rgba` | 283 B |
-| `desaturate` | 1.66 kB | `readableColorIsBlack` | 1.57 kB | `ColorError` | 249 B |
-| `darken` | 1.65 kB | `getLuminance` | 1.55 kB | `guard` | 227 B |
-| `hasBadContrast` | 1.65 kB | `opacify` | 1.54 kB |  |  |
-| `toHsla` | 1.65 kB | `toHex` | 1.54 kB |  |  |
+| `getScale` | 1.70 kB | `mix` | 1.63 kB | `transparentize` | 1.53 kB |
+| `complement` | 1.69 kB | `getContrast` | 1.58 kB | `toRgba` | 1.52 kB |
+| `lighten` | 1.68 kB | `invert` | 1.58 kB | `parseToRgba` | 1.46 kB |
+| `saturate` | 1.68 kB | `parseToHsla` | 1.58 kB | `hsla` | 312 B |
+| `desaturate` | 1.67 kB | `readableColor` | 1.58 kB | `rgba` | 283 B |
+| `adjustHue` | 1.67 kB | `readableColorIsBlack` | 1.57 kB | `ColorError` | 249 B |
+| `darken` | 1.67 kB | `getLuminance` | 1.55 kB | `guard` | 227 B |
+| `toHsla` | 1.66 kB | `opacify` | 1.54 kB |  |  |
+| `hasBadContrast` | 1.65 kB | `toHex` | 1.54 kB |  |  |
 
 The parser is about 1.5 kB and nearly every function needs it. So the first import costs the most, and each one after it adds very little. `scripts/sizes.js` measures these with Rollup, Terser and gzip, and CI fails if they change without the table.
 <!-- SIZES-END -->
@@ -1067,6 +1067,8 @@ console.log(scale(0.5)); // rgba(255, 255, 0, 1)
 console.log(scale(1)); // rgba(0, 128, 0, 1)
 ```
 
+With a single color, the scale always returns that color.
+
 If you'd like to limit the domain and range like chroma-js, we recommend
 wrapping scale again.
 
@@ -1125,7 +1127,9 @@ function hasBadContrast(color: string, standard: 'decorative' | 'readable' | 'aa
 
 Returns whether a color fails a contrast threshold against a background.
 
-The supported standards are `decorative`, `readable`, `aa`, and `aaa`.
+The standards and the minimum contrast ratio each one needs are `decorative`
+(1.5), `readable` (3), `aa` (4.5), and `aaa` (7). By default the color is
+checked against `aa` on a white (`#fff`) background.
 
 ```js
 hasBadContrast('red', 'aa'); // true
@@ -1136,8 +1140,8 @@ hasBadContrast('red', 'aa'); // true
 | Name | Type | Description |
 | --- | --- | --- |
 | `color` | `string` | The foreground color. |
-| `standard` | `'decorative' \| 'readable' \| 'aa' \| 'aaa' = 'aa'` | The contrast standard to test against. |
-| `background` | `string = '#fff'` | The background color. |
+| `standard` | `'decorative' \| 'readable' \| 'aa' \| 'aaa' = 'aa'` | The contrast standard to test against. Defaults to `aa`. |
+| `background` | `string = '#fff'` | The background color. Defaults to `#fff`. |
 
 #### Returns
 
@@ -1162,7 +1166,7 @@ hsla(0, 1, 0.5, 1); // 'hsla(0, 100%, 50%, 1)'
 
 | Name | Type | Description |
 | --- | --- | --- |
-| `hue` | `number` | The color wheel angle from 0 to 360. |
+| `hue` | `number` | The color wheel angle in degrees. Any value wraps into 0 to 360. |
 | `saturation` | `number` | The saturation as a decimal between 0 and 1. |
 | `lightness` | `number` | The lightness as a decimal between 0 and 1. |
 | `alpha` | `number` | The opacity as a decimal between 0 and 1. |
@@ -1309,7 +1313,7 @@ parseToHsla('red'); // [0, 1, 0.5, 1]
 
 #### Returns
 
-`[number, number, number, number]` - A tuple of hue, saturation, lightness, and alpha values.
+`[number, number, number, number]` - A tuple in the order `[hue, saturation, lightness, alpha]`.
 
 [Source](https://github.com/ricokahler/color2k/blob/main/src/parseToHsla.ts)
 
@@ -1343,7 +1347,7 @@ parseToRgba('rgba(255, 0, 0, 0.5)'); // [255, 0, 0, 0.5]
 
 #### Returns
 
-`[number, number, number, number]` - A tuple of red, green, blue, and alpha channel values.
+`[number, number, number, number]` - A tuple in the order `[red, green, blue, alpha]`.
 
 [Source](https://github.com/ricokahler/color2k/blob/main/src/parseToRgba.ts)
 

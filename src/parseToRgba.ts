@@ -19,7 +19,7 @@ import ColorError from './ColorError';
  * ```
  *
  * @param color The input color.
- * @returns A tuple of red, green, blue, and alpha channel values.
+ * @returns A tuple in the order `[red, green, blue, alpha]`.
  */
 function parseToRgba(color: string): [number, number, number, number] {
   if (typeof color !== 'string') throw new ColorError(color);

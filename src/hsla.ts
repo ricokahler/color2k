@@ -8,7 +8,7 @@ import guard from './guard';
  * hsla(0, 1, 0.5, 1); // 'hsla(0, 100%, 50%, 1)'
  * ```
  *
- * @param hue The color wheel angle from 0 to 360.
+ * @param hue The color wheel angle in degrees. Any value wraps into 0 to 360.
  * @param saturation The saturation as a decimal between 0 and 1.
  * @param lightness The lightness as a decimal between 0 and 1.
  * @param alpha The opacity as a decimal between 0 and 1.
@@ -20,7 +20,10 @@ function hsla(
   lightness: number,
   alpha: number
 ): string {
-  return `hsla(${(hue % 360).toFixed()}, ${guard(
+  // Positive hues are rounded exactly as `hue % 360`. Negative ones are rounded
+  // before 360 is added, so float error from the addition can't move them.
+  const wrapped = hue % 360;
+  return `hsla(${(wrapped < 0 ? Math.round(wrapped) + 360 : wrapped).toFixed()}, ${guard(
     0,
     100,
     saturation * 100

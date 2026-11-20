@@ -1,4 +1,5 @@
 import complement from './complement';
+import adjustHue from './adjustHue';
 import parseToRgba from './parseToRgba';
 
 test('complement red', () => {
@@ -52,4 +53,11 @@ test('every hue parses back to its complement', () => {
     const [r2, g2, b2] = parseToRgba(`hsl(${(hue + 180) % 360}, 100%, 50%)`);
     expect([r, g, b]).toEqual([r2, g2, b2]);
   }
+});
+
+test('complement of a rotated color parses back', () => {
+  const rotated = adjustHue('#336699', -480);
+  expect(parseToRgba(complement(rotated))).toEqual(
+    parseToRgba(complement(adjustHue('#336699', 240)))
+  );
 });

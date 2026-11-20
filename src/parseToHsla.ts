@@ -13,7 +13,7 @@ import parseToRgba from './parseToRgba';
  * ```
  *
  * @param color The input color.
- * @returns A tuple of hue, saturation, lightness, and alpha values.
+ * @returns A tuple in the order `[hue, saturation, lightness, alpha]`.
  */
 function parseToHsla(color: string): [number, number, number, number] {
   const [red, green, blue, alpha] = parseToRgba(color).map((value, index) =>
