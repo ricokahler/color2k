@@ -1,0 +1,40 @@
+name: Bug report
+description: Something in color2k returns the wrong result or throws.
+labels: [bug]
+body:
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Code that shows the problem
+      description: The smallest example you can make. Include the color strings you used.
+      render: js
+      placeholder: |
+        import { darken } from 'color2k';
+
+        darken('#ffb537', 0.1);
+    validations:
+      required: true
+  - type: input
+    id: actual
+    attributes:
+      label: What you got
+    validations:
+      required: true
+  - type: input
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: color2k version
+      placeholder: 2.1.0
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else
+      description: Bundler, runtime, or links that help.

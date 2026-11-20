@@ -6,6 +6,10 @@ import getLuminance from './getLuminance';
  * Returns the contrast ratio between two colors based on the WCAG contrast
  * ratio formula.
  *
+ * The ratio is between 1 and 21 for opaque, in-range colors. Alpha is ignored,
+ * and out-of-range channels such as `rgb(999, 0, 0)` are not clamped, so they
+ * give ratios that mean nothing.
+ *
  * ```js
  * getContrast('#444', '#fff'); // 9.739769120526205
  * ```

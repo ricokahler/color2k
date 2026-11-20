@@ -4,6 +4,9 @@ import guard from './guard';
 /**
  * Returns a scale function that interpolates through a list of colors.
  *
+ * Pass at least two colors. With fewer there is nothing to interpolate
+ * between, and the scale has no colors to return.
+ *
  * The returned function accepts a decimal between 0 and 1 and returns the color
  * at that percentage in the scale.
  *

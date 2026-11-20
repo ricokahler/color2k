@@ -1,0 +1,24 @@
+name: Feature request
+description: Suggest a function or a color format color2k should support.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        color2k stays around 2.5 kB on purpose, so features are weighed against the bytes they add. A concrete use case helps a lot.
+  - type: textarea
+    id: use-case
+    attributes:
+      label: What are you trying to do?
+    validations:
+      required: true
+  - type: textarea
+    id: api
+    attributes:
+      label: What would the code look like?
+      render: js
+  - type: textarea
+    id: workaround
+    attributes:
+      label: How do you work around it today?
+      description: Many jobs are a few lines with the existing functions. See the recipes at https://color2k.com/#recipes.

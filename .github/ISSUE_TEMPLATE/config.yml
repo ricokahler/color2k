@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation and recipes
+    url: https://color2k.com
+    about: How to validate, convert, invert and theme with color2k.
+  - name: Report a security issue
+    url: https://github.com/ricokahler/color2k/security/advisories/new
+    about: Please report vulnerabilities privately.

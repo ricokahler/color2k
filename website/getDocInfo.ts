@@ -9,6 +9,8 @@ export interface DocInfo {
     name: string;
     type: string;
     description: string;
+    /** `true` for a rest parameter such as `...colors`. */
+    rest?: boolean;
   }>;
   returnType: string;
   returnsDescription?: string;
@@ -101,6 +103,7 @@ function getDocInfo(contents: string): DocInfo {
         name,
         type: getParamType(param),
         description,
+        ...(param.dotDotDotToken ? { rest: true } : {}),
       };
     });
   }
@@ -121,7 +124,7 @@ function getDocInfo(contents: string): DocInfo {
     const params = getParams(functionNode.parameters, jsDoc);
     const returnType = functionNode.type.getText(rootNode);
     const signature = `function ${functionName}(${params
-      .map(({ name, type }) => `${name}: ${type}`)
+      .map(({ name, type, rest }) => `${rest ? '...' : ''}${name}: ${type}`)
       .join(', ')}): ${returnType}`;
 
     return {
