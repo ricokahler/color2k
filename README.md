@@ -45,19 +45,19 @@ You have a brand color. You need its hover state, a faded version for the focus 
 ### What it costs
 
 <!-- SIZES-START -->
-All 25 exports together are **2.46 kB**, minified and gzipped. Import one and this is what lands in your bundle:
+All 25 exports together are **2.48 kB**, minified and gzipped. Import one and this is what lands in your bundle:
 
 | Import | Alone | Import | Alone | Import | Alone |
 | --- | --- | --- | --- | --- | --- |
-| `getScale` | 1.69 kB | `mix` | 1.63 kB | `transparentize` | 1.53 kB |
-| `complement` | 1.68 kB | `getContrast` | 1.58 kB | `toRgba` | 1.52 kB |
-| `saturate` | 1.67 kB | `invert` | 1.58 kB | `parseToRgba` | 1.46 kB |
-| `lighten` | 1.67 kB | `parseToHsla` | 1.58 kB | `hsla` | 292 B |
-| `adjustHue` | 1.66 kB | `readableColor` | 1.58 kB | `rgba` | 283 B |
-| `desaturate` | 1.66 kB | `readableColorIsBlack` | 1.57 kB | `ColorError` | 249 B |
-| `darken` | 1.65 kB | `getLuminance` | 1.55 kB | `guard` | 227 B |
-| `hasBadContrast` | 1.65 kB | `opacify` | 1.54 kB |  |  |
-| `toHsla` | 1.65 kB | `toHex` | 1.54 kB |  |  |
+| `getScale` | 1.70 kB | `mix` | 1.63 kB | `transparentize` | 1.53 kB |
+| `complement` | 1.69 kB | `getContrast` | 1.58 kB | `toRgba` | 1.52 kB |
+| `lighten` | 1.68 kB | `invert` | 1.58 kB | `parseToRgba` | 1.46 kB |
+| `saturate` | 1.68 kB | `parseToHsla` | 1.58 kB | `hsla` | 312 B |
+| `desaturate` | 1.67 kB | `readableColor` | 1.58 kB | `rgba` | 283 B |
+| `adjustHue` | 1.67 kB | `readableColorIsBlack` | 1.57 kB | `ColorError` | 249 B |
+| `darken` | 1.67 kB | `getLuminance` | 1.55 kB | `guard` | 227 B |
+| `toHsla` | 1.66 kB | `opacify` | 1.54 kB |  |  |
+| `hasBadContrast` | 1.65 kB | `toHex` | 1.54 kB |  |  |
 
 The parser is about 1.5 kB and nearly every function needs it. So the first import costs the most, and each one after it adds very little. `scripts/sizes.js` measures these with Rollup, Terser and gzip, and CI fails if they change without the table.
 <!-- SIZES-END -->
