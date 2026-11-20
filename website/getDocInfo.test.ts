@@ -89,3 +89,14 @@ test('all public exports have complete docs', () => {
     }
   }
 });
+
+test('keeps the spread on rest parameters', () => {
+  const doc = readDocInfo(require.resolve('../src/getScale'));
+
+  expect(doc.signature).toBe(
+    'function getScale(...colors: string[]): (n: number) => string'
+  );
+  expect(doc.params).toEqual([
+    expect.objectContaining({ name: 'colors', rest: true }),
+  ]);
+});
